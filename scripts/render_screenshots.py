@@ -92,3 +92,5 @@ render_frame("screenshot_clients.json", "assets/screenshots/clients.png", "mcpfo
 render_frame("screenshot_wizard_catalog.json", "assets/screenshots/catalog.png", "mcpforge — Add MCP Server (Step 2: Curated 110-Server Catalog)")
 render_frame("screenshot_wizard_diff.json", "assets/screenshots/diff_preview.png", "mcpforge — Add MCP Server (Step 4: Unified Atomic Diff Preview)")
 render_frame("screenshot_delete_modal.json", "assets/screenshots/removal_modal.png", "mcpforge — Remove MCP Server Modal")
+render_frame("screenshot_form_builder.json", "assets/screenshots/form_builder.png", "mcpforge — Interactive Schema-Guided Form Builder ([f] key)")
+render_frame("screenshot_backup_modal.json", "assets/screenshots/backup_manager.png", "mcpforge — Configuration Snapshots & Diff Inspector ([b] key)")

@@ -175,5 +175,45 @@ fn main() -> Result<()> {
     dump_frame(&mut app, width, height, "screenshot_delete_modal.json")?;
     println!("Captured screenshot_delete_modal.json");
 
+    // 6. Interactive Schema Form Builder
+    app.delete_state = None;
+    app.current_view = CurrentView::ToolExplorer;
+    let schema = serde_json::json!({
+        "type": "object",
+        "properties": {
+            "thought": { "type": "string", "description": "Your current thinking step" },
+            "nextThoughtNeeded": { "type": "boolean" },
+            "thoughtNumber": { "type": "integer", "minimum": 1 },
+            "totalThoughts": { "type": "integer", "minimum": 1 }
+        },
+        "required": ["thought", "nextThoughtNeeded", "thoughtNumber", "totalThoughts"]
+    });
+    let form_fields = mcpforge::app::init_form_fields_from_schema(Some(&schema));
+    app.tool_explorer_state = Some(mcpforge::app::ToolExplorerState {
+        server_id: "sequentialthinking".to_string(),
+        tools: vec![mcp_core::protocol::ToolDefinition {
+            name: "sequentialthinking".to_string(),
+            description: Some("Dynamic sequential thinking process for reasoning through complex tasks".to_string()),
+            input_schema: Some(schema),
+        }],
+        selected_index: 0,
+        is_loading: false,
+        execution_result: None,
+        error_message: None,
+        params_input: "{}".to_string(),
+        is_editing_params: false,
+        is_form_mode: true,
+        form_fields,
+        form_active_index: 0,
+    });
+    dump_frame(&mut app, width, height, "screenshot_form_builder.json")?;
+    println!("Captured screenshot_form_builder.json");
+
+    // 7. Visual Backup Manager & Diff Inspector
+    app.tool_explorer_state = None;
+    app.open_backup_manager();
+    dump_frame(&mut app, width, height, "screenshot_backup_modal.json")?;
+    println!("Captured screenshot_backup_modal.json");
+
     Ok(())
 }
