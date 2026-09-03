@@ -193,7 +193,10 @@ fn main() -> Result<()> {
         server_id: "sequentialthinking".to_string(),
         tools: vec![mcp_core::protocol::ToolDefinition {
             name: "sequentialthinking".to_string(),
-            description: Some("Dynamic sequential thinking process for reasoning through complex tasks".to_string()),
+            description: Some(
+                "Dynamic sequential thinking process for reasoning through complex tasks"
+                    .to_string(),
+            ),
             input_schema: Some(schema),
         }],
         selected_index: 0,
