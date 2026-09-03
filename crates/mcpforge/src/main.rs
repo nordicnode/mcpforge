@@ -506,6 +506,10 @@ async fn main_loop<B: ratatui::backend::Backend>(
 
                 match app.current_view {
                     CurrentView::Dashboard => match key.code {
+                        KeyCode::Tab | KeyCode::BackTab | KeyCode::Char('2') => {
+                            app.refresh_discovery();
+                            app.current_view = CurrentView::Clients;
+                        }
                         KeyCode::Char('q') | KeyCode::Esc => {
                             app.should_quit = true;
                         }
@@ -568,6 +572,55 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                     .collect();
                                 let _ = app.manager.write_server_to_locations(&server, &locs);
                                 app.refresh_servers();
+                            }
+                        }
+                        _ => {}
+                    },
+
+                    CurrentView::Clients => match key.code {
+                        KeyCode::Char('q') => {
+                            app.should_quit = true;
+                        }
+                        KeyCode::Esc | KeyCode::Tab | KeyCode::BackTab | KeyCode::Char('1') => {
+                            app.current_view = CurrentView::Dashboard;
+                        }
+                        KeyCode::Char('?') => {
+                            app.current_view = CurrentView::Help;
+                        }
+                        KeyCode::Char('j') | KeyCode::Down => {
+                            app.select_next_client();
+                        }
+                        KeyCode::Char('k') | KeyCode::Up => {
+                            app.select_prev_client();
+                        }
+                        KeyCode::Char('r') => {
+                            app.refresh_discovery();
+                            app.status_message =
+                                Some("Refreshed client & process discovery".to_string());
+                        }
+                        KeyCode::Char('u') => {
+                            if let Some(client) = app.selected_client().cloned() {
+                                let all_servers =
+                                    app.manager.read_all_servers().unwrap_or_default();
+                                if let Some(loc) = app
+                                    .detected_clients
+                                    .iter()
+                                    .find(|l| l.path == client.config_path)
+                                    .cloned()
+                                {
+                                    for s in &all_servers {
+                                        let _ = app.manager.write_server_to_locations(
+                                            s,
+                                            std::slice::from_ref(&loc),
+                                        );
+                                    }
+                                    app.refresh_discovery();
+                                    app.status_message = Some(format!(
+                                        "Synced {} servers into {}",
+                                        all_servers.len(),
+                                        client.display_name
+                                    ));
+                                }
                             }
                         }
                         _ => {}

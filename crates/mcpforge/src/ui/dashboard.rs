@@ -14,8 +14,8 @@ pub fn render_dashboard(f: &mut Frame, app: &App) {
     let theme = Theme::default();
     let layout = create_app_layout(f.area());
 
-    // 1. Header
-    render_header(f, app, layout.header, &theme);
+    // 1. Header with Tab Bar
+    crate::ui::clients::render_header_tabs(f, app, layout.header, &theme, 0);
 
     // 2. Main split
     let (left_rect, right_rect) = create_split_main_layout(layout.main);
@@ -24,70 +24,6 @@ pub fn render_dashboard(f: &mut Frame, app: &App) {
 
     // 3. Footer
     render_footer(f, app, layout.footer, &theme);
-}
-
-fn render_header(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
-    let total_clients = app.detected_clients.iter().filter(|c| c.exists).count();
-    let total_servers = app.servers.len();
-    let unhealthy = app
-        .health_cache
-        .values()
-        .filter(|s| {
-            matches!(
-                s,
-                HealthStatus::Broken { .. } | HealthStatus::Degraded { .. }
-            )
-        })
-        .count();
-
-    let mut header_spans = vec![
-        Span::styled(" MCPForge ", theme.title),
-        Span::raw(" │ "),
-        Span::styled(format!("Clients: {} detected", total_clients), theme.header),
-        Span::raw(" │ "),
-        Span::styled(
-            format!("Servers: {}", total_servers),
-            Style::default().fg(Color::White),
-        ),
-    ];
-
-    if unhealthy > 0 {
-        header_spans.push(Span::raw(" │ "));
-        header_spans.push(Span::styled(
-            format!("⚠ {} unhealthy", unhealthy),
-            theme.status_broken,
-        ));
-    }
-
-    if !app.running_processes.is_empty() {
-        header_spans.push(Span::raw(" │ "));
-        header_spans.push(Span::styled(
-            format!("⚡ {} active apps", app.running_processes.len()),
-            Style::default()
-                .fg(Color::Green)
-                .add_modifier(Modifier::BOLD),
-        ));
-    }
-
-    if !app.search_query.is_empty() {
-        header_spans.push(Span::raw(" │ "));
-        header_spans.push(Span::styled(
-            format!("Search: \"{}\"", app.search_query),
-            Style::default().fg(Color::Yellow),
-        ));
-    }
-
-    if let Some(ref msg) = app.status_message {
-        header_spans.push(Span::raw(" │ "));
-        header_spans.push(Span::styled(msg, Style::default().fg(Color::LightCyan)));
-    }
-
-    let header_para = Paragraph::new(Line::from(header_spans)).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(theme.border),
-    );
-    f.render_widget(header_para, area);
 }
 
 fn render_server_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
@@ -401,7 +337,7 @@ fn render_footer(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             app.search_query
         )
     } else {
-        "[a]dd  [u] auto-sync  [d]elete  [r]efresh health  [/]search  [?]help  [q]uit".to_string()
+        "[Tab / 2] Clients View  [a]dd  [u] auto-sync  [d]elete  [r] health  [/]search  [?]help  [q]uit".to_string()
     };
 
     let p = Paragraph::new(text).style(theme.key_hint);

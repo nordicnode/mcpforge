@@ -1,12 +1,15 @@
 use anyhow::Result;
 use mcp_core::types::{HealthStatus, ServerEntry, Transport};
-use mcpforge_adapters::{compute_diff, AdapterManager, ConfigLocation};
+use mcpforge_adapters::{
+    compute_diff, AdapterManager, ConfigLocation, DiscoveredHarness, DiscoveryEngine,
+};
 use mcpforge_registry::Registry;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CurrentView {
     Dashboard,
+    Clients,
     AddWizard,
     Help,
 }
@@ -53,6 +56,8 @@ pub struct App {
     pub should_quit: bool,
     pub status_message: Option<String>,
     pub running_processes: std::collections::HashSet<String>,
+    pub discovered_clients: Vec<DiscoveredHarness>,
+    pub selected_client_index: usize,
 }
 
 impl App {
@@ -61,7 +66,8 @@ impl App {
         let registry = Registry::load().unwrap_or_default();
         let detected_clients = manager.detect_all();
         let servers = manager.read_all_servers().unwrap_or_default();
-        let running_processes = mcpforge_adapters::DiscoveryEngine::scan_running_processes();
+        let running_processes = DiscoveryEngine::scan_running_processes();
+        let discovered_clients = DiscoveryEngine::new().discover_all();
 
         Ok(Self {
             manager,
@@ -77,7 +83,36 @@ impl App {
             should_quit: false,
             status_message: None,
             running_processes,
+            discovered_clients,
+            selected_client_index: 0,
         })
+    }
+
+    pub fn refresh_discovery(&mut self) {
+        self.running_processes = DiscoveryEngine::scan_running_processes();
+        self.discovered_clients = DiscoveryEngine::new().discover_all();
+        self.detected_clients = self.manager.detect_all();
+    }
+
+    pub fn select_next_client(&mut self) {
+        if !self.discovered_clients.is_empty() {
+            self.selected_client_index =
+                (self.selected_client_index + 1) % self.discovered_clients.len();
+        }
+    }
+
+    pub fn select_prev_client(&mut self) {
+        if !self.discovered_clients.is_empty() {
+            if self.selected_client_index == 0 {
+                self.selected_client_index = self.discovered_clients.len() - 1;
+            } else {
+                self.selected_client_index -= 1;
+            }
+        }
+    }
+
+    pub fn selected_client(&self) -> Option<&DiscoveredHarness> {
+        self.discovered_clients.get(self.selected_client_index)
     }
 
     pub fn auto_sync_all(&mut self) -> Result<usize> {
