@@ -521,8 +521,7 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                             match serde_json::from_str(&raw_params) {
                                                 Ok(val) => val,
                                                 Err(err) => {
-                                                    if let Some(ref mut s) =
-                                                        app.tool_explorer_state
+                                                    if let Some(ref mut s) = app.tool_explorer_state
                                                     {
                                                         s.error_message = Some(format!(
                                                             "Invalid JSON parameters: {}",
