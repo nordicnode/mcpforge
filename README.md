@@ -1,4 +1,4 @@
-# MCPForge
+<h1 align="center">MCPForge</h1>
 
 <p align="center">
   <strong>The TUI that discovers every MCP client on your machine and syncs them all.</strong><br>
@@ -58,10 +58,13 @@ As the Model Context Protocol ecosystem has grown, every AI client, autonomous a
 | **Client Process Discovery** | **Live OS process watcher + scanner** | Manual | None |
 | **Client Ecosystem** | **26 Clients (JSON, JSONC, YAML, TOML)** | 1–3 Clients | 1–4 Clients |
 | **Format Preservation** | **Non-destructive AST round-tripping** | Overwrites or clobbers | Clobbers root keys |
+| **Comment Resilience** | **Zero-loss JSONC comment tolerance** | Strips or crashes | Strips or crashes |
 | **Diff Preview** | **Unified color diff before disk write** | None | None |
+| **Configuration Rollback** | **Instant 1-command snapshot restore** | None | None |
+| **Targeted Testing** | **Live handshake sandbox (`mcpforge test`)** | None | None |
 | **Schema Drift Audit** | **`mcpforge verify` built-in** | None | None |
 | **Catalog Provenance** | **110 audited servers with source URL & audit dates** | Unverified / Partial | Unverified |
-| **Self-Healing Doctor** | **Sub-millisecond ping + auto-fix** | Basic ping | None |
+| **Self-Healing Doctor** | **Sub-millisecond ping + safe auto-fix** | Basic ping | None |
 
 ---
 
@@ -72,8 +75,11 @@ As the Model Context Protocol ecosystem has grown, every AI client, autonomous a
 - **110+ Audited MCP Servers with Provenance**: Curated, production-tested MCP servers with upstream source URLs, maintainer attribution, and verification audit timestamps.
 - **Automated Schema Drift Verification**: Built-in schema validator (`mcpforge verify`) detects syntax corruption, missing properties, or format shifts across all 26 clients in local environments and CI pipelines.
 - **Golden-Tested Format Preservation**: Rigorous golden-file round-trip tests and key-preservation property tests guarantee that modifying servers never drops unmanaged configuration keys, comments, or settings.
+- **Comment-Tolerant JSON Parsing**: Comment-resilient parser gracefully reads configs containing `//` or `/* */` comments and trailing commas without configuration loss.
+- **Automated Rollback & Backup Engine**: Every edit automatically creates timestamped backup snapshots. Roll back any client instantaneously with `mcpforge rollback [--client <id>]` or inspect differences with `mcpforge backup diff`.
+- **Targeted Diagnostic Engine (`mcpforge test`)**: Interactively test single servers or raw executable commands with live JSON-RPC handshakes, tool counts, and latency measurements without altering configurations.
+- **Canonical Snippet Inspector**: Press `v` or `Enter` on any server in the dashboard to inspect its formatted canonical configuration snippet directly in an interactive pop-up modal.
 - **Adapter-Accurate Diff Previews**: Every configuration modification is simulated using the target client's actual format engine before touching disk, guaranteeing that existing configurations are never overwritten or corrupted.
-- **Atomic Safety & Backups**: Automatic `.bak` sidecar snapshots are created before any file is updated, with atomic file swap semantics.
 - **Live Telemetry & Diagnostics**: Background ping engine queries stdio subprocesses and HTTP/SSE endpoints with sub-millisecond precision, reporting latency, active tool counts, and server versions.
 - **Interactive Server Removal**: Safely purge servers across all clients at once or interactively pick and choose targets.
 - **Portable Profiles & Packs**: Export your entire multi-tool MCP environment into reproducible portable JSON files and import them on new machines with automated secret resolution.
