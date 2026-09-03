@@ -53,7 +53,7 @@ impl DiscoveryEngine {
 
         // 2. Query pgrep with strict pattern
         if let Ok(output) = std::process::Command::new("pgrep")
-            .args(["-a", "freebuff|codebuff|grok|jcode|opencode|codex|claude|cursor|windsurf|zed|antigravity|goose|librechat|mcphub|anythingllm|idea|pycharm"])
+            .args(["-a", "freebuff|codebuff|grok|jcode|opencode|codex|claude|cursor|windsurf|zed|antigravity|goose|librechat|mcphub|anythingllm|idea|pycharm|hermes|openclaw|deepseek|dsh|prime|letta|memgpt"])
             .output()
         {
             if let Ok(out_str) = String::from_utf8(output.stdout) {
@@ -86,6 +86,11 @@ impl DiscoveryEngine {
             "mcphub" => &["mcp-hub", "nvim"],
             "anythingllm" => &["anythingllm", "anythingllm-desktop"],
             "jetbrains" => &["idea", "pycharm", "webstorm", "clion", "rustrover"],
+            "hermes" => &["hermes"],
+            "openclaw" => &["openclaw"],
+            "deepseek" => &["dsh", "deepseek"],
+            "prime" => &["prime", "prime-agent"],
+            "letta" => &["letta", "memgpt"],
             _ => &[],
         };
 
@@ -174,6 +179,26 @@ impl DiscoveryEngine {
         }
         if name.contains("idea") || name.contains("pycharm") || name.contains("webstorm") {
             set.insert("jetbrains".to_string());
+            return;
+        }
+        if name.contains("hermes") {
+            set.insert("hermes".to_string());
+            return;
+        }
+        if name.contains("openclaw") {
+            set.insert("openclaw".to_string());
+            return;
+        }
+        if name.contains("deepseek") || name == "dsh" {
+            set.insert("deepseek".to_string());
+            return;
+        }
+        if name.contains("prime") {
+            set.insert("prime".to_string());
+            return;
+        }
+        if name.contains("letta") || name.contains("memgpt") {
+            set.insert("letta".to_string());
             return;
         }
 

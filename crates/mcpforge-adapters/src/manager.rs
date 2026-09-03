@@ -11,15 +11,20 @@ use crate::codex::CodexAdapter;
 use crate::continue_dev::ContinueAdapter;
 use crate::cursor::CursorAdapter;
 use crate::custom::CustomHarnessAdapter;
+use crate::deepseek::DeepSeekAdapter;
 use crate::freebuff::FreebuffAdapter;
 use crate::goose::GooseAdapter;
 use crate::grok::GrokAdapter;
+use crate::hermes::HermesAdapter;
 use crate::jcode::JcodeAdapter;
 use crate::jetbrains::JetBrainsAdapter;
+use crate::letta::LettaAdapter;
 use crate::librechat::LibreChatAdapter;
 use crate::manicode::ManicodeAdapter;
 use crate::mcphub::McpHubAdapter;
+use crate::openclaw::OpenClawAdapter;
 use crate::opencode::OpenCodeAdapter;
+use crate::prime::PrimeAdapter;
 use crate::roo_code::RooCodeAdapter;
 use crate::traits::{ClientAdapter, ConfigLocation};
 use crate::vscode::VsCodeAdapter;
@@ -60,6 +65,11 @@ impl AdapterManager {
             Box::new(McpHubAdapter::new()),
             Box::new(AnythingLlmAdapter::new()),
             Box::new(JetBrainsAdapter::new()),
+            Box::new(HermesAdapter::new()),
+            Box::new(OpenClawAdapter::new()),
+            Box::new(DeepSeekAdapter::new()),
+            Box::new(PrimeAdapter::new()),
+            Box::new(LettaAdapter::new()),
             Box::new(CustomHarnessAdapter::load()),
         ];
         Self { adapters }
