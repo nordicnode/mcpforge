@@ -675,6 +675,10 @@ async fn main_loop<B: ratatui::backend::Backend>(
 
                     CurrentView::AddWizard => {
                         let mut step_action = None;
+                        let mut cat_delta = 0i32;
+                        let mut cat_set = None;
+                        let mut item_delta = 0i32;
+
                         if let Some(ref mut wizard) = app.wizard_state {
                             match wizard.step {
                                 WizardStep::SelectSource => match key.code {
@@ -705,15 +709,19 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                 WizardStep::ConfigureServer => match wizard.source {
                                     WizardSource::FromRegistry => match key.code {
                                         KeyCode::Up | KeyCode::Char('k') => {
-                                            if wizard.registry_cursor > 0 {
-                                                wizard.registry_cursor -= 1;
-                                            }
+                                            item_delta = -1;
                                         }
                                         KeyCode::Down | KeyCode::Char('j') => {
-                                            let count = app.registry.entries().len();
-                                            if wizard.registry_cursor + 1 < count {
-                                                wizard.registry_cursor += 1;
-                                            }
+                                            item_delta = 1;
+                                        }
+                                        KeyCode::Tab | KeyCode::Right | KeyCode::Char('l') => {
+                                            cat_delta = 1;
+                                        }
+                                        KeyCode::BackTab | KeyCode::Left | KeyCode::Char('h') => {
+                                            cat_delta = -1;
+                                        }
+                                        KeyCode::Char(c) if ('1'..='8').contains(&c) => {
+                                            cat_set = Some((c as usize) - ('1' as usize));
                                         }
                                         KeyCode::Enter => {
                                             step_action = Some(WizardStep::SelectTargets);
@@ -782,6 +790,20 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                     _ => {}
                                 },
                             }
+                        }
+
+                        if cat_delta == 1 {
+                            app.next_registry_category();
+                        } else if cat_delta == -1 {
+                            app.prev_registry_category();
+                        } else if let Some(idx) = cat_set {
+                            app.set_registry_category(idx);
+                        }
+
+                        if item_delta == 1 {
+                            app.next_registry_item();
+                        } else if item_delta == -1 {
+                            app.prev_registry_item();
                         }
 
                         if let Some(next_step) = step_action {

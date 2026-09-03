@@ -4,7 +4,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap};
 use ratatui::Frame;
 
-use crate::app::{App, WizardSource, WizardStep};
+use crate::app::{App, WizardSource, WizardStep, CATEGORY_LABELS};
 use crate::ui::theme::Theme;
 
 pub fn render_wizard(f: &mut Frame, app: &App) {
@@ -14,12 +14,12 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
     };
 
     let theme = Theme::default();
-    let area = centered_rect(85, 85, f.area());
+    let area = centered_rect(88, 88, f.area());
     f.render_widget(Clear, area);
 
     let (step_num, step_title) = match wizard.step {
         WizardStep::SelectSource => (1, "Choose Server Source"),
-        WizardStep::ConfigureServer => (2, "Configure Server & Parameters"),
+        WizardStep::ConfigureServer => (2, "Browse Catalog & Configure Parameters"),
         WizardStep::SelectTargets => (3, "Select Client Targets & Harnesses"),
         WizardStep::PreviewDiff => (4, "Preview Configuration Diff & Apply"),
     };
@@ -41,7 +41,7 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
             let sources = [
                 (
                     "1. Curated MCP Registry Catalog (Recommended)",
-                    "Browse 50+ pre-tested, verified official and community servers with instant auto-config",
+                    "Browse 50+ pre-tested, categorized official and community servers with instant auto-config",
                     WizardSource::FromRegistry,
                 ),
                 (
@@ -103,15 +103,52 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
 
         WizardStep::ConfigureServer => match wizard.source {
             WizardSource::FromRegistry => {
-                let entries = app.registry.entries();
-                let total = entries.len();
-
-                let split = Layout::default()
-                    .direction(Direction::Horizontal)
-                    .constraints([Constraint::Percentage(45), Constraint::Percentage(55)])
+                let cat_chunks = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([
+                        Constraint::Length(3), // Category Bar
+                        Constraint::Min(8),    // Split List & Specs
+                    ])
                     .split(inner);
 
-                // Left: List of Catalog entries
+                // 1. Category Tabs Bar
+                let mut cat_spans = vec![Span::styled(" Categories: ", theme.header)];
+
+                for (idx, label) in CATEGORY_LABELS.iter().enumerate() {
+                    let is_active = idx == wizard.registry_category_index;
+                    let tab_style = if is_active {
+                        Style::default()
+                            .fg(Color::Black)
+                            .bg(Color::Rgb(139, 233, 253))
+                            .add_modifier(Modifier::BOLD)
+                    } else {
+                        Style::default().fg(Color::Rgb(150, 155, 175))
+                    };
+
+                    cat_spans.push(Span::styled(
+                        format!(" [{}] {} ", idx + 1, label),
+                        tab_style,
+                    ));
+                    cat_spans.push(Span::raw(" "));
+                }
+
+                let cat_bar = Paragraph::new(Line::from(cat_spans)).block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .border_type(theme.border_type)
+                        .border_style(theme.border)
+                        .title(" Filter by Category [Press 1-8 or Tab/BackTab to switch] "),
+                );
+                f.render_widget(cat_bar, cat_chunks[0]);
+
+                // 2. Main 2-Column Split: Catalog List (Left) + Inspector Card (Right)
+                let split = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(44), Constraint::Percentage(56)])
+                    .split(cat_chunks[1]);
+
+                let entries = app.filtered_registry_entries();
+                let total = entries.len();
                 let visible_height = (split[0].height as usize).saturating_sub(2).max(1);
                 let (start, end) = crate::ui::layout::calculate_scroll_window(
                     total,
@@ -132,6 +169,16 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                             Style::default().fg(Color::White)
                         };
 
+                        let cat_pill_style = match entry.category.as_str() {
+                            "ai-agent" => Style::default().fg(Color::Rgb(189, 147, 249)),
+                            "dev tools" => Style::default().fg(Color::Rgb(139, 233, 253)),
+                            "data" => Style::default().fg(Color::Rgb(241, 250, 140)),
+                            "web" => Style::default().fg(Color::Rgb(80, 250, 123)),
+                            "git" => Style::default().fg(Color::Rgb(255, 121, 198)),
+                            "cloud" => Style::default().fg(Color::Rgb(255, 184, 108)),
+                            _ => theme.muted,
+                        };
+
                         let line = Line::from(vec![
                             Span::styled(
                                 prefix,
@@ -141,6 +188,7 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                                     theme.muted
                                 },
                             ),
+                            Span::styled(format!("[{}] ", entry.category), cat_pill_style),
                             Span::styled(&entry.name, style),
                             Span::raw(" "),
                             Span::styled(
@@ -152,8 +200,14 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                     })
                     .collect();
 
-                let title = format!(
-                    " Curated Catalog ({}/{}) ",
+                let active_cat_name = CATEGORY_LABELS
+                    .get(wizard.registry_category_index)
+                    .copied()
+                    .unwrap_or("All");
+
+                let list_title = format!(
+                    " {} ({}/{}) ",
+                    active_cat_name,
                     if total > 0 {
                         wizard.registry_cursor + 1
                     } else {
@@ -167,7 +221,7 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                         .borders(Borders::ALL)
                         .border_type(theme.border_type)
                         .border_style(theme.border)
-                        .title(title),
+                        .title(list_title),
                 );
                 f.render_widget(list, split[0]);
 
@@ -194,7 +248,19 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                             format!("id: {}", entry.id),
                             Style::default().fg(Color::Rgb(139, 233, 253)),
                         ),
+                        Span::raw("  "),
+                        Span::styled(
+                            format!("category: {}", entry.category),
+                            Style::default().fg(Color::Rgb(189, 147, 249)),
+                        ),
                     ]));
+
+                    if let Some(ref repo) = entry.official_repo {
+                        details_lines.push(Line::from(vec![
+                            Span::styled("Official Repo: ", theme.header),
+                            Span::styled(repo, Style::default().fg(Color::Rgb(139, 233, 253))),
+                        ]));
+                    }
                     details_lines.push(Line::raw(""));
 
                     details_lines.push(Line::from(vec![Span::styled(
@@ -225,16 +291,24 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                     if !entry.required_env.is_empty() {
                         details_lines.push(Line::raw(""));
                         details_lines.push(Line::from(vec![Span::styled(
-                            "Required Env:",
+                            "Required Environment Variables:",
                             theme.header,
                         )]));
                         for env_key in &entry.required_env {
+                            let is_set = std::env::var(env_key).is_ok();
+                            let (status_icon, status_style, status_note) = if is_set {
+                                ("✓", theme.status_healthy, "detected in shell environment")
+                            } else {
+                                ("⚠️", theme.status_degraded, "not set in current shell")
+                            };
                             details_lines.push(Line::from(vec![
                                 Span::raw("  • "),
+                                Span::styled(format!("{} ", status_icon), status_style),
                                 Span::styled(
                                     env_key,
                                     Style::default().fg(Color::Rgb(241, 250, 140)),
                                 ),
+                                Span::styled(format!(" ({})", status_note), status_style),
                             ]));
                         }
                     }
@@ -243,10 +317,15 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                     details_lines.push(Line::from(vec![
                         Span::styled("Action:      ", theme.header),
                         Span::styled(
-                            "Press [Enter] to select this server and choose target clients.",
+                            "Press [Enter] to choose target clients for this server.",
                             theme.key_shortcut,
                         ),
                     ]));
+                } else {
+                    details_lines.push(Line::from(vec![Span::styled(
+                        "No servers found in this category.",
+                        theme.muted,
+                    )]));
                 }
 
                 let details_p = Paragraph::new(details_lines)
@@ -254,6 +333,7 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                     .wrap(Wrap { trim: false });
                 f.render_widget(details_p, split[1]);
             }
+
             WizardSource::Manual => {
                 let lines = vec![
                     Line::from(vec![Span::styled(
@@ -319,6 +399,7 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                 );
                 f.render_widget(p, inner);
             }
+
             WizardSource::PasteJson => {
                 let mut lines = Vec::new();
                 lines.push(Line::from(vec![Span::styled(
@@ -414,7 +495,7 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                 .collect();
 
             let title = format!(
-                " Target Clients (Selected: {}/{} | Cursor: {}/{}) [j/k: move, Space: toggle, a: all, n: none, Enter: next] ",
+                " Target Clients & Harnesses (Selected: {}/{} | Cursor: {}/{}) [j/k: move, Space: toggle, a: all, n: none, Enter: next] ",
                 selected_count,
                 total,
                 if total > 0 { wizard.target_cursor + 1 } else { 0 },

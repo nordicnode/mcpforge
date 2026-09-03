@@ -1,10 +1,32 @@
 use anyhow::Result;
-use mcp_core::types::{HealthStatus, ServerEntry, Transport};
+use mcp_core::types::{HealthStatus, Scope, ServerEntry, Transport};
 use mcpforge_adapters::{
     compute_diff, AdapterManager, ConfigLocation, DiscoveredHarness, DiscoveryEngine,
 };
-use mcpforge_registry::Registry;
+use mcpforge_registry::{CatalogEntry, Registry};
 use std::collections::BTreeMap;
+
+pub const REGISTRY_CATEGORIES: &[&str] = &[
+    "All",
+    "ai-agent",
+    "dev tools",
+    "data",
+    "web",
+    "git",
+    "cloud",
+    "productivity",
+];
+
+pub const CATEGORY_LABELS: &[&str] = &[
+    "All (52)",
+    "🤖 Agents",
+    "🛠️ Dev Tools",
+    "🗄️ Data & DBs",
+    "🌐 Web",
+    "📦 Git & Code",
+    "☁️ Cloud",
+    "📝 Productivity",
+];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CurrentView {
@@ -34,6 +56,7 @@ pub struct WizardState {
     pub step: WizardStep,
     pub source: WizardSource,
     pub registry_cursor: usize,
+    pub registry_category_index: usize,
     pub server_id: String,
     pub command: String,
     pub args: String,
@@ -214,17 +237,90 @@ impl App {
         }
     }
 
+    pub fn filtered_registry_entries(&self) -> Vec<CatalogEntry> {
+        let all = self.registry.entries();
+        if let Some(ref wizard) = self.wizard_state {
+            let cat = REGISTRY_CATEGORIES
+                .get(wizard.registry_category_index)
+                .copied()
+                .unwrap_or("All");
+            if cat == "All" {
+                all.to_vec()
+            } else {
+                all.iter().filter(|e| e.category == cat).cloned().collect()
+            }
+        } else {
+            all.to_vec()
+        }
+    }
+
+    pub fn next_registry_category(&mut self) {
+        if let Some(ref mut wizard) = self.wizard_state {
+            wizard.registry_category_index =
+                (wizard.registry_category_index + 1) % REGISTRY_CATEGORIES.len();
+            wizard.registry_cursor = 0;
+        }
+    }
+
+    pub fn prev_registry_category(&mut self) {
+        if let Some(ref mut wizard) = self.wizard_state {
+            if wizard.registry_category_index == 0 {
+                wizard.registry_category_index = REGISTRY_CATEGORIES.len() - 1;
+            } else {
+                wizard.registry_category_index -= 1;
+            }
+            wizard.registry_cursor = 0;
+        }
+    }
+
+    pub fn set_registry_category(&mut self, index: usize) {
+        if let Some(ref mut wizard) = self.wizard_state {
+            if index < REGISTRY_CATEGORIES.len() {
+                wizard.registry_category_index = index;
+                wizard.registry_cursor = 0;
+            }
+        }
+    }
+
+    pub fn next_registry_item(&mut self) {
+        let count = self.filtered_registry_entries().len();
+        if let Some(ref mut wizard) = self.wizard_state {
+            if wizard.registry_cursor + 1 < count {
+                wizard.registry_cursor += 1;
+            }
+        }
+    }
+
+    pub fn prev_registry_item(&mut self) {
+        if let Some(ref mut wizard) = self.wizard_state {
+            if wizard.registry_cursor > 0 {
+                wizard.registry_cursor -= 1;
+            }
+        }
+    }
+
     pub fn start_wizard(&mut self) {
-        let locations = self
-            .detected_clients
+        let locations: Vec<(ConfigLocation, bool)> = self
+            .discovered_clients
             .iter()
-            .map(|l| (l.clone(), l.exists))
+            .map(|h| {
+                let loc = ConfigLocation {
+                    client_id: h.id.clone(),
+                    display_name: h.display_name.clone(),
+                    path: h.config_path.clone(),
+                    scope: Scope::Global,
+                    exists: h.is_installed,
+                };
+                let should_select = h.is_installed;
+                (loc, should_select)
+            })
             .collect();
 
         self.wizard_state = Some(WizardState {
             step: WizardStep::SelectSource,
             source: WizardSource::FromRegistry,
             registry_cursor: 0,
+            registry_category_index: 0,
             server_id: String::new(),
             command: String::new(),
             args: String::new(),
@@ -238,11 +334,11 @@ impl App {
     }
 
     pub fn compute_wizard_diff(&mut self) {
+        let entries = self.filtered_registry_entries();
         if let Some(ref mut wizard) = self.wizard_state {
             let mut diffs = String::new();
             let new_server = match wizard.source {
                 WizardSource::FromRegistry => {
-                    let entries = self.registry.entries();
                     if wizard.registry_cursor < entries.len() {
                         let cat_entry = &entries[wizard.registry_cursor];
                         cat_entry.to_server_entry(BTreeMap::new())
@@ -371,6 +467,7 @@ impl App {
     }
 
     pub fn apply_wizard(&mut self) -> Result<()> {
+        let entries = self.filtered_registry_entries();
         let wizard = match self.wizard_state.take() {
             Some(w) => w,
             None => return Ok(()),
@@ -378,7 +475,6 @@ impl App {
 
         let new_server = match wizard.source {
             WizardSource::FromRegistry => {
-                let entries = self.registry.entries();
                 if wizard.registry_cursor < entries.len() {
                     let cat_entry = &entries[wizard.registry_cursor];
                     cat_entry.to_server_entry(BTreeMap::new())

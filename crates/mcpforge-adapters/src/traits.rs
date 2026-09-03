@@ -1,8 +1,9 @@
 use anyhow::Result;
 use mcp_core::types::{Scope, ServerEntry};
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ConfigLocation {
     pub client_id: String,
     pub display_name: String,

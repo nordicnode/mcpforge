@@ -59,7 +59,6 @@ pub fn render_header_tabs(f: &mut Frame, app: &App, area: Rect, theme: &Theme, a
         Style::default().fg(Color::Rgb(98, 114, 164))
     };
 
-    // Calculate health ratio
     let healthy_count = app
         .health_cache
         .values()
@@ -94,8 +93,10 @@ pub fn render_header_tabs(f: &mut Frame, app: &App, area: Rect, theme: &Theme, a
         Span::raw(" "),
         Span::styled(
             format!(
-                " [2] Clients & Harnesses ({} Installed · {} Active) ",
-                installed_clients, running_count
+                " [2] Clients & Harnesses ({} Supported · {} Installed · {} Active) ",
+                app.discovered_clients.len(),
+                installed_clients,
+                running_count
             ),
             tab2_style,
         ),
@@ -125,7 +126,7 @@ pub fn render_header_tabs(f: &mut Frame, app: &App, area: Rect, theme: &Theme, a
 fn render_clients_split(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     let main_chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(44), Constraint::Percentage(56)])
+        .constraints([Constraint::Percentage(46), Constraint::Percentage(54)])
         .split(area);
 
     render_client_list(f, app, main_chunks[0], theme);
@@ -165,6 +166,14 @@ fn render_client_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
             let prefix = if is_selected { "▶ " } else { "  " };
 
+            let cat_style = match client.category.as_str() {
+                "Agent" => Style::default().fg(Color::Rgb(189, 147, 249)),
+                "CLI" => Style::default().fg(Color::Rgb(241, 250, 140)),
+                "IDE" => Style::default().fg(Color::Rgb(139, 233, 253)),
+                "Chat" => Style::default().fg(Color::Rgb(80, 250, 123)),
+                _ => theme.muted,
+            };
+
             let count_span = if client.server_count > 0 {
                 Span::styled(
                     format!(" [{} servers]", client.server_count),
@@ -184,8 +193,9 @@ fn render_client_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
                     },
                 ),
                 Span::styled(format!("[{}] ", status_badge), badge_style),
+                Span::styled(format!("[{:<5}] ", client.category), cat_style),
                 Span::styled(
-                    format!("{:<22}", client.display_name),
+                    format!("{:<20}", client.display_name),
                     if is_selected {
                         theme.selected
                     } else if client.is_installed {
@@ -232,7 +242,7 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         .borders(Borders::ALL)
         .border_type(theme.border_type)
         .border_style(theme.border)
-        .title(" 🔍 HARNESS INSPECTOR & TELEMETRY ")
+        .title(" 🔍 HARNESS SPECIFICATIONS & STATUS ")
         .title_style(theme.title);
 
     let client = match app.selected_client() {
@@ -248,7 +258,15 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     let mut lines = Vec::new();
 
-    // 1. Overview & Identity Card
+    // 1. Overview & Identity
+    let cat_emoji = match client.category.as_str() {
+        "Agent" => "🤖 Autonomous Agent",
+        "CLI" => "💻 Terminal & CLI Tool",
+        "IDE" => "🖥️ IDE / Code Editor",
+        "Chat" => "💬 Chat & Desktop Client",
+        _ => "Custom Harness",
+    };
+
     lines.push(Line::from(vec![
         Span::styled(
             &client.display_name,
@@ -261,10 +279,15 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             format!("id: {}", client.id),
             Style::default().fg(Color::Rgb(139, 233, 253)),
         ),
+        Span::raw("  "),
+        Span::styled(
+            format!("({})", cat_emoji),
+            Style::default().fg(Color::Rgb(189, 147, 249)),
+        ),
     ]));
     lines.push(Line::raw(""));
 
-    // 2. Status Row with Explicit Breakdown
+    // 2. Status Row with Plain-English Explanation
     let (status_badge, status_title, status_style, meaning_text, next_action) = if client.is_running
         && client.is_installed
     {
@@ -272,32 +295,32 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             "ACTIVE",
             "Live Process Running & Configuration Active",
             theme.pill_active,
-            "The client application is actively running on this OS and reading this configuration. Servers synced here can be used in your live session.",
-            "Press [u] to sync all servers to this client's active session.",
+            "Application is actively executing on this OS and reading its configuration. Servers are live.",
+            "Press [u] to sync all servers to this harness's active session.",
         )
     } else if client.is_running {
         (
             "RUNNING",
-            "Live Process Detected, but No MCP Config File Yet",
+            "Live Process Detected, but Config File Not Yet Created",
             Style::default().fg(Color::Rgb(139, 233, 253)).add_modifier(Modifier::BOLD),
-            "The application is actively running on your machine, but hasn't had an MCP configuration file created yet.",
-            "Press [u] to initialize the config and sync your MCP servers into it immediately.",
+            "Process is running on your machine, but hasn't had an MCP configuration file written yet.",
+            "Press [u] to initialize configuration and sync all servers immediately.",
         )
     } else if client.is_installed {
         (
             "READY",
             "MCP Configuration Exists on Disk (Process Idle)",
             theme.pill_ready,
-            "The application has an MCP configuration file on disk, but is not currently running. Servers will be loaded automatically on next launch.",
+            "Configuration file exists on disk. Configured servers will be loaded on next launch.",
             "Press [u] to update or sync servers ahead of your next session.",
         )
     } else {
         (
             "AVAILABLE",
-            "Adapter Supported by MCPForge (Unconfigured)",
+            "Built-in Adapter Supported (Unconfigured)",
             theme.pill_avail,
-            "MCPForge has built-in support for this AI harness, but neither an active process nor an MCP configuration file was detected on this system.",
-            "Press [u] or select this client in the Add Wizard to provision its configuration file.",
+            "MCPForge provides native auto-configuration for this tool, but no installation was found.",
+            "Press [u] or choose this client in the Add Wizard to provision its config file.",
         )
     };
 
@@ -316,44 +339,93 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     ]));
     lines.push(Line::raw(""));
 
-    // 3. Configuration Path & Executable
-    lines.push(Line::from(vec![
-        Span::styled("Config:   ", theme.header),
-        Span::styled(
-            client.config_path.display().to_string(),
-            Style::default().fg(Color::White),
-        ),
-    ]));
+    // 3. Known Configuration Locations
+    lines.push(Line::from(vec![Span::styled(
+        "📁  CONFIGURATION LOCATIONS & PATHS",
+        theme.header,
+    )]));
 
+    if client.all_locations.is_empty() {
+        lines.push(Line::from(vec![
+            Span::raw("  • "),
+            Span::styled(
+                client.config_path.display().to_string(),
+                Style::default().fg(Color::White),
+            ),
+        ]));
+    } else {
+        for loc in &client.all_locations {
+            let (loc_icon, loc_style) = if loc.exists {
+                ("✓", theme.status_healthy)
+            } else {
+                ("·", theme.muted)
+            };
+
+            let scope_str = match loc.scope {
+                mcp_core::types::Scope::Global => "Global",
+                mcp_core::types::Scope::Project => "Project",
+            };
+
+            let mut spans = vec![
+                Span::raw("  "),
+                Span::styled(format!("[{}] ", loc_icon), loc_style),
+                Span::styled(
+                    format!("{:<8}", scope_str),
+                    Style::default().fg(Color::Rgb(139, 233, 253)),
+                ),
+                Span::styled(
+                    loc.path.display().to_string(),
+                    Style::default().fg(Color::White),
+                ),
+            ];
+
+            if loc.exists {
+                spans.push(Span::styled(" (active)", theme.status_healthy));
+            }
+
+            lines.push(Line::from(spans));
+        }
+    }
+    lines.push(Line::raw(""));
+
+    // 4. Executable / PATH Check
     let on_path = DiscoveryEngine::is_client_installed(&client.id);
     lines.push(Line::from(vec![
         Span::styled("Binary:   ", theme.header),
         if on_path {
-            Span::styled("✓ Executable detected on $PATH", theme.status_healthy)
+            Span::styled(
+                "✓ Executable detected on system $PATH",
+                theme.status_healthy,
+            )
         } else {
-            Span::styled("✗ Not found on $PATH", theme.muted)
+            Span::styled(
+                "✗ Executable not found on $PATH (config-file based adapter)",
+                theme.muted,
+            )
         },
     ]));
     lines.push(Line::raw(""));
 
-    // 4. Configured Servers Header
+    // 5. Configured Servers in this Client
     lines.push(Line::from(vec![Span::styled(
         format!(
-            "Configured Servers in this Client ({}/{}):",
+            "📦  CONFIGURED SERVERS IN THIS CLIENT ({}/{}):",
             client.server_count,
             app.servers.len()
         ),
         theme.header,
     )]));
 
-    // Find servers that belong to this client config
     let matching_servers: Vec<_> = app
         .servers
         .iter()
         .filter(|s| {
-            s.clients
-                .iter()
-                .any(|c| c.config_path == client.config_path)
+            s.clients.iter().any(|c| {
+                client
+                    .all_locations
+                    .iter()
+                    .any(|al| al.path == c.config_path)
+            })
         })
         .collect();
 
@@ -361,7 +433,7 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         lines.push(Line::from(vec![
             Span::raw("  "),
             Span::styled(
-                "No servers configured in this client. Press [u] to sync all servers into this client!",
+                "No servers configured yet. Press [u] to sync all servers into this client!",
                 theme.muted,
             ),
         ]));
@@ -408,6 +480,8 @@ fn render_clients_footer(f: &mut Frame, area: Rect, theme: &Theme) {
         Span::raw(" Navigate   "),
         Span::styled("[u]", theme.key_shortcut),
         Span::raw(" Sync to Client   "),
+        Span::styled("[d/Del]", theme.key_shortcut),
+        Span::raw(" Remove Server   "),
         Span::styled("[r]", theme.key_shortcut),
         Span::raw(" Rescan Processes   "),
         Span::styled("[?]", theme.key_shortcut),

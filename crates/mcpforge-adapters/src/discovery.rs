@@ -1,4 +1,6 @@
 use crate::manager::AdapterManager;
+use crate::traits::ConfigLocation;
+use mcp_core::types::Scope;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::path::PathBuf;
@@ -7,7 +9,9 @@ use std::path::PathBuf;
 pub struct DiscoveredHarness {
     pub id: String,
     pub display_name: String,
+    pub category: String,
     pub config_path: PathBuf,
+    pub all_locations: Vec<ConfigLocation>,
     pub is_running: bool,
     pub is_installed: bool,
     pub server_count: usize,
@@ -222,70 +226,86 @@ impl DiscoveryEngine {
         let mut results = Vec::new();
 
         for adapter in self.manager.adapters() {
-            for loc in adapter.detect() {
-                // A client can only be running if it exists on disk or its binary is on PATH
-                let is_installed = loc.exists || Self::is_client_installed(adapter.id());
-                let is_running = is_installed
-                    && (running_processes.contains(adapter.id())
-                        || (adapter.id() == "cline" && running_processes.contains("vscode")));
+            let id = adapter.id().to_string();
+            let display_name = adapter.display_name().to_string();
+            let locations = adapter.detect();
 
-                let server_count = if loc.exists {
-                    adapter.read_servers(&loc).map(|s| s.len()).unwrap_or(0)
-                } else {
-                    0
-                };
-
-                results.push(DiscoveredHarness {
-                    id: loc.client_id.clone(),
-                    display_name: loc.display_name.clone(),
-                    config_path: loc.path.clone(),
-                    is_running,
-                    is_installed,
-                    server_count,
-                });
+            if id == "custom" && locations.is_empty() {
+                continue;
             }
+
+            let category = match id.as_str() {
+                "freebuff" | "goose" | "hermes" | "openclaw" | "deepseek" | "prime" | "letta" => {
+                    "Agent".to_string()
+                }
+                "claude-code" | "codex" | "opencode" | "antigravity" | "jcode" | "manicode"
+                | "grok" => "CLI".to_string(),
+                "cursor" | "vscode" | "windsurf" | "zed" | "jetbrains" | "mcphub" | "cline"
+                | "roo-code" | "continue" => "IDE".to_string(),
+                "claude-desktop" | "librechat" | "anythingllm" => "Chat".to_string(),
+                _ => "Other".to_string(),
+            };
+
+            let is_on_path = Self::is_client_installed(&id);
+            let has_existing_config = locations.iter().any(|l| l.exists);
+            let is_installed = is_on_path || has_existing_config;
+
+            let is_running = is_installed
+                && (running_processes.contains(&id)
+                    || (id == "cline" && running_processes.contains("vscode")));
+
+            // Primary config path: prefer first that exists, else first global, else first
+            let config_path = locations
+                .iter()
+                .find(|l| l.exists)
+                .or_else(|| locations.iter().find(|l| l.scope == Scope::Global))
+                .or_else(|| locations.first())
+                .map(|l| l.path.clone())
+                .unwrap_or_else(|| PathBuf::from("unconfigured"));
+
+            // Count unique servers configured in any existing location for this client
+            let mut unique_servers = HashSet::new();
+            for loc in &locations {
+                if loc.exists {
+                    if let Ok(servers) = adapter.read_servers(loc) {
+                        for s in servers {
+                            unique_servers.insert(s.id);
+                        }
+                    }
+                }
+            }
+            let server_count = unique_servers.len();
+
+            results.push(DiscoveredHarness {
+                id,
+                display_name,
+                category,
+                config_path,
+                all_locations: locations,
+                is_running,
+                is_installed,
+                server_count,
+            });
         }
 
-        // Also scan current workspace and subdirectories for project configs
-        Self::scan_workspace_configs(&mut results, &running_processes);
+        // Sort results:
+        // Tier 0: ACTIVE (running && installed)
+        // Tier 1: RUNNING (running && !installed)
+        // Tier 2: READY (installed)
+        // Tier 3: AVAILABLE (unconfigured)
+        results.sort_by_key(|h| {
+            let tier = if h.is_running && h.is_installed {
+                0u8
+            } else if h.is_running {
+                1u8
+            } else if h.is_installed {
+                2u8
+            } else {
+                3u8
+            };
+            (tier, h.category.clone(), h.display_name.clone())
+        });
 
         results
-    }
-
-    fn scan_workspace_configs(
-        results: &mut Vec<DiscoveredHarness>,
-        running_processes: &HashSet<String>,
-    ) {
-        let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-
-        let candidate_paths = [
-            cwd.join(".mcp.json"),
-            cwd.join(".cursor").join("mcp.json"),
-            cwd.join(".vscode").join("mcp.json"),
-        ];
-
-        for path in candidate_paths {
-            if path.exists() && !results.iter().any(|r| r.config_path == path) {
-                let client_id = if path.to_string_lossy().contains(".cursor") {
-                    "cursor"
-                } else if path.to_string_lossy().contains(".vscode") {
-                    "vscode"
-                } else {
-                    "claude-code"
-                };
-
-                let is_installed = Self::is_client_installed(client_id);
-                let is_running = is_installed && running_processes.contains(client_id);
-
-                results.push(DiscoveredHarness {
-                    id: client_id.to_string(),
-                    display_name: format!("Workspace ({})", path.display()),
-                    config_path: path,
-                    is_running,
-                    is_installed: true,
-                    server_count: 0,
-                });
-            }
-        }
     }
 }
