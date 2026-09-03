@@ -113,17 +113,58 @@ impl Drop for StdioClient {
     }
 }
 
+#[cfg(unix)]
+fn is_executable(path: &std::path::Path) -> bool {
+    use std::os::unix::fs::PermissionsExt;
+    if let Ok(meta) = path.metadata() {
+        meta.is_file() && (meta.permissions().mode() & 0o111 != 0)
+    } else {
+        false
+    }
+}
+
+#[cfg(not(unix))]
+fn is_executable(path: &std::path::Path) -> bool {
+    path.is_file()
+}
+
+#[cfg(windows)]
+fn get_pathext_extensions() -> Vec<String> {
+    if let Some(pathext) = std::env::var_os("PATHEXT") {
+        std::env::split_paths(&pathext)
+            .filter_map(|p| {
+                p.to_str().map(|s| {
+                    let lower = s.to_lowercase();
+                    if lower.starts_with('.') {
+                        lower
+                    } else {
+                        format!(".{}", lower)
+                    }
+                })
+            })
+            .collect()
+    } else {
+        vec![
+            ".com".to_string(),
+            ".exe".to_string(),
+            ".bat".to_string(),
+            ".cmd".to_string(),
+        ]
+    }
+}
+
 pub fn resolve_executable_path(command: &str) -> Option<std::path::PathBuf> {
     if command.contains('/') || (cfg!(windows) && command.contains('\\')) {
         let p = std::path::PathBuf::from(command);
-        if p.is_file() {
+        if is_executable(&p) {
             return Some(p);
         }
         #[cfg(windows)]
         {
-            for ext in [".exe", ".cmd", ".bat"] {
+            let pathext = get_pathext_extensions();
+            for ext in pathext {
                 let with_ext = p.with_extension(&ext[1..]);
-                if with_ext.is_file() {
+                if is_executable(&with_ext) {
                     return Some(with_ext);
                 }
             }
@@ -133,17 +174,32 @@ pub fn resolve_executable_path(command: &str) -> Option<std::path::PathBuf> {
 
     let paths = std::env::var_os("PATH")?;
     for dir in std::env::split_paths(&paths) {
-        let candidate = dir.join(command);
-        if candidate.is_file() {
-            return Some(candidate);
-        }
         #[cfg(windows)]
         {
-            for ext in [".cmd", ".exe", ".bat"] {
-                let candidate_ext = dir.join(format!("{}{}", command, ext));
-                if candidate_ext.is_file() {
-                    return Some(candidate_ext);
+            let pathext = get_pathext_extensions();
+            let cmd_lower = command.to_lowercase();
+            let already_has_ext = pathext.iter().any(|ext| cmd_lower.ends_with(ext));
+
+            if already_has_ext {
+                let candidate = dir.join(command);
+                if is_executable(&candidate) {
+                    return Some(candidate);
                 }
+            } else {
+                for ext in &pathext {
+                    let candidate = dir.join(format!("{}{}", command, ext));
+                    if is_executable(&candidate) {
+                        return Some(candidate);
+                    }
+                }
+            }
+        }
+
+        #[cfg(not(windows))]
+        {
+            let candidate = dir.join(command);
+            if is_executable(&candidate) {
+                return Some(candidate);
             }
         }
     }

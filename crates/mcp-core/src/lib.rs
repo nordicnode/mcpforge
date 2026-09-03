@@ -60,4 +60,39 @@ mod tests {
         assert!(resp.error.is_none());
         assert!(resp.result.is_some());
     }
+
+    #[test]
+    fn test_resolve_executable_path_respects_permissions() {
+        use std::fs::File;
+        #[cfg(unix)]
+        use std::os::unix::fs::PermissionsExt;
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let bin_path = temp_dir.path().join("my-test-bin");
+        File::create(&bin_path).unwrap();
+
+        #[cfg(unix)]
+        {
+            // Initially not executable (0o644)
+            let mut perms = std::fs::metadata(&bin_path).unwrap().permissions();
+            perms.set_mode(0o644);
+            std::fs::set_permissions(&bin_path, perms).unwrap();
+
+            // Direct path resolution should fail because executable bit is not set
+            assert!(
+                transport::stdio::resolve_executable_path(bin_path.to_str().unwrap()).is_none()
+            );
+
+            // Make executable (0o755)
+            let mut perms = std::fs::metadata(&bin_path).unwrap().permissions();
+            perms.set_mode(0o755);
+            std::fs::set_permissions(&bin_path, perms).unwrap();
+
+            // Now it should resolve!
+            assert_eq!(
+                transport::stdio::resolve_executable_path(bin_path.to_str().unwrap()),
+                Some(bin_path)
+            );
+        }
+    }
 }

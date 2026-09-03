@@ -228,6 +228,11 @@ pub fn write_mcp_servers_to_json(
 }
 
 pub fn strip_jsonc_comments(input: &str) -> String {
+    let comment_stripped = strip_comments_internal(input);
+    remove_trailing_commas(&comment_stripped)
+}
+
+fn strip_comments_internal(input: &str) -> String {
     let mut out = String::with_capacity(input.len());
     let mut in_string = false;
     let mut in_escape = false;
@@ -271,6 +276,54 @@ pub fn strip_jsonc_comments(input: &str) -> String {
             }
             i += 2;
             continue;
+        }
+
+        out.push(ch);
+        i += 1;
+    }
+
+    out
+}
+
+fn remove_trailing_commas(input: &str) -> String {
+    let chars: Vec<char> = input.chars().collect();
+    let mut out = String::with_capacity(input.len());
+    let mut in_string = false;
+    let mut in_escape = false;
+    let mut i = 0;
+
+    while i < chars.len() {
+        let ch = chars[i];
+        if in_escape {
+            out.push(ch);
+            in_escape = false;
+            i += 1;
+            continue;
+        }
+
+        if ch == '\\' && in_string {
+            in_escape = true;
+            out.push(ch);
+            i += 1;
+            continue;
+        }
+
+        if ch == '"' {
+            in_string = !in_string;
+            out.push(ch);
+            i += 1;
+            continue;
+        }
+
+        if !in_string && ch == ',' {
+            let mut j = i + 1;
+            while j < chars.len() && chars[j].is_whitespace() {
+                j += 1;
+            }
+            if j < chars.len() && (chars[j] == '}' || chars[j] == ']') {
+                i += 1;
+                continue;
+            }
         }
 
         out.push(ch);

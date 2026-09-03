@@ -159,4 +159,36 @@ mod tests {
         assert!(updated.contains("\"filesystem\""));
         assert!(updated.contains("\"fetch\""));
     }
+
+    #[test]
+    fn test_strip_jsonc_urls_and_comments_and_trailing_commas() {
+        let jsonc_input = r#"{
+            // Header comment
+            "mcpServers": {
+                /* block comment */
+                "fetch": {
+                    "command": "uvx",
+                    "args": ["mcp-server-fetch",],
+                    "env": {
+                        "ENDPOINT_URL": "https://example.com//path//v1",
+                        "NOTE": "escaped \" quotes // not a comment",
+                    },
+                },
+            },
+        }"#;
+
+        let stripped = common::strip_jsonc_comments(jsonc_input);
+        let parsed: serde_json::Value = serde_json::from_str(&stripped).expect(
+            "Valid JSON must be produced from commented JSONC with URLs and trailing commas",
+        );
+
+        let fetch = &parsed["mcpServers"]["fetch"];
+        assert_eq!(fetch["command"], "uvx");
+        assert_eq!(
+            fetch["env"]["ENDPOINT_URL"],
+            "https://example.com//path//v1"
+        );
+        assert_eq!(fetch["env"]["NOTE"], "escaped \" quotes // not a comment");
+        assert_eq!(fetch["args"][0], "mcp-server-fetch");
+    }
 }
