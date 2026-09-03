@@ -2,13 +2,12 @@ name: Release & Binary Distribution
 
 on:
   push:
-    branches: [ master, main ]
     tags:
       - 'v*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag name (e.g. v0.1.1 or latest)'
+        description: 'Release tag name (e.g. v0.2.0 or latest)'
         required: false
         default: 'latest'
 
@@ -152,6 +151,8 @@ jobs:
           tag_name: ${{ steps.meta.outputs.tag }}
           name: ${{ steps.meta.outputs.title }}
           prerelease: ${{ steps.meta.outputs.prerelease == 'true' }}
-          generate_release_notes: true
+          make_latest: ${{ steps.meta.outputs.prerelease == 'false' && 'true' || 'false' }}
+          generate_release_notes: ${{ steps.meta.outputs.prerelease == 'false' }}
+          body: ${{ steps.meta.outputs.prerelease == 'true' && format('Automated rolling build from commit {0}.', github.sha) || '' }}
           files: |
             release-assets/*
