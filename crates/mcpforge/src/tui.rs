@@ -241,6 +241,9 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                         app.refresh_servers();
                                     }
                                 }
+                                KeyCode::Char('a') => {
+                                    app.start_wizard();
+                                }
                                 KeyCode::Char('q') => {
                                     app.should_quit = true;
                                 }
@@ -467,6 +470,9 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                     ));
                                 }
                             }
+                        }
+                        KeyCode::Char('a') => {
+                            app.start_wizard();
                         }
                         KeyCode::Char('d')
                         | KeyCode::Delete

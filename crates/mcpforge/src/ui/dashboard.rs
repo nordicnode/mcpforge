@@ -76,60 +76,119 @@ fn render_server_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     let (start, end) =
         crate::ui::layout::calculate_scroll_window(total, app.selected_index, visible_height);
 
-    let items: Vec<ListItem> = filtered[start..end]
-        .iter()
-        .enumerate()
-        .map(|(offset, server)| {
-            let real_idx = start + offset;
-            let status = app
-                .health_cache
-                .get(&server.id)
-                .cloned()
-                .unwrap_or(HealthStatus::Unknown);
+    let items: Vec<ListItem> = if total == 0 {
+        if !app.search_query.is_empty() {
+            vec![
+                ListItem::new(Line::raw("")),
+                ListItem::new(Line::from(vec![
+                    Span::raw("  "),
+                    Span::styled(
+                        format!("No servers match filter '{}'", app.search_query),
+                        Style::default().fg(Color::Rgb(150, 155, 175)),
+                    ),
+                ])),
+                ListItem::new(Line::raw("")),
+                ListItem::new(Line::from(vec![
+                    Span::raw("  • Press "),
+                    Span::styled("[Esc]", theme.key_shortcut),
+                    Span::styled(" to clear filter", Style::default().fg(Color::Cyan)),
+                ])),
+            ]
+        } else {
+            vec![
+                ListItem::new(Line::raw("")),
+                ListItem::new(Line::from(vec![
+                    Span::raw("  "),
+                    Span::styled(
+                        "No configured servers found.",
+                        Style::default().fg(Color::Rgb(150, 155, 175)),
+                    ),
+                ])),
+                ListItem::new(Line::raw("")),
+                ListItem::new(Line::from(vec![
+                    Span::raw("  • Press "),
+                    Span::styled("[a]", theme.key_shortcut),
+                    Span::styled(
+                        " to Add an MCP Server from Catalog",
+                        Style::default()
+                            .fg(Color::Rgb(139, 233, 253))
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                ])),
+                ListItem::new(Line::from(vec![
+                    Span::raw("  • Press "),
+                    Span::styled("[u]", theme.key_shortcut),
+                    Span::styled(
+                        " to Auto-Sync from detected clients",
+                        Style::default().fg(Color::Rgb(150, 155, 175)),
+                    ),
+                ])),
+            ]
+        }
+    } else {
+        filtered[start..end]
+            .iter()
+            .enumerate()
+            .map(|(offset, server)| {
+                let real_idx = start + offset;
+                let is_selected = real_idx == app.selected_index;
+                let is_enabled = server.enabled;
 
-            let (icon, icon_style) = match status {
-                HealthStatus::Healthy { .. } => ("●", theme.status_healthy),
-                HealthStatus::Degraded { .. } => ("▲", theme.status_degraded),
-                HealthStatus::Broken { .. } => ("✖", theme.status_broken),
-                HealthStatus::Disabled => ("○", theme.status_disabled),
-                HealthStatus::Unknown => ("?", theme.muted),
-            };
+                let (cursor, name_style) = if is_selected {
+                    (
+                        "▶ ",
+                        Style::default()
+                            .fg(Color::White)
+                            .add_modifier(Modifier::BOLD),
+                    )
+                } else {
+                    ("  ", Style::default().fg(Color::Rgb(150, 155, 175)))
+                };
 
-            let is_selected = real_idx == app.selected_index;
-            let cursor = if is_selected { "▶ " } else { "  " };
+                let health = app
+                    .health_cache
+                    .get(&server.id)
+                    .cloned()
+                    .unwrap_or(HealthStatus::Unknown);
 
-            let name_style = if is_selected {
-                theme.selected
-            } else if !server.enabled {
-                theme.status_disabled
-            } else {
-                Style::default().fg(Color::White)
-            };
+                let (icon, icon_style) = if !is_enabled {
+                    ("○", theme.status_disabled)
+                } else {
+                    match health {
+                        HealthStatus::Healthy { .. } => ("●", theme.status_healthy),
+                        HealthStatus::Degraded { .. } => ("▲", theme.status_degraded),
+                        HealthStatus::Broken { .. } => ("✖", theme.status_broken),
+                        HealthStatus::Disabled => ("○", theme.status_disabled),
+                        HealthStatus::Unknown => ("●", theme.status_healthy),
+                    }
+                };
 
-            let client_count = server.clients.len();
-            let line = Line::from(vec![
-                Span::styled(
-                    cursor,
-                    if is_selected {
-                        theme.title
-                    } else {
-                        theme.muted
-                    },
-                ),
-                Span::styled(format!("{} ", icon), icon_style),
-                Span::styled(format!("{:<18}", server.id), name_style),
-                Span::raw(" "),
-                Span::styled(
-                    format!("[{}]", server.transport.transport_type_str()),
-                    theme.pill_transport,
-                ),
-                Span::raw(" "),
-                Span::styled(format!("({} clients)", client_count), theme.muted),
-            ]);
+                let client_count = server.clients.len();
 
-            ListItem::new(line)
-        })
-        .collect();
+                let line = Line::from(vec![
+                    Span::styled(
+                        cursor,
+                        if is_selected {
+                            theme.title
+                        } else {
+                            theme.muted
+                        },
+                    ),
+                    Span::styled(format!("{} ", icon), icon_style),
+                    Span::styled(format!("{:<18}", server.id), name_style),
+                    Span::raw(" "),
+                    Span::styled(
+                        format!("[{}]", server.transport.transport_type_str()),
+                        theme.pill_transport,
+                    ),
+                    Span::raw(" "),
+                    Span::styled(format!("({} clients)", client_count), theme.muted),
+                ]);
+
+                ListItem::new(line)
+            })
+            .collect()
+    };
 
     let title = if total > 0 {
         format!(
@@ -397,6 +456,13 @@ fn render_overview_tab(
     // 5. Quick action hints
     lines.push(Line::from(vec![
         Span::styled("Quick Actions: ", theme.muted),
+        Span::styled("[a] ", theme.key_shortcut),
+        Span::styled(
+            "Add Server  ",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled("[t] ", theme.key_shortcut),
         Span::raw("Playground & Form Builder  "),
         Span::styled("[T] ", theme.key_shortcut),
@@ -753,7 +819,7 @@ fn render_config_json_tab(
 fn render_footer(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Min(20), Constraint::Length(36)])
+        .constraints([Constraint::Min(20), Constraint::Length(35)])
         .split(area);
 
     let left_line = if app.is_searching {
@@ -780,20 +846,34 @@ fn render_footer(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         ])
     } else if app.focused_pane == FocusedPane::ServerDetails {
         Line::from(vec![
-            Span::styled("[h / Esc]", theme.key_shortcut),
+            Span::styled("[h/Esc]", theme.key_shortcut),
             Span::raw(" Back  "),
-            Span::styled("[1-5 / Tab]", theme.key_shortcut),
+            Span::styled("[1-5]", theme.key_shortcut),
             Span::raw(" Tabs  "),
-            Span::styled("[j/k]", theme.key_shortcut),
-            Span::raw(" Scroll  "),
+            Span::styled("[a]", theme.key_shortcut),
+            Span::styled(
+                " Add Server  ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled("[c]", theme.key_shortcut),
-            Span::raw(" Copy Config  "),
+            Span::raw(" Copy  "),
             Span::styled("[t]", theme.key_shortcut),
-            Span::raw(" Playground"),
+            Span::raw(" Playground  "),
+            Span::styled("[j/k]", theme.key_shortcut),
+            Span::raw(" Scroll"),
         ])
     } else {
         Line::from(vec![
-            Span::styled("[Enter / l]", theme.key_shortcut),
+            Span::styled("[a]", theme.key_shortcut),
+            Span::styled(
+                " Add Server  ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled("[Enter]", theme.key_shortcut),
             Span::raw(" Inspect  "),
             Span::styled("[Space]", theme.key_shortcut),
             Span::raw(" Toggle  "),
@@ -801,10 +881,8 @@ fn render_footer(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             Span::raw(" Playground  "),
             Span::styled("[/]", theme.key_shortcut),
             Span::raw(" Filter  "),
-            Span::styled("[a]", theme.key_shortcut),
-            Span::raw(" Add  "),
-            Span::styled("[b]", theme.key_shortcut),
-            Span::raw(" Backups  "),
+            Span::styled("[d]", theme.key_shortcut),
+            Span::raw(" Remove  "),
             Span::styled("[?]", theme.key_shortcut),
             Span::raw(" Help"),
         ])
@@ -828,7 +906,10 @@ fn render_footer(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     )]);
 
     f.render_widget(Paragraph::new(left_line), chunks[0]);
-    f.render_widget(Paragraph::new(right_line), chunks[1]);
+    f.render_widget(
+        Paragraph::new(right_line).alignment(ratatui::layout::Alignment::Right),
+        chunks[1],
+    );
 }
 
 pub fn render_snippet_modal(f: &mut Frame, app: &App) {

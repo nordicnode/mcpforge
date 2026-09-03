@@ -470,6 +470,13 @@ fn render_clients_footer(f: &mut Frame, area: Rect, theme: &Theme) {
     let key_hints = Line::from(vec![
         Span::styled("[Tab/1]", theme.key_shortcut),
         Span::raw(" Servers   "),
+        Span::styled("[a]", theme.key_shortcut),
+        Span::styled(
+            " Add Server   ",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled("[j/k]", theme.key_shortcut),
         Span::raw(" Navigate   "),
         Span::styled("[u]", theme.key_shortcut),
