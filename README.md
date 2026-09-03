@@ -68,13 +68,15 @@ As the Model Context Protocol ecosystem has grown, every AI client, autonomous a
 ## Key Features
 
 - **Keyboard-Driven Terminal UI**: High-speed, zero-flicker TUI with instant filtering, intuitive split views, and vim/arrow navigation.
-- **26 First-Class Client Adapters**: Native read and write support for autonomous agents, terminal CLIs, full IDEs, and chat desktop clients.
-- **110+ Curated MCP Servers**: Instant one-click provisioning across AI agents, analytical databases, developer tools, cloud infrastructure, git workflows, search engines, and enterprise productivity platforms.
+- **26 First-Class Client Adapters**: Native read and write support for autonomous agents, terminal CLIs, full IDEs, and chat desktop clients across JSON, JSONC, YAML, and TOML.
+- **110+ Audited MCP Servers with Provenance**: Curated, production-tested MCP servers with upstream source URLs, maintainer attribution, and verification audit timestamps.
+- **Automated Schema Drift Verification**: Built-in schema validator (`mcpforge verify`) detects syntax corruption, missing properties, or format shifts across all 26 clients in local environments and CI pipelines.
+- **Golden-Tested Format Preservation**: Rigorous golden-file round-trip tests and key-preservation property tests guarantee that modifying servers never drops unmanaged configuration keys, comments, or settings.
 - **Adapter-Accurate Diff Previews**: Every configuration modification is simulated using the target client's actual format engine before touching disk, guaranteeing that existing configurations are never overwritten or corrupted.
 - **Atomic Safety & Backups**: Automatic `.bak` sidecar snapshots are created before any file is updated, with atomic file swap semantics.
 - **Live Telemetry & Diagnostics**: Background ping engine queries stdio subprocesses and HTTP/SSE endpoints with sub-millisecond precision, reporting latency, active tool counts, and server versions.
 - **Interactive Server Removal**: Safely purge servers across all clients at once or interactively pick and choose targets.
-- **Portable Profiles & Packs**: Export your entire multi-tool MCP environment into reproducible `mcpforge-pack.json` bundles and import them on new machines with automated secret resolution.
+- **Portable Profiles & Packs**: Export your entire multi-tool MCP environment into reproducible portable JSON files and import them on new machines with automated secret resolution.
 
 ---
 
@@ -162,7 +164,17 @@ MCPForge provides native, format-preserving adapters for **26 distinct AI client
 
 ## Installation
 
-### From Source (Recommended)
+### Pre-compiled Binaries (Recommended)
+
+Pre-built binaries for Linux (`x86_64`), macOS (`Apple Silicon & Intel`), and Windows (`x64`) are available on the [GitHub Releases page](https://github.com/nordicnode/mcpforge/releases).
+
+```bash
+# Download and install the latest Linux binary
+curl -fsSL https://github.com/nordicnode/mcpforge/releases/download/v0.1.0/mcpforge-x86_64-unknown-linux-gnu.tar.gz | tar -xz
+sudo mv mcpforge /usr/local/bin/
+```
+
+### Build from Source
 
 Ensure you have Rust 1.80+ and `cargo` installed:
 
@@ -254,14 +266,18 @@ mcpforge import --input my-team-mcp.json
 MCPForge is built as a modular Cargo workspace designed for speed, safety, and extensibility:
 
 ```
-mcptui/
+mcpforge/
 ├── crates/
 │   ├── mcp-core/              # MCP protocol primitives, JSON-RPC 2.0, Transports (Stdio, HTTP, SSE)
-│   ├── mcpforge-adapters/     # 26 client adapters, format AST engines, atomic backup system
-│   ├── mcpforge-registry/     # Embedded registry with 110+ curated server catalog entries
-│   └── mcpforge/              # Ratatui TUI application, CLI dispatch, process watcher
+│   ├── mcpforge-adapters/     # 26 client adapters, format AST engines, schema verifier, golden tests
+│   │   └── tests/fixtures/    # 26 golden config fixtures (JSON, JSONC, YAML, TOML)
+│   ├── mcpforge-registry/     # Embedded registry with 110+ audited server entries & provenance
+│   └── mcpforge/              # Ratatui TUI application, modular CLI dispatch, process watcher
+│       ├── src/cli/           # Modular CLI dispatch & handlers (verify, sync, doctor, pack, add, etc.)
+│       ├── src/tui.rs         # Terminal lifecycle, raw mode, and keyboard event loop
+│       └── src/main.rs        # Clean, lightweight 15-line entry point
 ├── catalog/
-│   └── default_registry.json  # Curated catalog definitions and environment mappings
+│   └── default_registry.json  # 110 audited server definitions with upstream source URLs & maintainers
 ├── assets/
 │   └── screenshots/           # High-resolution retina terminal captures
 └── scripts/
@@ -277,9 +293,12 @@ Contributions, bug reports, and new client adapter submissions are welcome!
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/my-new-adapter`)
 3. Commit your changes (`git commit -m 'feat(adapter): add support for MyClient'`)
-4. Verify tests and linting:
+4. Verify tests, schema drift, and linting:
    ```bash
-   cargo fmt --all && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace
+   cargo fmt --all -- --check
+   cargo clippy --workspace --all-targets --all-features -- -D warnings
+   cargo test --workspace --all-features
+   cargo run -- verify
    ```
 5. Push to your branch and open a Pull Request
 
