@@ -8,7 +8,7 @@ pub use packs::{find_pack, ServerPack, SERVER_PACKS};
 pub use search::CatalogSearch;
 use std::path::PathBuf;
 
-const EMBEDDED_CATALOG: &str = include_str!("../../../catalog/default_registry.json");
+const EMBEDDED_CATALOG: &str = include_str!("../catalog/default_registry.json");
 
 pub struct Registry {
     entries: Vec<CatalogEntry>,

@@ -1,0 +1,2773 @@
+[
+  {
+    "id": "filesystem",
+    "name": "Local Filesystem",
+    "description": "Secure file operations allowing AI clients to read, write, search, and list local directories and files.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-filesystem"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+    "transport": "stdio",
+    "tags": [
+      "files",
+      "system",
+      "local",
+      "io",
+      "core"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "github",
+    "name": "GitHub",
+    "description": "Interact with GitHub repositories, pull requests, issues, commits, branches, and code search.",
+    "category": "git",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-github"
+    ],
+    "required_env": [
+      "GITHUB_PERSONAL_ACCESS_TOKEN"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/github",
+    "transport": "stdio",
+    "tags": [
+      "git",
+      "github",
+      "issues",
+      "prs",
+      "code",
+      "vcs"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/github",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "gitlab",
+    "name": "GitLab",
+    "description": "GitLab API integration for managing projects, merge requests, issues, and CI/CD pipelines.",
+    "category": "git",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-gitlab"
+    ],
+    "required_env": [
+      "GITLAB_PERSONAL_ACCESS_TOKEN"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/gitlab",
+    "transport": "stdio",
+    "tags": [
+      "git",
+      "gitlab",
+      "issues",
+      "mr",
+      "cicd"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gitlab",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "git",
+    "name": "Local Git",
+    "description": "Inspect git log, status, diffs, branches, and execute git operations directly in local repositories.",
+    "category": "git",
+    "command": "uvx",
+    "args": [
+      "mcp-server-git",
+      "--repository",
+      "."
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/git",
+    "transport": "stdio",
+    "tags": [
+      "git",
+      "version-control",
+      "diff",
+      "log",
+      "repo"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/git",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "gitea",
+    "name": "Gitea",
+    "description": "Manage repositories, issues, and pull requests on self-hosted Gitea or Forgejo instances.",
+    "category": "git",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-gitea"
+    ],
+    "required_env": [
+      "GITEA_INSTANCE_URL",
+      "GITEA_ACCESS_TOKEN"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/gitea",
+    "transport": "stdio",
+    "tags": [
+      "git",
+      "gitea",
+      "forgejo",
+      "self-hosted"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gitea",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "postgres",
+    "name": "PostgreSQL",
+    "description": "Schema inspection, table metadata, and safe read-only or parameterized SQL query execution.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-postgres"
+    ],
+    "required_env": [
+      "POSTGRES_URL"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/postgres",
+    "transport": "stdio",
+    "tags": [
+      "sql",
+      "database",
+      "postgres",
+      "rdbms",
+      "data"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/postgres",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "mysql",
+    "name": "MySQL",
+    "description": "Query, inspect tables, and analyze schemas on MySQL and MariaDB databases.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-mysql"
+    ],
+    "required_env": [
+      "MYSQL_CONNECTION_STRING"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/mysql",
+    "transport": "stdio",
+    "tags": [
+      "sql",
+      "database",
+      "mysql",
+      "mariadb",
+      "data"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/mysql",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "sqlite",
+    "name": "SQLite",
+    "description": "Query, inspect schemas, and analyze local SQLite database files with zero configuration.",
+    "category": "data",
+    "command": "uvx",
+    "args": [
+      "mcp-server-sqlite",
+      "--db-path",
+      "test.db"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/sqlite",
+    "transport": "stdio",
+    "tags": [
+      "sql",
+      "database",
+      "sqlite",
+      "embedded",
+      "local"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sqlite",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "mongodb",
+    "name": "MongoDB",
+    "description": "Inspect collections, run find queries, aggregations, and analyze document schemas in MongoDB.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-mongodb"
+    ],
+    "required_env": [
+      "MONGODB_URI"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/mongodb",
+    "transport": "stdio",
+    "tags": [
+      "nosql",
+      "mongodb",
+      "documents",
+      "data"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/mongodb",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "redis",
+    "name": "Redis",
+    "description": "In-memory key-value operations, key inspection, expiration, lists, and hash querying.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-redis"
+    ],
+    "required_env": [
+      "REDIS_URL"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/redis",
+    "transport": "stdio",
+    "tags": [
+      "cache",
+      "redis",
+      "in-memory",
+      "key-value",
+      "data"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/redis",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "supabase",
+    "name": "Supabase",
+    "description": "Query Supabase PostgreSQL tables, manage database migrations, Edge Functions, and storage buckets.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@supabase/mcp-server"
+    ],
+    "required_env": [
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_KEY"
+    ],
+    "official_repo": "https://github.com/supabase/mcp-server",
+    "transport": "stdio",
+    "tags": [
+      "supabase",
+      "backend",
+      "postgres",
+      "cloud",
+      "auth"
+    ],
+    "source_url": "https://github.com/supabase/mcp-server",
+    "last_verified": "2026-09-02",
+    "maintainer": "Supabase"
+  },
+  {
+    "id": "qdrant",
+    "name": "Qdrant Vector DB",
+    "description": "Vector search, collection management, and embedding similarity querying via Qdrant.",
+    "category": "data",
+    "command": "uvx",
+    "args": [
+      "mcp-server-qdrant"
+    ],
+    "required_env": [
+      "QDRANT_URL",
+      "QDRANT_API_KEY"
+    ],
+    "official_repo": "https://github.com/qdrant/mcp-server-qdrant",
+    "transport": "stdio",
+    "tags": [
+      "vector",
+      "embeddings",
+      "qdrant",
+      "similarity",
+      "ai"
+    ],
+    "source_url": "https://github.com/qdrant/mcp-server-qdrant",
+    "last_verified": "2026-09-02",
+    "maintainer": "qdrant"
+  },
+  {
+    "id": "chroma",
+    "name": "Chroma Vector DB",
+    "description": "Vector store operations, nearest neighbor search, and document embedding retrieval with Chroma.",
+    "category": "data",
+    "command": "uvx",
+    "args": [
+      "chroma-mcp"
+    ],
+    "required_env": [
+      "CHROMA_SERVER_HOST"
+    ],
+    "official_repo": "https://github.com/chroma-core/chroma-mcp",
+    "transport": "stdio",
+    "tags": [
+      "vector",
+      "chroma",
+      "embeddings",
+      "rag"
+    ],
+    "source_url": "https://github.com/chroma-core/chroma-mcp",
+    "last_verified": "2026-09-02",
+    "maintainer": "chroma-core"
+  },
+  {
+    "id": "neo4j",
+    "name": "Neo4j Graph Database",
+    "description": "Execute Cypher graph queries, explore node labels, relationships, and property graphs.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@neo4j/mcp-server"
+    ],
+    "required_env": [
+      "NEO4J_URI",
+      "NEO4J_USERNAME",
+      "NEO4J_PASSWORD"
+    ],
+    "official_repo": "https://github.com/neo4j-contrib/mcp-neo4j",
+    "transport": "stdio",
+    "tags": [
+      "graph",
+      "neo4j",
+      "cypher",
+      "knowledge-graph"
+    ],
+    "source_url": "https://github.com/neo4j-contrib/mcp-neo4j",
+    "last_verified": "2026-09-02",
+    "maintainer": "neo4j-contrib"
+  },
+  {
+    "id": "memory",
+    "name": "Knowledge Graph Memory",
+    "description": "Persistent graph-based memory enabling LLMs to remember facts, entities, and relations across sessions.",
+    "category": "ai-agent",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-memory"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+    "transport": "stdio",
+    "tags": [
+      "memory",
+      "graph",
+      "entities",
+      "persistent",
+      "core"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "sequential-thinking",
+    "name": "Sequential Thinking",
+    "description": "Dynamic problem-solving tool that guides complex reasoning step-by-step with revision and branching.",
+    "category": "ai-agent",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-sequential-thinking"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+    "transport": "stdio",
+    "tags": [
+      "reasoning",
+      "thinking",
+      "planning",
+      "logic",
+      "agent"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "context7",
+    "name": "Context7 Documentation",
+    "description": "Up-to-date documentation and code samples for thousands of programming languages and libraries.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@context7/mcp-server"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/context7/mcp-server",
+    "transport": "stdio",
+    "tags": [
+      "docs",
+      "api",
+      "frameworks",
+      "reference",
+      "code"
+    ],
+    "source_url": "https://github.com/context7/mcp-server",
+    "last_verified": "2026-09-02",
+    "maintainer": "context7"
+  },
+  {
+    "id": "everything",
+    "name": "Everything MCP Reference",
+    "description": "Official MCP reference server exposing tools, resources, prompts, completions, and progress notifications.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-everything"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/everything",
+    "transport": "stdio",
+    "tags": [
+      "reference",
+      "testing",
+      "mcp-spec",
+      "debug"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/everything",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "brave-search",
+    "name": "Brave Search",
+    "description": "Web and local search capabilities powered by the privacy-preserving Brave Search API.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-brave-search"
+    ],
+    "required_env": [
+      "BRAVE_API_KEY"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/brave-search",
+    "transport": "stdio",
+    "tags": [
+      "search",
+      "web",
+      "internet",
+      "brave",
+      "privacy"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/brave-search",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "fetch",
+    "name": "Web Fetch",
+    "description": "Convert web pages, markdown, and REST endpoints into clean, formatted text for LLM ingestion.",
+    "category": "web",
+    "command": "uvx",
+    "args": [
+      "mcp-server-fetch"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
+    "transport": "stdio",
+    "tags": [
+      "http",
+      "curl",
+      "web",
+      "scrape",
+      "markdown"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "tavily",
+    "name": "Tavily AI Search",
+    "description": "Search engine purpose-built for AI agents, providing factual snippets and cited research answers.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@tavily/mcp-server"
+    ],
+    "required_env": [
+      "TAVILY_API_KEY"
+    ],
+    "official_repo": "https://github.com/tavily-ai/tavily-mcp",
+    "transport": "stdio",
+    "tags": [
+      "search",
+      "tavily",
+      "agent",
+      "citations",
+      "web"
+    ],
+    "source_url": "https://github.com/tavily-ai/tavily-mcp",
+    "last_verified": "2026-09-02",
+    "maintainer": "tavily-ai"
+  },
+  {
+    "id": "perplexity",
+    "name": "Perplexity Search",
+    "description": "Query Perplexity's online models for instant synthesized answers with web source citations.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "perplexity-mcp"
+    ],
+    "required_env": [
+      "PERPLEXITY_API_KEY"
+    ],
+    "official_repo": "https://github.com/perplexity-ai/perplexity-mcp",
+    "transport": "stdio",
+    "tags": [
+      "perplexity",
+      "search",
+      "citations",
+      "web"
+    ],
+    "source_url": "https://github.com/perplexity-ai/perplexity-mcp",
+    "last_verified": "2026-09-02",
+    "maintainer": "perplexity-ai"
+  },
+  {
+    "id": "firecrawl",
+    "name": "Firecrawl Web Scraper",
+    "description": "Turn entire websites into clean Markdown for LLMs with deep crawling, subpages, and dynamic JS.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "firecrawl-mcp"
+    ],
+    "required_env": [
+      "FIRECRAWL_API_KEY"
+    ],
+    "official_repo": "https://github.com/mendableai/firecrawl-mcp-server",
+    "transport": "stdio",
+    "tags": [
+      "crawler",
+      "scraper",
+      "markdown",
+      "web"
+    ],
+    "source_url": "https://github.com/mendableai/firecrawl-mcp-server",
+    "last_verified": "2026-09-02",
+    "maintainer": "mendableai"
+  },
+  {
+    "id": "puppeteer",
+    "name": "Puppeteer Headless Browser",
+    "description": "Headless Chrome automation for website navigation, click interactions, form submission, and screenshots.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-puppeteer"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer",
+    "transport": "stdio",
+    "tags": [
+      "browser",
+      "chrome",
+      "automation",
+      "screenshots",
+      "headless"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "playwright",
+    "name": "Playwright Multi-Browser",
+    "description": "Cross-browser testing and web automation across Chromium, Firefox, and WebKit.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@executeautomation/playwright-mcp-server"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/executeautomation/mcp-playwright",
+    "transport": "stdio",
+    "tags": [
+      "browser",
+      "playwright",
+      "testing",
+      "automation"
+    ],
+    "source_url": "https://github.com/executeautomation/mcp-playwright",
+    "last_verified": "2026-09-02",
+    "maintainer": "executeautomation"
+  },
+  {
+    "id": "docker",
+    "name": "Docker Engine",
+    "description": "Inspect and manage Docker containers, images, volumes, container logs, and lifecycle operations.",
+    "category": "cloud",
+    "command": "uvx",
+    "args": [
+      "mcp-server-docker"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/docker",
+    "transport": "stdio",
+    "tags": [
+      "docker",
+      "containers",
+      "devops",
+      "cloud",
+      "infra"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/docker",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "kubernetes",
+    "name": "Kubernetes Cluster",
+    "description": "Inspect Kubernetes pods, deployments, services, namespaces, nodes, and cluster logs.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-kubernetes"
+    ],
+    "required_env": [
+      "KUBECONFIG"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/kubernetes",
+    "transport": "stdio",
+    "tags": [
+      "k8s",
+      "kubernetes",
+      "containers",
+      "devops",
+      "cloud"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/kubernetes",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "aws",
+    "name": "AWS Cloud",
+    "description": "Interact with Amazon Web Services APIs including S3 buckets, EC2 instances, and Lambda functions.",
+    "category": "cloud",
+    "command": "uvx",
+    "args": [
+      "mcp-server-aws"
+    ],
+    "required_env": [
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+      "AWS_REGION"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/aws",
+    "transport": "stdio",
+    "tags": [
+      "aws",
+      "cloud",
+      "s3",
+      "ec2",
+      "lambda"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/aws",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "cloudflare",
+    "name": "Cloudflare",
+    "description": "Manage Cloudflare DNS records, Workers deployments, KV namespaces, and D1 databases.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@cloudflare/mcp-server-cloudflare"
+    ],
+    "required_env": [
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID"
+    ],
+    "official_repo": "https://github.com/cloudflare/mcp-server-cloudflare",
+    "transport": "stdio",
+    "tags": [
+      "cloudflare",
+      "dns",
+      "workers",
+      "kv",
+      "cdn"
+    ],
+    "source_url": "https://github.com/cloudflare/mcp-server-cloudflare",
+    "last_verified": "2026-09-02",
+    "maintainer": "Cloudflare"
+  },
+  {
+    "id": "sentry",
+    "name": "Sentry Error Monitoring",
+    "description": "Query application errors, crash traces, stack frames, and issue summaries in Sentry.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-sentry"
+    ],
+    "required_env": [
+      "SENTRY_AUTH_TOKEN",
+      "SENTRY_ORG"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/sentry",
+    "transport": "stdio",
+    "tags": [
+      "sentry",
+      "errors",
+      "monitoring",
+      "crash",
+      "logs"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sentry",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "datadog",
+    "name": "Datadog Observability",
+    "description": "Inspect Datadog monitors, metrics, APM distributed traces, and log pipelines.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@datadog/mcp-server-datadog"
+    ],
+    "required_env": [
+      "DATADOG_API_KEY",
+      "DATADOG_APP_KEY"
+    ],
+    "official_repo": "https://github.com/DataDog/mcp-datadog",
+    "transport": "stdio",
+    "tags": [
+      "datadog",
+      "metrics",
+      "monitoring",
+      "traces",
+      "apm"
+    ],
+    "source_url": "https://github.com/DataDog/mcp-datadog",
+    "last_verified": "2026-09-02",
+    "maintainer": "DataDog"
+  },
+  {
+    "id": "terraform",
+    "name": "Terraform / OpenTofu",
+    "description": "Inspect Terraform plans, parse HCL configurations, and inspect resource dependency graphs.",
+    "category": "cloud",
+    "command": "uvx",
+    "args": [
+      "mcp-server-terraform"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/terraform",
+    "transport": "stdio",
+    "tags": [
+      "terraform",
+      "opentofu",
+      "iac",
+      "cloud",
+      "infra"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/terraform",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "slack",
+    "name": "Slack",
+    "description": "Read channel history, search messages, inspect threads, and post messages to Slack workspaces.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-slack"
+    ],
+    "required_env": [
+      "SLACK_BOT_TOKEN",
+      "SLACK_TEAM_ID"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/slack",
+    "transport": "stdio",
+    "tags": [
+      "slack",
+      "chat",
+      "messaging",
+      "collaboration"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/slack",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "discord",
+    "name": "Discord",
+    "description": "Read channel messages, send bot responses, and manage Discord guild channels.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-discord"
+    ],
+    "required_env": [
+      "DISCORD_BOT_TOKEN"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/discord",
+    "transport": "stdio",
+    "tags": [
+      "discord",
+      "chat",
+      "bot",
+      "community"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/discord",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "linear",
+    "name": "Linear Issue Tracker",
+    "description": "Search and create Linear issues, assignees, project cycles, and roadmap milestones.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-linear"
+    ],
+    "required_env": [
+      "LINEAR_API_KEY"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/linear",
+    "transport": "stdio",
+    "tags": [
+      "linear",
+      "issues",
+      "agile",
+      "project-management"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/linear",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "jira",
+    "name": "Jira Software",
+    "description": "Search, create, and transition Jira issues, epics, sprints, and agile board backlogs.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-jira"
+    ],
+    "required_env": [
+      "JIRA_BASE_URL",
+      "JIRA_API_TOKEN",
+      "JIRA_USER_EMAIL"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/jira",
+    "transport": "stdio",
+    "tags": [
+      "jira",
+      "atlassian",
+      "issues",
+      "sprints",
+      "tickets"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/jira",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "notion",
+    "name": "Notion Workspace",
+    "description": "Search pages, inspect databases, query blocks, and append content to Notion workspaces.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-notion"
+    ],
+    "required_env": [
+      "NOTION_API_KEY"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/notion",
+    "transport": "stdio",
+    "tags": [
+      "notion",
+      "docs",
+      "wiki",
+      "knowledge",
+      "notes"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/notion",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "obsidian",
+    "name": "Obsidian Vault",
+    "description": "Read, search, link, and update markdown notes in your local Obsidian knowledge vault.",
+    "category": "productivity",
+    "command": "uvx",
+    "args": [
+      "mcp-server-obsidian",
+      "--vault-path",
+      "."
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/obsidian",
+    "transport": "stdio",
+    "tags": [
+      "obsidian",
+      "markdown",
+      "notes",
+      "pkm",
+      "local"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/obsidian",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "google-drive",
+    "name": "Google Drive",
+    "description": "Search files, inspect document contents, and manage Google Drive folders and permissions.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-google-drive"
+    ],
+    "required_env": [
+      "GOOGLE_APPLICATION_CREDENTIALS"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/gdrive",
+    "transport": "stdio",
+    "tags": [
+      "google",
+      "gdrive",
+      "files",
+      "cloud",
+      "docs"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gdrive",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "google-maps",
+    "name": "Google Maps Platform",
+    "description": "Search places, get driving/transit directions, geocode addresses, and query elevation data.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-google-maps"
+    ],
+    "required_env": [
+      "GOOGLE_MAPS_API_KEY"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/google-maps",
+    "transport": "stdio",
+    "tags": [
+      "maps",
+      "places",
+      "geocoding",
+      "directions",
+      "location"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/google-maps",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "todoist",
+    "name": "Todoist Task Manager",
+    "description": "Manage tasks, projects, priority labels, due dates, and completion status in Todoist.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-todoist"
+    ],
+    "required_env": [
+      "TODOIST_API_TOKEN"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/todoist",
+    "transport": "stdio",
+    "tags": [
+      "todoist",
+      "tasks",
+      "todos",
+      "productivity"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/todoist",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "time",
+    "name": "Time & Timezones",
+    "description": "Retrieve current time, convert timestamps across global timezones, and calculate time deltas.",
+    "category": "dev tools",
+    "command": "uvx",
+    "args": [
+      "mcp-server-time"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/time",
+    "transport": "stdio",
+    "tags": [
+      "time",
+      "timezone",
+      "datetime",
+      "clock",
+      "agent"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/time",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "weather",
+    "name": "Weather Information",
+    "description": "Retrieve real-time weather observations, forecasts, alerts, and atmospheric pressure.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-weather"
+    ],
+    "required_env": [
+      "OPENWEATHER_API_KEY"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/weather",
+    "transport": "stdio",
+    "tags": [
+      "weather",
+      "forecast",
+      "climate",
+      "temperature"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/weather",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "openapi",
+    "name": "OpenAPI Bridge",
+    "description": "Dynamically generate MCP tools from any REST API described by an OpenAPI / Swagger JSON specification.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-openapi"
+    ],
+    "required_env": [
+      "OPENAPI_SPEC_URL"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/openapi",
+    "transport": "stdio",
+    "tags": [
+      "openapi",
+      "swagger",
+      "rest",
+      "api",
+      "dynamic"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/openapi",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "graphql",
+    "name": "GraphQL Client",
+    "description": "Introspect GraphQL schemas and execute queries and mutations against any GraphQL endpoint.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-graphql"
+    ],
+    "required_env": [
+      "GRAPHQL_ENDPOINT"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/graphql",
+    "transport": "stdio",
+    "tags": [
+      "graphql",
+      "query",
+      "mutation",
+      "schema",
+      "api"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/graphql",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "shell",
+    "name": "Shell Command Execution",
+    "description": "Execute local shell commands, capture stdout/stderr, and inspect exit codes safely.",
+    "category": "dev tools",
+    "command": "uvx",
+    "args": [
+      "mcp-server-shell"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/shell",
+    "transport": "stdio",
+    "tags": [
+      "shell",
+      "bash",
+      "terminal",
+      "cli",
+      "exec"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/shell",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "python-eval",
+    "name": "Python Code Runner",
+    "description": "Execute isolated Python scripts, evaluate numerical calculations, and inspect runtime outputs.",
+    "category": "dev tools",
+    "command": "uvx",
+    "args": [
+      "mcp-server-python-eval"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/python",
+    "transport": "stdio",
+    "tags": [
+      "python",
+      "eval",
+      "code",
+      "runner",
+      "sandbox"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/python",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "ffmpeg",
+    "name": "FFmpeg Media Tools",
+    "description": "Inspect audio/video streams, extract frames, convert formats, and analyze media codecs.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@ffmpeg-mcp/server"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/ffmpeg-mcp/server",
+    "transport": "stdio",
+    "tags": [
+      "ffmpeg",
+      "video",
+      "audio",
+      "media",
+      "transcode"
+    ],
+    "source_url": "https://github.com/ffmpeg-mcp/server",
+    "last_verified": "2026-09-02",
+    "maintainer": "ffmpeg-mcp"
+  },
+  {
+    "id": "langchain",
+    "name": "LangChain & LangGraph",
+    "description": "Execute LangChain agents, chains, and LangGraph multi-agent workflows directly through MCP.",
+    "category": "ai-agent",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@langchain/mcp-server"
+    ],
+    "required_env": [
+      "LANGCHAIN_API_KEY"
+    ],
+    "official_repo": "https://github.com/langchain-ai/langchain",
+    "transport": "stdio",
+    "tags": [
+      "ai",
+      "agents",
+      "langchain",
+      "langgraph",
+      "orchestration"
+    ],
+    "source_url": "https://github.com/langchain-ai/langchain",
+    "last_verified": "2026-09-02",
+    "maintainer": "langchain-ai"
+  },
+  {
+    "id": "autogen",
+    "name": "Microsoft AutoGen",
+    "description": "Multi-agent conversation and autonomous task orchestration via Microsoft AutoGen framework.",
+    "category": "ai-agent",
+    "command": "uvx",
+    "args": [
+      "autogen-mcp-server"
+    ],
+    "required_env": [
+      "OPENAI_API_KEY"
+    ],
+    "official_repo": "https://github.com/microsoft/autogen",
+    "transport": "stdio",
+    "tags": [
+      "ai",
+      "agents",
+      "autogen",
+      "microsoft"
+    ],
+    "source_url": "https://github.com/microsoft/autogen",
+    "last_verified": "2026-09-02",
+    "maintainer": "microsoft"
+  },
+  {
+    "id": "cohere",
+    "name": "Cohere Intelligence",
+    "description": "High-accuracy semantic reranking, text embeddings, and multilingual classification via Cohere.",
+    "category": "ai-agent",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@cohere/mcp-server"
+    ],
+    "required_env": [
+      "COHERE_API_KEY"
+    ],
+    "official_repo": "https://github.com/cohere-ai/cohere-developer-experience",
+    "transport": "stdio",
+    "tags": [
+      "ai",
+      "embeddings",
+      "rerank",
+      "nlp"
+    ],
+    "source_url": "https://github.com/cohere-ai/cohere-developer-experience",
+    "last_verified": "2026-09-02",
+    "maintainer": "cohere-ai"
+  },
+  {
+    "id": "huggingface",
+    "name": "Hugging Face Hub",
+    "description": "Search, inspect, and query models, datasets, and spaces on the Hugging Face platform.",
+    "category": "ai-agent",
+    "command": "uvx",
+    "args": [
+      "mcp-server-huggingface"
+    ],
+    "required_env": [
+      "HF_TOKEN"
+    ],
+    "official_repo": "https://github.com/huggingface/huggingface_hub",
+    "transport": "stdio",
+    "tags": [
+      "ai",
+      "models",
+      "huggingface",
+      "transformers",
+      "datasets"
+    ],
+    "source_url": "https://github.com/huggingface/huggingface_hub",
+    "last_verified": "2026-09-02",
+    "maintainer": "huggingface"
+  },
+  {
+    "id": "replicate",
+    "name": "Replicate Models",
+    "description": "Run open-source machine learning models in the cloud via Replicate API.",
+    "category": "ai-agent",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@replicate/mcp-server"
+    ],
+    "required_env": [
+      "REPLICATE_API_TOKEN"
+    ],
+    "official_repo": "https://github.com/replicate/replicate-javascript",
+    "transport": "stdio",
+    "tags": [
+      "ai",
+      "inference",
+      "replicate",
+      "vision",
+      "flux",
+      "llama"
+    ],
+    "source_url": "https://github.com/replicate/replicate-javascript",
+    "last_verified": "2026-09-02",
+    "maintainer": "replicate"
+  },
+  {
+    "id": "ollama",
+    "name": "Local Ollama",
+    "description": "Connect to locally running Ollama instance to query Llama, Mistral, Qwen, and custom GGUF models.",
+    "category": "ai-agent",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@ollama/mcp-server"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/ollama/ollama",
+    "transport": "stdio",
+    "tags": [
+      "ai",
+      "local",
+      "ollama",
+      "llm",
+      "offline"
+    ],
+    "source_url": "https://github.com/ollama/ollama",
+    "last_verified": "2026-09-02",
+    "maintainer": "ollama"
+  },
+  {
+    "id": "deepseek-api",
+    "name": "DeepSeek API",
+    "description": "Direct access to DeepSeek V3 and DeepSeek R1 reasoning models via official API.",
+    "category": "ai-agent",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@deepseek/mcp-server"
+    ],
+    "required_env": [
+      "DEEPSEEK_API_KEY"
+    ],
+    "official_repo": "https://github.com/deepseek-ai",
+    "transport": "stdio",
+    "tags": [
+      "ai",
+      "reasoning",
+      "deepseek",
+      "r1",
+      "code"
+    ],
+    "source_url": "https://github.com/deepseek-ai",
+    "last_verified": "2026-09-02",
+    "maintainer": "deepseek-ai"
+  },
+  {
+    "id": "gemini",
+    "name": "Google Gemini API",
+    "description": "Multimodal reasoning, audio analysis, long-context window, and grounded Google search tools.",
+    "category": "ai-agent",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@google/gemini-mcp-server"
+    ],
+    "required_env": [
+      "GEMINI_API_KEY"
+    ],
+    "official_repo": "https://github.com/google-gemini",
+    "transport": "stdio",
+    "tags": [
+      "ai",
+      "gemini",
+      "google",
+      "multimodal",
+      "flash"
+    ],
+    "source_url": "https://github.com/google-gemini",
+    "last_verified": "2026-09-02",
+    "maintainer": "google-gemini"
+  },
+  {
+    "id": "anthropic",
+    "name": "Anthropic Claude",
+    "description": "Direct integration with Anthropic Claude 3.7 Sonnet hybrid thinking and tool invocation APIs.",
+    "category": "ai-agent",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@anthropic-ai/mcp-server-claude"
+    ],
+    "required_env": [
+      "ANTHROPIC_API_KEY"
+    ],
+    "official_repo": "https://github.com/anthropics/anthropic-sdk-typescript",
+    "transport": "stdio",
+    "tags": [
+      "ai",
+      "claude",
+      "anthropic",
+      "sonnet",
+      "thinking"
+    ],
+    "source_url": "https://github.com/anthropics/anthropic-sdk-typescript",
+    "last_verified": "2026-09-02",
+    "maintainer": "anthropics"
+  },
+  {
+    "id": "agent-eval",
+    "name": "Agent Evaluation Harness",
+    "description": "Benchmarking and automated evaluation metrics for LLM tool selection and reasoning trajectories.",
+    "category": "ai-agent",
+    "command": "uvx",
+    "args": [
+      "agent-eval-mcp"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers",
+    "transport": "stdio",
+    "tags": [
+      "ai",
+      "eval",
+      "benchmark",
+      "quality"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "duckdb",
+    "name": "DuckDB Analytical DB",
+    "description": "Fast in-process SQL OLAP database engine for local Parquet, CSV, and analytical queries.",
+    "category": "data",
+    "command": "uvx",
+    "args": [
+      "mcp-server-duckdb"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/duckdb/duckdb",
+    "transport": "stdio",
+    "tags": [
+      "data",
+      "sql",
+      "olap",
+      "parquet",
+      "analytics"
+    ],
+    "source_url": "https://github.com/duckdb/duckdb",
+    "last_verified": "2026-09-02",
+    "maintainer": "DuckDB Labs"
+  },
+  {
+    "id": "snowflake",
+    "name": "Snowflake Data Cloud",
+    "description": "Query tables, schemas, and analytical data warehouses across enterprise Snowflake accounts.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@snowflake/mcp-server"
+    ],
+    "required_env": [
+      "SNOWFLAKE_ACCOUNT",
+      "SNOWFLAKE_USER",
+      "SNOWFLAKE_PASSWORD"
+    ],
+    "official_repo": "https://github.com/snowflakedb",
+    "transport": "stdio",
+    "tags": [
+      "data",
+      "warehouse",
+      "snowflake",
+      "enterprise"
+    ],
+    "source_url": "https://github.com/snowflakedb",
+    "last_verified": "2026-09-02",
+    "maintainer": "Snowflake Inc."
+  },
+  {
+    "id": "bigquery",
+    "name": "Google BigQuery",
+    "description": "Execute large-scale serverless SQL queries on Google Cloud BigQuery datasets.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@google-cloud/mcp-server-bigquery"
+    ],
+    "required_env": [
+      "GOOGLE_APPLICATION_CREDENTIALS"
+    ],
+    "official_repo": "https://github.com/googleapis/google-cloud-node",
+    "transport": "stdio",
+    "tags": [
+      "data",
+      "analytics",
+      "google-cloud",
+      "bigquery",
+      "sql"
+    ],
+    "source_url": "https://github.com/googleapis/google-cloud-node",
+    "last_verified": "2026-09-02",
+    "maintainer": "googleapis"
+  },
+  {
+    "id": "clickhouse",
+    "name": "ClickHouse OLAP DB",
+    "description": "Real-time column-oriented database for high-throughput log, metric, and event analytics.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@clickhouse/mcp-server"
+    ],
+    "required_env": [
+      "CLICKHOUSE_URL"
+    ],
+    "official_repo": "https://github.com/ClickHouse/ClickHouse",
+    "transport": "stdio",
+    "tags": [
+      "data",
+      "olap",
+      "clickhouse",
+      "real-time",
+      "logs"
+    ],
+    "source_url": "https://github.com/ClickHouse/ClickHouse",
+    "last_verified": "2026-09-02",
+    "maintainer": "ClickHouse"
+  },
+  {
+    "id": "elasticsearch",
+    "name": "Elasticsearch",
+    "description": "Distributed search and analytics engine for full-text search, observability, and vector similarity.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@elastic/mcp-server-elasticsearch"
+    ],
+    "required_env": [
+      "ELASTICSEARCH_URL",
+      "ELASTIC_API_KEY"
+    ],
+    "official_repo": "https://github.com/elastic/elasticsearch",
+    "transport": "stdio",
+    "tags": [
+      "data",
+      "search",
+      "elasticsearch",
+      "elastic",
+      "indices"
+    ],
+    "source_url": "https://github.com/elastic/elasticsearch",
+    "last_verified": "2026-09-02",
+    "maintainer": "elastic"
+  },
+  {
+    "id": "opensearch",
+    "name": "OpenSearch",
+    "description": "Community-driven open-source search and analytics suite derived from Elasticsearch.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@opensearch-project/mcp-server"
+    ],
+    "required_env": [
+      "OPENSEARCH_NODE_URL"
+    ],
+    "official_repo": "https://github.com/opensearch-project/OpenSearch",
+    "transport": "stdio",
+    "tags": [
+      "data",
+      "search",
+      "opensearch",
+      "analytics"
+    ],
+    "source_url": "https://github.com/opensearch-project/OpenSearch",
+    "last_verified": "2026-09-02",
+    "maintainer": "opensearch-project"
+  },
+  {
+    "id": "pinecone",
+    "name": "Pinecone Vector DB",
+    "description": "Managed cloud vector database built for high-performance RAG and semantic retrieval.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@pinecone-database/mcp-server"
+    ],
+    "required_env": [
+      "PINECONE_API_KEY"
+    ],
+    "official_repo": "https://github.com/pinecone-io",
+    "transport": "stdio",
+    "tags": [
+      "data",
+      "vector",
+      "pinecone",
+      "rag",
+      "embeddings"
+    ],
+    "source_url": "https://github.com/pinecone-io",
+    "last_verified": "2026-09-02",
+    "maintainer": "pinecone-io"
+  },
+  {
+    "id": "weaviate",
+    "name": "Weaviate Vector DB",
+    "description": "Open-source AI-native vector database with integrated hybrid search, BM25, and generative modules.",
+    "category": "data",
+    "command": "uvx",
+    "args": [
+      "mcp-server-weaviate"
+    ],
+    "required_env": [
+      "WEAVIATE_URL"
+    ],
+    "official_repo": "https://github.com/weaviate/weaviate",
+    "transport": "stdio",
+    "tags": [
+      "data",
+      "vector",
+      "weaviate",
+      "hybrid-search"
+    ],
+    "source_url": "https://github.com/weaviate/weaviate",
+    "last_verified": "2026-09-02",
+    "maintainer": "weaviate"
+  },
+  {
+    "id": "milvus",
+    "name": "Milvus Vector DB",
+    "description": "Cloud-native vector database designed for billion-scale similarity search and multimodal AI.",
+    "category": "data",
+    "command": "uvx",
+    "args": [
+      "mcp-server-milvus"
+    ],
+    "required_env": [
+      "MILVUS_URI"
+    ],
+    "official_repo": "https://github.com/milvus-io/milvus",
+    "transport": "stdio",
+    "tags": [
+      "data",
+      "vector",
+      "milvus",
+      "billion-scale"
+    ],
+    "source_url": "https://github.com/milvus-io/milvus",
+    "last_verified": "2026-09-02",
+    "maintainer": "milvus-io"
+  },
+  {
+    "id": "astra-db",
+    "name": "DataStax Astra DB",
+    "description": "Serverless vector-enabled Apache Cassandra database for real-time transactional AI applications.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@datastax/mcp-server-astra"
+    ],
+    "required_env": [
+      "ASTRA_DB_TOKEN",
+      "ASTRA_DB_API_ENDPOINT"
+    ],
+    "official_repo": "https://github.com/datastax/astra-client-nodejs",
+    "transport": "stdio",
+    "tags": [
+      "data",
+      "cassandra",
+      "astra",
+      "serverless",
+      "vector"
+    ],
+    "source_url": "https://github.com/datastax/astra-client-nodejs",
+    "last_verified": "2026-09-02",
+    "maintainer": "datastax"
+  },
+  {
+    "id": "timescaledb",
+    "name": "TimescaleDB",
+    "description": "Time-series data engine built on top of PostgreSQL for financial, IoT, and metrics workloads.",
+    "category": "data",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@timescale/mcp-server"
+    ],
+    "required_env": [
+      "TIMESCALE_CONNECTION_STRING"
+    ],
+    "official_repo": "https://github.com/timescale/timescaledb",
+    "transport": "stdio",
+    "tags": [
+      "data",
+      "timeseries",
+      "postgresql",
+      "iot",
+      "metrics"
+    ],
+    "source_url": "https://github.com/timescale/timescaledb",
+    "last_verified": "2026-09-02",
+    "maintainer": "timescale"
+  },
+  {
+    "id": "ripgrep",
+    "name": "Ripgrep Search",
+    "description": "Lightning-fast recursive regex pattern search across codebases respecting .gitignore rules.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-ripgrep"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "search",
+      "ripgrep",
+      "grep",
+      "regex"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "eslint",
+    "name": "ESLint Linter",
+    "description": "Automated linting, error detection, and code standard enforcement for JavaScript and TypeScript.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@eslint/mcp-server"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/eslint/eslint",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "lint",
+      "javascript",
+      "typescript",
+      "quality"
+    ],
+    "source_url": "https://github.com/eslint/eslint",
+    "last_verified": "2026-09-02",
+    "maintainer": "eslint"
+  },
+  {
+    "id": "prettier",
+    "name": "Prettier Formatter",
+    "description": "Opinionated code formatting engine supporting JS, TS, JSON, HTML, CSS, YAML, and Markdown.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@prettier/mcp-server"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/prettier/prettier",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "formatting",
+      "prettier",
+      "style"
+    ],
+    "source_url": "https://github.com/prettier/prettier",
+    "last_verified": "2026-09-02",
+    "maintainer": "prettier"
+  },
+  {
+    "id": "rust-analyzer",
+    "name": "Rust Analyzer",
+    "description": "Rust Language Server Protocol engine providing type inspection, diagnostics, and completions.",
+    "category": "dev tools",
+    "command": "uvx",
+    "args": [
+      "mcp-server-rust-analyzer"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/rust-lang/rust-analyzer",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "rust",
+      "lsp",
+      "compiler",
+      "types"
+    ],
+    "source_url": "https://github.com/rust-lang/rust-analyzer",
+    "last_verified": "2026-09-02",
+    "maintainer": "rust-lang"
+  },
+  {
+    "id": "pyright",
+    "name": "Pyright Type Checker",
+    "description": "Fast static type checker and Language Server Protocol interface for modern Python.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@pyright/mcp-server"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/microsoft/pyright",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "python",
+      "types",
+      "pyright",
+      "lsp"
+    ],
+    "source_url": "https://github.com/microsoft/pyright",
+    "last_verified": "2026-09-02",
+    "maintainer": "microsoft"
+  },
+  {
+    "id": "gopls",
+    "name": "Go Language Server (gopls)",
+    "description": "Official Go language server providing symbol definitions, references, and build diagnostics.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@golang/mcp-server-gopls"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/golang/tools/tree/master/gopls",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "go",
+      "golang",
+      "lsp",
+      "compiler"
+    ],
+    "source_url": "https://github.com/golang/tools/tree/master/gopls",
+    "last_verified": "2026-09-02",
+    "maintainer": "golang"
+  },
+  {
+    "id": "postman",
+    "name": "Postman API Suite",
+    "description": "Execute requests, run test collections, and inspect API schemas stored in Postman workspaces.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@postman/mcp-server"
+    ],
+    "required_env": [
+      "POSTMAN_API_KEY"
+    ],
+    "official_repo": "https://github.com/postmanlabs",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "api",
+      "postman",
+      "rest",
+      "testing"
+    ],
+    "source_url": "https://github.com/postmanlabs",
+    "last_verified": "2026-09-02",
+    "maintainer": "Postman, Inc."
+  },
+  {
+    "id": "curl",
+    "name": "cURL Network Inspector",
+    "description": "Low-level HTTP/HTTPS transfer tool with custom SSL, raw socket, and header inspection.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@mcp/server-curl"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "network",
+      "curl",
+      "http",
+      "requests"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "jwt",
+    "name": "JWT Token Tools",
+    "description": "Decode, inspect, verify cryptographic signatures, and debug JSON Web Tokens without secrets leakage.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@mcp/server-jwt"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "security",
+      "jwt",
+      "tokens",
+      "auth"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "semgrep",
+    "name": "Semgrep Security Scanner",
+    "description": "Fast static code analysis engine that finds security bugs and enforces cryptographic best practices.",
+    "category": "dev tools",
+    "command": "uvx",
+    "args": [
+      "mcp-server-semgrep"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/semgrep/semgrep",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "security",
+      "sast",
+      "audit",
+      "vulnerabilities"
+    ],
+    "source_url": "https://github.com/semgrep/semgrep",
+    "last_verified": "2026-09-02",
+    "maintainer": "semgrep"
+  },
+  {
+    "id": "trufflehog",
+    "name": "TruffleHog Secret Scanner",
+    "description": "Detect exposed API keys, private credentials, and passwords across Git commits and filesystems.",
+    "category": "dev tools",
+    "command": "uvx",
+    "args": [
+      "mcp-server-trufflehog"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/trufflesecurity/trufflehog",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "security",
+      "secrets",
+      "credentials",
+      "scanner"
+    ],
+    "source_url": "https://github.com/trufflesecurity/trufflehog",
+    "last_verified": "2026-09-02",
+    "maintainer": "trufflesecurity"
+  },
+  {
+    "id": "valgrind",
+    "name": "Valgrind Memory Profiler",
+    "description": "Detect memory leaks, buffer overflows, and memory corruption bugs in native C/C++ applications.",
+    "category": "dev tools",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@mcp/server-valgrind"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers",
+    "transport": "stdio",
+    "tags": [
+      "dev tools",
+      "c",
+      "cpp",
+      "memory",
+      "debugging"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "bitbucket",
+    "name": "Atlassian Bitbucket",
+    "description": "Manage Bitbucket Git repositories, code reviews, branches, and pull request workflows.",
+    "category": "git",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@atlassian/mcp-server-bitbucket"
+    ],
+    "required_env": [
+      "BITBUCKET_USERNAME",
+      "BITBUCKET_APP_PASSWORD"
+    ],
+    "official_repo": "https://github.com/atlassian",
+    "transport": "stdio",
+    "tags": [
+      "git",
+      "bitbucket",
+      "atlassian",
+      "pull-requests"
+    ],
+    "source_url": "https://github.com/atlassian",
+    "last_verified": "2026-09-02",
+    "maintainer": "atlassian"
+  },
+  {
+    "id": "github-actions",
+    "name": "GitHub Actions",
+    "description": "Inspect workflow runs, view CI logs, trigger workflow dispatches, and debug failing pipelines.",
+    "category": "git",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-github-actions"
+    ],
+    "required_env": [
+      "GITHUB_PERSONAL_ACCESS_TOKEN"
+    ],
+    "official_repo": "https://github.com/modelcontextprotocol/servers",
+    "transport": "stdio",
+    "tags": [
+      "git",
+      "github",
+      "actions",
+      "ci",
+      "cd",
+      "workflows"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "git-lfs",
+    "name": "Git Large File Storage",
+    "description": "Manage and inspect large binary files, machine learning checkpoints, and assets versioned in Git.",
+    "category": "git",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@git-lfs/mcp-server"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/git-lfs/git-lfs",
+    "transport": "stdio",
+    "tags": [
+      "git",
+      "lfs",
+      "storage",
+      "binary",
+      "assets"
+    ],
+    "source_url": "https://github.com/git-lfs/git-lfs",
+    "last_verified": "2026-09-02",
+    "maintainer": "git-lfs"
+  },
+  {
+    "id": "git-graph",
+    "name": "Git Branch Graph",
+    "description": "Visualize commit history graphs, branching topology, tags, and merge points programmatically.",
+    "category": "git",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@mcp/server-git-graph"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/modelcontextprotocol/servers",
+    "transport": "stdio",
+    "tags": [
+      "git",
+      "visualization",
+      "graph",
+      "branches"
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
+  },
+  {
+    "id": "azure",
+    "name": "Microsoft Azure Cloud",
+    "description": "Provision, inspect, and monitor Azure Virtual Machines, Storage Accounts, and Resource Groups.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@azure/mcp-server"
+    ],
+    "required_env": [
+      "AZURE_SUBSCRIPTION_ID",
+      "AZURE_TENANT_ID",
+      "AZURE_CLIENT_ID"
+    ],
+    "official_repo": "https://github.com/Azure/azure-sdk-for-js",
+    "transport": "stdio",
+    "tags": [
+      "cloud",
+      "azure",
+      "microsoft",
+      "infra",
+      "vms"
+    ],
+    "source_url": "https://github.com/Azure/azure-sdk-for-js",
+    "last_verified": "2026-09-02",
+    "maintainer": "Azure"
+  },
+  {
+    "id": "gcp",
+    "name": "Google Cloud Platform",
+    "description": "Inspect GCP Compute Engine, Cloud Storage buckets, Cloud Functions, and IAM permissions.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@google-cloud/mcp-server"
+    ],
+    "required_env": [
+      "GOOGLE_APPLICATION_CREDENTIALS",
+      "GCP_PROJECT_ID"
+    ],
+    "official_repo": "https://github.com/googleapis/google-cloud-node",
+    "transport": "stdio",
+    "tags": [
+      "cloud",
+      "gcp",
+      "google-cloud",
+      "compute",
+      "storage"
+    ],
+    "source_url": "https://github.com/googleapis/google-cloud-node",
+    "last_verified": "2026-09-02",
+    "maintainer": "googleapis"
+  },
+  {
+    "id": "vercel",
+    "name": "Vercel Platform",
+    "description": "Manage frontend deployments, preview URLs, custom domains, and edge environment variables.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@vercel/mcp-server"
+    ],
+    "required_env": [
+      "VERCEL_TOKEN"
+    ],
+    "official_repo": "https://github.com/vercel/vercel",
+    "transport": "stdio",
+    "tags": [
+      "cloud",
+      "vercel",
+      "frontend",
+      "nextjs",
+      "deploy"
+    ],
+    "source_url": "https://github.com/vercel/vercel",
+    "last_verified": "2026-09-02",
+    "maintainer": "vercel"
+  },
+  {
+    "id": "netlify",
+    "name": "Netlify Cloud",
+    "description": "Control Jamstack builds, deploy hooks, custom forms, DNS records, and edge functions on Netlify.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@netlify/mcp-server"
+    ],
+    "required_env": [
+      "NETLIFY_AUTH_TOKEN"
+    ],
+    "official_repo": "https://github.com/netlify/js-client",
+    "transport": "stdio",
+    "tags": [
+      "cloud",
+      "netlify",
+      "hosting",
+      "jamstack"
+    ],
+    "source_url": "https://github.com/netlify/js-client",
+    "last_verified": "2026-09-02",
+    "maintainer": "netlify"
+  },
+  {
+    "id": "render",
+    "name": "Render Cloud Services",
+    "description": "Manage containerized web services, background workers, and managed PostgreSQL on Render.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@render/mcp-server"
+    ],
+    "required_env": [
+      "RENDER_API_KEY"
+    ],
+    "official_repo": "https://github.com/render-examples",
+    "transport": "stdio",
+    "tags": [
+      "cloud",
+      "render",
+      "hosting",
+      "containers"
+    ],
+    "source_url": "https://github.com/render-examples",
+    "last_verified": "2026-09-02",
+    "maintainer": "render-examples"
+  },
+  {
+    "id": "grafana",
+    "name": "Grafana Observability",
+    "description": "Query metrics, inspect alerting dashboards, and extract telemetry visualizations across Grafana.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@grafana/mcp-server"
+    ],
+    "required_env": [
+      "GRAFANA_URL",
+      "GRAFANA_SERVICE_ACCOUNT_TOKEN"
+    ],
+    "official_repo": "https://github.com/grafana/grafana",
+    "transport": "stdio",
+    "tags": [
+      "cloud",
+      "observability",
+      "grafana",
+      "dashboards",
+      "metrics"
+    ],
+    "source_url": "https://github.com/grafana/grafana",
+    "last_verified": "2026-09-02",
+    "maintainer": "grafana"
+  },
+  {
+    "id": "prometheus",
+    "name": "Prometheus Metrics",
+    "description": "Execute PromQL queries and inspect real-time service health, CPU, memory, and SLA metrics.",
+    "category": "cloud",
+    "command": "uvx",
+    "args": [
+      "mcp-server-prometheus"
+    ],
+    "required_env": [
+      "PROMETHEUS_ENDPOINT"
+    ],
+    "official_repo": "https://github.com/prometheus/prometheus",
+    "transport": "stdio",
+    "tags": [
+      "cloud",
+      "monitoring",
+      "prometheus",
+      "promql",
+      "metrics"
+    ],
+    "source_url": "https://github.com/prometheus/prometheus",
+    "last_verified": "2026-09-02",
+    "maintainer": "prometheus"
+  },
+  {
+    "id": "pagerduty",
+    "name": "PagerDuty Alerts",
+    "description": "Acknowledge incidents, trigger on-call escalations, and manage on-call responder schedules.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@pagerduty/mcp-server"
+    ],
+    "required_env": [
+      "PAGERDUTY_API_KEY"
+    ],
+    "official_repo": "https://github.com/PagerDuty",
+    "transport": "stdio",
+    "tags": [
+      "cloud",
+      "incident",
+      "pagerduty",
+      "oncall",
+      "alerts"
+    ],
+    "source_url": "https://github.com/PagerDuty",
+    "last_verified": "2026-09-02",
+    "maintainer": "PagerDuty"
+  },
+  {
+    "id": "ansible",
+    "name": "Ansible Automation",
+    "description": "Execute infrastructure playbooks, validate host inventories, and audit system configurations.",
+    "category": "cloud",
+    "command": "uvx",
+    "args": [
+      "mcp-server-ansible"
+    ],
+    "required_env": [],
+    "official_repo": "https://github.com/ansible/ansible",
+    "transport": "stdio",
+    "tags": [
+      "cloud",
+      "automation",
+      "ansible",
+      "playbook",
+      "devops"
+    ],
+    "source_url": "https://github.com/ansible/ansible",
+    "last_verified": "2026-09-02",
+    "maintainer": "ansible"
+  },
+  {
+    "id": "helm",
+    "name": "Kubernetes Helm",
+    "description": "Inspect, render, upgrade, and manage Helm chart releases across Kubernetes clusters.",
+    "category": "cloud",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@helm/mcp-server"
+    ],
+    "required_env": [
+      "KUBECONFIG"
+    ],
+    "official_repo": "https://github.com/helm/helm",
+    "transport": "stdio",
+    "tags": [
+      "cloud",
+      "kubernetes",
+      "helm",
+      "packages"
+    ],
+    "source_url": "https://github.com/helm/helm",
+    "last_verified": "2026-09-02",
+    "maintainer": "helm"
+  },
+  {
+    "id": "google-search",
+    "name": "Google Custom Search",
+    "description": "Real-time web search powered by the official Google Custom Search JSON API.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@google/mcp-server-custom-search"
+    ],
+    "required_env": [
+      "GOOGLE_CUSTOM_SEARCH_KEY",
+      "GOOGLE_CUSTOM_SEARCH_CX"
+    ],
+    "official_repo": "https://github.com/googleapis/google-api-nodejs-client",
+    "transport": "stdio",
+    "tags": [
+      "web",
+      "search",
+      "google",
+      "live-data"
+    ],
+    "source_url": "https://github.com/googleapis/google-api-nodejs-client",
+    "last_verified": "2026-09-02",
+    "maintainer": "googleapis"
+  },
+  {
+    "id": "bing-search",
+    "name": "Microsoft Bing Search",
+    "description": "Query web results, news articles, and domain metadata via Microsoft Azure Bing Web Search API.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@microsoft/mcp-server-bing"
+    ],
+    "required_env": [
+      "BING_SEARCH_API_KEY"
+    ],
+    "official_repo": "https://github.com/microsoft/azure-sdk-for-js",
+    "transport": "stdio",
+    "tags": [
+      "web",
+      "search",
+      "bing",
+      "microsoft"
+    ],
+    "source_url": "https://github.com/microsoft/azure-sdk-for-js",
+    "last_verified": "2026-09-02",
+    "maintainer": "microsoft"
+  },
+  {
+    "id": "serpapi",
+    "name": "SerpApi Multi-Search",
+    "description": "Scrape structured search engine result pages across Google, Baidu, Yahoo, and DuckDuckGo.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@serpapi/mcp-server"
+    ],
+    "required_env": [
+      "SERPAPI_API_KEY"
+    ],
+    "official_repo": "https://github.com/serpapi/serpapi-javascript",
+    "transport": "stdio",
+    "tags": [
+      "web",
+      "search",
+      "serpapi",
+      "scraper"
+    ],
+    "source_url": "https://github.com/serpapi/serpapi-javascript",
+    "last_verified": "2026-09-02",
+    "maintainer": "serpapi"
+  },
+  {
+    "id": "jina-reader",
+    "name": "Jina AI Reader",
+    "description": "Convert any public URL into clean, LLM-friendly Markdown optimized for prompt context windows.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@jina-ai/mcp-server"
+    ],
+    "required_env": [
+      "JINA_API_KEY"
+    ],
+    "official_repo": "https://github.com/jina-ai/reader",
+    "transport": "stdio",
+    "tags": [
+      "web",
+      "reader",
+      "markdown",
+      "jina",
+      "extractor"
+    ],
+    "source_url": "https://github.com/jina-ai/reader",
+    "last_verified": "2026-09-02",
+    "maintainer": "jina-ai"
+  },
+  {
+    "id": "spider",
+    "name": "Spider Cloud Scraper",
+    "description": "Fast headless web crawler that extracts raw text, markdown, or structured JSON with proxy rotation.",
+    "category": "web",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@spider-cloud/mcp-server"
+    ],
+    "required_env": [
+      "SPIDER_API_KEY"
+    ],
+    "official_repo": "https://github.com/spider-rs/spider",
+    "transport": "stdio",
+    "tags": [
+      "web",
+      "crawler",
+      "scraper",
+      "headless"
+    ],
+    "source_url": "https://github.com/spider-rs/spider",
+    "last_verified": "2026-09-02",
+    "maintainer": "spider-rs"
+  },
+  {
+    "id": "trello",
+    "name": "Atlassian Trello",
+    "description": "Manage boards, cards, lists, labels, and assignment checklists on Trello.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@trello/mcp-server"
+    ],
+    "required_env": [
+      "TRELLO_API_KEY",
+      "TRELLO_TOKEN"
+    ],
+    "official_repo": "https://github.com/atlassian",
+    "transport": "stdio",
+    "tags": [
+      "productivity",
+      "trello",
+      "kanban",
+      "tasks"
+    ],
+    "source_url": "https://github.com/atlassian",
+    "last_verified": "2026-09-02",
+    "maintainer": "atlassian"
+  },
+  {
+    "id": "asana",
+    "name": "Asana Work Management",
+    "description": "Track corporate milestones, projects, section tasks, and team deliverables on Asana.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@asana/mcp-server"
+    ],
+    "required_env": [
+      "ASANA_ACCESS_TOKEN"
+    ],
+    "official_repo": "https://github.com/Asana/node-asana",
+    "transport": "stdio",
+    "tags": [
+      "productivity",
+      "asana",
+      "projects",
+      "tasks"
+    ],
+    "source_url": "https://github.com/Asana/node-asana",
+    "last_verified": "2026-09-02",
+    "maintainer": "Asana"
+  },
+  {
+    "id": "airtable",
+    "name": "Airtable Relational Bases",
+    "description": "Read, query, insert, and update structured records in Airtable relational bases and views.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@airtable/mcp-server"
+    ],
+    "required_env": [
+      "AIRTABLE_API_KEY"
+    ],
+    "official_repo": "https://github.com/Airtable/airtable.js",
+    "transport": "stdio",
+    "tags": [
+      "productivity",
+      "airtable",
+      "database",
+      "nocode"
+    ],
+    "source_url": "https://github.com/Airtable/airtable.js",
+    "last_verified": "2026-09-02",
+    "maintainer": "Airtable"
+  },
+  {
+    "id": "clickup",
+    "name": "ClickUp Work Platform",
+    "description": "Manage sprints, goals, checklists, custom fields, and ticket assignments in ClickUp workspaces.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@clickup/mcp-server"
+    ],
+    "required_env": [
+      "CLICKUP_API_TOKEN"
+    ],
+    "official_repo": "https://github.com/clickup",
+    "transport": "stdio",
+    "tags": [
+      "productivity",
+      "clickup",
+      "sprints",
+      "project-management"
+    ],
+    "source_url": "https://github.com/clickup",
+    "last_verified": "2026-09-02",
+    "maintainer": "clickup"
+  },
+  {
+    "id": "confluence",
+    "name": "Atlassian Confluence",
+    "description": "Search corporate knowledge bases, read spaces, create pages, and comment on documentation.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@atlassian/mcp-server-confluence"
+    ],
+    "required_env": [
+      "CONFLUENCE_DOMAIN",
+      "CONFLUENCE_EMAIL",
+      "CONFLUENCE_API_TOKEN"
+    ],
+    "official_repo": "https://github.com/atlassian",
+    "transport": "stdio",
+    "tags": [
+      "productivity",
+      "confluence",
+      "wiki",
+      "docs"
+    ],
+    "source_url": "https://github.com/atlassian",
+    "last_verified": "2026-09-02",
+    "maintainer": "atlassian"
+  },
+  {
+    "id": "zendesk",
+    "name": "Zendesk Customer Support",
+    "description": "Inspect customer tickets, update ticket statuses, create macros, and search support knowledge bases.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@zendesk/mcp-server"
+    ],
+    "required_env": [
+      "ZENDESK_SUBDOMAIN",
+      "ZENDESK_EMAIL",
+      "ZENDESK_API_TOKEN"
+    ],
+    "official_repo": "https://github.com/zendesk",
+    "transport": "stdio",
+    "tags": [
+      "productivity",
+      "support",
+      "zendesk",
+      "helpdesk",
+      "tickets"
+    ],
+    "source_url": "https://github.com/zendesk",
+    "last_verified": "2026-09-02",
+    "maintainer": "zendesk"
+  },
+  {
+    "id": "google-calendar",
+    "name": "Google Calendar",
+    "description": "Inspect schedules, detect scheduling conflicts, create meetings, and send event invitations.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@google/mcp-server-calendar"
+    ],
+    "required_env": [
+      "GOOGLE_APPLICATION_CREDENTIALS"
+    ],
+    "official_repo": "https://github.com/googleapis/google-api-nodejs-client",
+    "transport": "stdio",
+    "tags": [
+      "productivity",
+      "calendar",
+      "meetings",
+      "events",
+      "google"
+    ],
+    "source_url": "https://github.com/googleapis/google-api-nodejs-client",
+    "last_verified": "2026-09-02",
+    "maintainer": "googleapis"
+  },
+  {
+    "id": "twilio",
+    "name": "Twilio Communications",
+    "description": "Send SMS notifications, check delivery receipts, manage phone numbers, and dispatch voice calls.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@twilio/mcp-server"
+    ],
+    "required_env": [
+      "TWILIO_ACCOUNT_SID",
+      "TWILIO_AUTH_TOKEN"
+    ],
+    "official_repo": "https://github.com/twilio/twilio-node",
+    "transport": "stdio",
+    "tags": [
+      "productivity",
+      "sms",
+      "voice",
+      "twilio",
+      "notifications"
+    ],
+    "source_url": "https://github.com/twilio/twilio-node",
+    "last_verified": "2026-09-02",
+    "maintainer": "twilio"
+  },
+  {
+    "id": "sendgrid",
+    "name": "SendGrid Email Platform",
+    "description": "Dispatch transactional emails, send templated messages, and inspect delivery bounce logs.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@sendgrid/mcp-server"
+    ],
+    "required_env": [
+      "SENDGRID_API_KEY"
+    ],
+    "official_repo": "https://github.com/sendgrid/sendgrid-nodejs",
+    "transport": "stdio",
+    "tags": [
+      "productivity",
+      "email",
+      "sendgrid",
+      "transactional"
+    ],
+    "source_url": "https://github.com/sendgrid/sendgrid-nodejs",
+    "last_verified": "2026-09-02",
+    "maintainer": "sendgrid"
+  },
+  {
+    "id": "stripe",
+    "name": "Stripe Payments & Billing",
+    "description": "Inspect customer accounts, query subscription statuses, create payment links, and verify refunds.",
+    "category": "productivity",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@stripe/mcp-server"
+    ],
+    "required_env": [
+      "STRIPE_SECRET_KEY"
+    ],
+    "official_repo": "https://github.com/stripe/stripe-node",
+    "transport": "stdio",
+    "tags": [
+      "productivity",
+      "payments",
+      "stripe",
+      "billing",
+      "subscriptions"
+    ],
+    "source_url": "https://github.com/stripe/stripe-node",
+    "last_verified": "2026-09-02",
+    "maintainer": "stripe"
+  }
+]

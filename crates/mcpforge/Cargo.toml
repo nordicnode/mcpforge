@@ -6,7 +6,7 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
-readme = "../../README.md"
+readme = "README.md"
 description = "The fast, zero-runtime TUI that discovers every MCP client on your machine and syncs them all"
 default-run = "mcpforge"
 
