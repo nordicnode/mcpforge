@@ -22,9 +22,21 @@ pub fn render_help(f: &mut Frame) {
     f.render_widget(block, area);
 
     let shortcuts = [
-        ("Dashboard Navigation", ""),
-        ("  j / Down", "Move selection cursor down"),
-        ("  k / Up", "Move selection cursor up"),
+        ("Dashboard Navigation & Two-Pane Focus", ""),
+        (
+            "  j / k / Up / Down",
+            "Move selection in active pane (or scroll inspector)",
+        ),
+        ("  Enter / l / Right", "Focus Server Inspector pane"),
+        ("  h / Left / Esc", "Return focus to Server List"),
+        (
+            "  1 - 5 / Tab",
+            "Switch Inspector sub-tab (Overview/Clients/Env/Telemetry/JSON)",
+        ),
+        (
+            "  c",
+            "Copy server configuration JSON to clipboard (in Inspector)",
+        ),
         ("  Space", "Toggle server enabled / disabled"),
         ("  t", "Open Tool Explorer & Interactive Playground"),
         ("  T", "Execute live background JSON-RPC 2.0 handshake test"),
@@ -38,7 +50,7 @@ pub fn render_help(f: &mut Frame) {
         ),
         ("  a", "Open Add Server Wizard"),
         ("  ?", "Toggle this interactive help screen"),
-        ("  q / Esc", "Quit MCPForge"),
+        ("  q", "Quit MCPForge"),
         ("", ""),
         ("Tool Explorer & Playground", ""),
         ("  j / k", "Navigate tools exposed by selected server"),

@@ -9,7 +9,7 @@ use crossterm::{
 use mcp_core::client::check_server_health;
 use mcpforge_adapters::ConfigLocation;
 use ratatui::{backend::CrosstermBackend, Terminal};
-use std::io::stdout;
+use std::io::{stdout, Write};
 use std::time::Duration;
 
 pub async fn run(run_doctor_init: bool) -> Result<()> {
@@ -80,154 +80,347 @@ async fn main_loop<B: ratatui::backend::Backend>(
                 }
 
                 match app.current_view {
-                    CurrentView::Dashboard => match key.code {
-                        KeyCode::Tab | KeyCode::BackTab | KeyCode::Char('2') => {
-                            app.refresh_discovery();
-                            app.current_view = CurrentView::Clients;
-                        }
-                        KeyCode::Char('q') | KeyCode::Esc => {
-                            app.should_quit = true;
-                        }
-                        KeyCode::Char('?') => {
-                            app.current_view = CurrentView::Help;
-                        }
-                        KeyCode::Char('j') | KeyCode::Down => {
-                            app.select_next();
-                        }
-                        KeyCode::Char('k') | KeyCode::Up => {
-                            app.select_prev();
-                        }
-                        KeyCode::Char('/') => {
-                            app.is_searching = true;
-                        }
-                        KeyCode::Char('r') => {
-                            if let Some(server) = app.selected_server().cloned() {
-                                app.status_message =
-                                    Some(format!("Checking health for '{}'...", server.id));
-                                terminal.draw(|f| ui::render_ui(f, app))?;
-                                let status = check_server_health(&server, 5).await;
-                                app.health_cache.insert(server.id.clone(), status);
-                                app.status_message =
-                                    Some(format!("Updated health for '{}'", server.id));
-                            }
-                        }
-                        KeyCode::Char('u') => {
-                            let count = app.auto_sync_all().unwrap_or(0);
-                            app.status_message =
-                                Some(format!("Auto-synced {} servers across all clients!", count));
-                        }
-                        KeyCode::Char('a') => {
-                            app.start_wizard();
-                        }
-                        KeyCode::Char('d')
-                        | KeyCode::Delete
-                        | KeyCode::Backspace
-                        | KeyCode::Char('x') => {
-                            app.start_delete();
-                        }
-                        KeyCode::Char(' ') => {
-                            if let Some(mut server) = app.selected_server().cloned() {
-                                server.enabled = !server.enabled;
-                                let locs: Vec<ConfigLocation> = app
-                                    .detected_clients
-                                    .iter()
-                                    .filter(|c| {
-                                        server.clients.iter().any(|sc| sc.config_path == c.path)
-                                    })
-                                    .cloned()
-                                    .collect();
-                                let _ = app.manager.write_server_to_locations(&server, &locs);
-                                app.refresh_servers();
-                            }
-                        }
-                        KeyCode::Char('t') => {
-                            if let Some(mut server) = app.selected_server().cloned() {
-                                let resolver = crate::resolver::EnvResolver::new();
-                                resolver.enrich_server_entry(&mut server, &app.registry);
-
-                                app.tool_explorer_state = Some(crate::app::ToolExplorerState {
-                                    server_id: server.id.clone(),
-                                    tools: Vec::new(),
-                                    selected_index: 0,
-                                    is_loading: true,
-                                    execution_result: None,
-                                    error_message: None,
-                                    params_input: "{}".to_string(),
-                                    is_editing_params: false,
-                                    is_form_mode: false,
-                                    form_fields: Vec::new(),
-                                    form_active_index: 0,
-                                });
-                                app.current_view = CurrentView::ToolExplorer;
-                                terminal.draw(|f| ui::render_ui(f, app))?;
-
-                                match mcp_core::client::list_server_tools(&server, 10).await {
-                                    Ok(tools) => {
-                                        if let Some(ref mut state) = app.tool_explorer_state {
-                                            state.is_loading = false;
-                                            state.tools = tools;
-                                        }
-                                        app.update_params_for_selected_tool();
+                    CurrentView::Dashboard => {
+                        if app.focused_pane == crate::app::FocusedPane::ServerDetails {
+                            match key.code {
+                                KeyCode::Esc | KeyCode::Char('h') | KeyCode::Left => {
+                                    app.focus_servers();
+                                }
+                                KeyCode::Char('1') => {
+                                    app.set_detail_tab(crate::app::DetailTab::Overview);
+                                }
+                                KeyCode::Char('2') => {
+                                    app.set_detail_tab(crate::app::DetailTab::Clients);
+                                }
+                                KeyCode::Char('3') => {
+                                    app.set_detail_tab(crate::app::DetailTab::Environment);
+                                }
+                                KeyCode::Char('4') => {
+                                    app.set_detail_tab(crate::app::DetailTab::Telemetry);
+                                }
+                                KeyCode::Char('5') => {
+                                    app.set_detail_tab(crate::app::DetailTab::ConfigJson);
+                                }
+                                KeyCode::Tab | KeyCode::Char(']') => {
+                                    app.next_detail_tab();
+                                }
+                                KeyCode::BackTab | KeyCode::Char('[') => {
+                                    app.prev_detail_tab();
+                                }
+                                KeyCode::Char('j') | KeyCode::Down => {
+                                    app.scroll_detail_down(1);
+                                }
+                                KeyCode::Char('k') | KeyCode::Up => {
+                                    app.scroll_detail_up(1);
+                                }
+                                KeyCode::PageDown => {
+                                    app.scroll_detail_down(8);
+                                }
+                                KeyCode::PageUp => {
+                                    app.scroll_detail_up(8);
+                                }
+                                KeyCode::Char('c') => {
+                                    if let Some(server) = app.selected_server() {
+                                        let snippet = App::generate_canonical_snippet(server);
+                                        let b64 = base64_encode(snippet.as_bytes());
+                                        let osc52 = format!("\x1b]52;c;{}\x07", b64);
+                                        let _ = std::io::stdout().write_all(osc52.as_bytes());
+                                        let _ = std::io::stdout().flush();
+                                        app.status_message = Some(format!(
+                                            "Copied '{}' configuration to clipboard!",
+                                            server.id
+                                        ));
                                     }
-                                    Err(e) => {
-                                        if let Some(ref mut state) = app.tool_explorer_state {
-                                            state.is_loading = false;
-                                            state.error_message = Some(e.to_string());
+                                }
+                                KeyCode::Char('t') => {
+                                    if let Some(mut server) = app.selected_server().cloned() {
+                                        let resolver = crate::resolver::EnvResolver::new();
+                                        resolver.enrich_server_entry(&mut server, &app.registry);
+
+                                        app.tool_explorer_state =
+                                            Some(crate::app::ToolExplorerState {
+                                                server_id: server.id.clone(),
+                                                tools: Vec::new(),
+                                                selected_index: 0,
+                                                is_loading: true,
+                                                execution_result: None,
+                                                error_message: None,
+                                                params_input: "{}".to_string(),
+                                                is_editing_params: false,
+                                                is_form_mode: false,
+                                                form_fields: Vec::new(),
+                                                form_active_index: 0,
+                                            });
+                                        app.current_view = CurrentView::ToolExplorer;
+                                        terminal.draw(|f| ui::render_ui(f, app))?;
+
+                                        match mcp_core::client::list_server_tools(&server, 10).await
+                                        {
+                                            Ok(tools) => {
+                                                if let Some(ref mut state) = app.tool_explorer_state
+                                                {
+                                                    state.is_loading = false;
+                                                    state.tools = tools;
+                                                }
+                                                app.update_params_for_selected_tool();
+                                            }
+                                            Err(e) => {
+                                                if let Some(ref mut state) = app.tool_explorer_state
+                                                {
+                                                    state.is_loading = false;
+                                                    state.error_message = Some(e.to_string());
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        }
-                        KeyCode::Char('T') => {
-                            if let Some(mut server) = app.selected_server().cloned() {
-                                let resolver = crate::resolver::EnvResolver::new();
-                                resolver.enrich_server_entry(&mut server, &app.registry);
+                                KeyCode::Char('T') => {
+                                    if let Some(mut server) = app.selected_server().cloned() {
+                                        let resolver = crate::resolver::EnvResolver::new();
+                                        resolver.enrich_server_entry(&mut server, &app.registry);
 
-                                app.status_message = Some(format!(
-                                    "Handshake test: Spawning & negotiating with '{}'...",
-                                    server.id
-                                ));
-                                terminal.draw(|f| ui::render_ui(f, app))?;
-                                let start = std::time::Instant::now();
-                                let status = check_server_health(&server, 8).await;
-                                let elapsed_ms = start.elapsed().as_millis();
-                                app.health_cache.insert(server.id.clone(), status.clone());
-                                match status {
-                                    mcp_core::types::HealthStatus::Healthy {
-                                        tool_count,
-                                        server_name,
-                                        server_version,
-                                        ..
-                                    } => {
                                         app.status_message = Some(format!(
-                                            "✓ Handshake SUCCESS: {} v{} ({} tools, {}ms)",
-                                            server_name, server_version, tool_count, elapsed_ms
+                                            "Handshake test: Spawning & negotiating with '{}'...",
+                                            server.id
                                         ));
+                                        terminal.draw(|f| ui::render_ui(f, app))?;
+                                        let start = std::time::Instant::now();
+                                        let status = check_server_health(&server, 8).await;
+                                        let elapsed_ms = start.elapsed().as_millis();
+                                        app.health_cache.insert(server.id.clone(), status.clone());
+                                        match status {
+                                            mcp_core::types::HealthStatus::Healthy {
+                                                tool_count,
+                                                server_name,
+                                                server_version,
+                                                ..
+                                            } => {
+                                                app.status_message = Some(format!(
+                                                    "✓ Handshake SUCCESS: {} v{} ({} tools, {}ms)",
+                                                    server_name,
+                                                    server_version,
+                                                    tool_count,
+                                                    elapsed_ms
+                                                ));
+                                            }
+                                            mcp_core::types::HealthStatus::Degraded {
+                                                reason,
+                                                ..
+                                            } => {
+                                                app.status_message = Some(format!(
+                                                    "▲ Handshake DEGRADED: {} ({}ms)",
+                                                    reason, elapsed_ms
+                                                ));
+                                            }
+                                            mcp_core::types::HealthStatus::Broken { error } => {
+                                                app.status_message = Some(format!(
+                                                    "✖ Handshake FAILED: {} ({}ms)",
+                                                    error, elapsed_ms
+                                                ));
+                                            }
+                                            _ => {}
+                                        }
                                     }
-                                    mcp_core::types::HealthStatus::Degraded { reason, .. } => {
-                                        app.status_message = Some(format!(
-                                            "▲ Handshake DEGRADED: {} ({}ms)",
-                                            reason, elapsed_ms
-                                        ));
-                                    }
-                                    mcp_core::types::HealthStatus::Broken { error } => {
-                                        app.status_message = Some(format!(
-                                            "✖ Handshake FAILED: {} ({}ms)",
-                                            error, elapsed_ms
-                                        ));
-                                    }
-                                    _ => {}
                                 }
+                                KeyCode::Char(' ') => {
+                                    if let Some(mut server) = app.selected_server().cloned() {
+                                        server.enabled = !server.enabled;
+                                        let locs: Vec<ConfigLocation> = app
+                                            .detected_clients
+                                            .iter()
+                                            .filter(|c| {
+                                                server
+                                                    .clients
+                                                    .iter()
+                                                    .any(|sc| sc.config_path == c.path)
+                                            })
+                                            .cloned()
+                                            .collect();
+                                        let _ =
+                                            app.manager.write_server_to_locations(&server, &locs);
+                                        app.refresh_servers();
+                                    }
+                                }
+                                KeyCode::Char('q') => {
+                                    app.should_quit = true;
+                                }
+                                KeyCode::Char('?') => {
+                                    app.current_view = CurrentView::Help;
+                                }
+                                _ => {}
+                            }
+                        } else {
+                            match key.code {
+                                KeyCode::Enter | KeyCode::Char('l') | KeyCode::Right => {
+                                    if app.selected_server().is_some() {
+                                        app.focus_details();
+                                    }
+                                }
+                                KeyCode::Tab | KeyCode::BackTab | KeyCode::Char('2') => {
+                                    app.refresh_discovery();
+                                    app.current_view = CurrentView::Clients;
+                                }
+                                KeyCode::Char('q') | KeyCode::Esc => {
+                                    app.should_quit = true;
+                                }
+                                KeyCode::Char('?') => {
+                                    app.current_view = CurrentView::Help;
+                                }
+                                KeyCode::Char('j') | KeyCode::Down => {
+                                    app.select_next();
+                                }
+                                KeyCode::Char('k') | KeyCode::Up => {
+                                    app.select_prev();
+                                }
+                                KeyCode::Char('/') => {
+                                    app.is_searching = true;
+                                }
+                                KeyCode::Char('r') => {
+                                    if let Some(server) = app.selected_server().cloned() {
+                                        app.status_message =
+                                            Some(format!("Checking health for '{}'...", server.id));
+                                        terminal.draw(|f| ui::render_ui(f, app))?;
+                                        let status = check_server_health(&server, 5).await;
+                                        app.health_cache.insert(server.id.clone(), status);
+                                        app.status_message =
+                                            Some(format!("Updated health for '{}'", server.id));
+                                    }
+                                }
+                                KeyCode::Char('u') => {
+                                    let count = app.auto_sync_all().unwrap_or(0);
+                                    app.status_message = Some(format!(
+                                        "Auto-synced {} servers across all clients!",
+                                        count
+                                    ));
+                                }
+                                KeyCode::Char('a') => {
+                                    app.start_wizard();
+                                }
+                                KeyCode::Char('d')
+                                | KeyCode::Delete
+                                | KeyCode::Backspace
+                                | KeyCode::Char('x') => {
+                                    app.start_delete();
+                                }
+                                KeyCode::Char(' ') => {
+                                    if let Some(mut server) = app.selected_server().cloned() {
+                                        server.enabled = !server.enabled;
+                                        let locs: Vec<ConfigLocation> = app
+                                            .detected_clients
+                                            .iter()
+                                            .filter(|c| {
+                                                server
+                                                    .clients
+                                                    .iter()
+                                                    .any(|sc| sc.config_path == c.path)
+                                            })
+                                            .cloned()
+                                            .collect();
+                                        let _ =
+                                            app.manager.write_server_to_locations(&server, &locs);
+                                        app.refresh_servers();
+                                    }
+                                }
+                                KeyCode::Char('t') => {
+                                    if let Some(mut server) = app.selected_server().cloned() {
+                                        let resolver = crate::resolver::EnvResolver::new();
+                                        resolver.enrich_server_entry(&mut server, &app.registry);
+
+                                        app.tool_explorer_state =
+                                            Some(crate::app::ToolExplorerState {
+                                                server_id: server.id.clone(),
+                                                tools: Vec::new(),
+                                                selected_index: 0,
+                                                is_loading: true,
+                                                execution_result: None,
+                                                error_message: None,
+                                                params_input: "{}".to_string(),
+                                                is_editing_params: false,
+                                                is_form_mode: false,
+                                                form_fields: Vec::new(),
+                                                form_active_index: 0,
+                                            });
+                                        app.current_view = CurrentView::ToolExplorer;
+                                        terminal.draw(|f| ui::render_ui(f, app))?;
+
+                                        match mcp_core::client::list_server_tools(&server, 10).await
+                                        {
+                                            Ok(tools) => {
+                                                if let Some(ref mut state) = app.tool_explorer_state
+                                                {
+                                                    state.is_loading = false;
+                                                    state.tools = tools;
+                                                }
+                                                app.update_params_for_selected_tool();
+                                            }
+                                            Err(e) => {
+                                                if let Some(ref mut state) = app.tool_explorer_state
+                                                {
+                                                    state.is_loading = false;
+                                                    state.error_message = Some(e.to_string());
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                KeyCode::Char('T') => {
+                                    if let Some(mut server) = app.selected_server().cloned() {
+                                        let resolver = crate::resolver::EnvResolver::new();
+                                        resolver.enrich_server_entry(&mut server, &app.registry);
+
+                                        app.status_message = Some(format!(
+                                            "Handshake test: Spawning & negotiating with '{}'...",
+                                            server.id
+                                        ));
+                                        terminal.draw(|f| ui::render_ui(f, app))?;
+                                        let start = std::time::Instant::now();
+                                        let status = check_server_health(&server, 8).await;
+                                        let elapsed_ms = start.elapsed().as_millis();
+                                        app.health_cache.insert(server.id.clone(), status.clone());
+                                        match status {
+                                            mcp_core::types::HealthStatus::Healthy {
+                                                tool_count,
+                                                server_name,
+                                                server_version,
+                                                ..
+                                            } => {
+                                                app.status_message = Some(format!(
+                                                    "✓ Handshake SUCCESS: {} v{} ({} tools, {}ms)",
+                                                    server_name,
+                                                    server_version,
+                                                    tool_count,
+                                                    elapsed_ms
+                                                ));
+                                            }
+                                            mcp_core::types::HealthStatus::Degraded {
+                                                reason,
+                                                ..
+                                            } => {
+                                                app.status_message = Some(format!(
+                                                    "▲ Handshake DEGRADED: {} ({}ms)",
+                                                    reason, elapsed_ms
+                                                ));
+                                            }
+                                            mcp_core::types::HealthStatus::Broken { error } => {
+                                                app.status_message = Some(format!(
+                                                    "✖ Handshake FAILED: {} ({}ms)",
+                                                    error, elapsed_ms
+                                                ));
+                                            }
+                                            _ => {}
+                                        }
+                                    }
+                                }
+                                KeyCode::Char('b') => {
+                                    app.open_backup_manager();
+                                }
+                                KeyCode::Char('v') if app.selected_server().is_some() => {
+                                    app.current_view = CurrentView::ViewSnippet;
+                                }
+                                _ => {}
                             }
                         }
-                        KeyCode::Char('b') => {
-                            app.open_backup_manager();
-                        }
-                        KeyCode::Char('v') | KeyCode::Enter if app.selected_server().is_some() => {
-                            app.current_view = CurrentView::ViewSnippet;
-                        }
-                        _ => {}
-                    },
+                    }
 
                     CurrentView::Clients => match key.code {
                         KeyCode::Char('q') => {

@@ -109,6 +109,65 @@ pub struct ToolExplorerState {
     pub form_active_index: usize,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum FocusedPane {
+    #[default]
+    ServersList,
+    ServerDetails,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum DetailTab {
+    #[default]
+    Overview,
+    Clients,
+    Environment,
+    Telemetry,
+    ConfigJson,
+}
+
+impl DetailTab {
+    pub fn all() -> &'static [DetailTab] {
+        &[
+            DetailTab::Overview,
+            DetailTab::Clients,
+            DetailTab::Environment,
+            DetailTab::Telemetry,
+            DetailTab::ConfigJson,
+        ]
+    }
+
+    pub fn title(&self) -> &'static str {
+        match self {
+            DetailTab::Overview => "Overview",
+            DetailTab::Clients => "Clients",
+            DetailTab::Environment => "Env",
+            DetailTab::Telemetry => "Telemetry",
+            DetailTab::ConfigJson => "Config JSON",
+        }
+    }
+
+    pub fn index(&self) -> usize {
+        match self {
+            DetailTab::Overview => 0,
+            DetailTab::Clients => 1,
+            DetailTab::Environment => 2,
+            DetailTab::Telemetry => 3,
+            DetailTab::ConfigJson => 4,
+        }
+    }
+
+    pub fn from_index(idx: usize) -> Self {
+        match idx % 5 {
+            0 => DetailTab::Overview,
+            1 => DetailTab::Clients,
+            2 => DetailTab::Environment,
+            3 => DetailTab::Telemetry,
+            _ => DetailTab::ConfigJson,
+        }
+    }
+}
+
 pub struct App {
     pub manager: AdapterManager,
     pub registry: Registry,
@@ -119,6 +178,9 @@ pub struct App {
     pub search_query: String,
     pub is_searching: bool,
     pub current_view: CurrentView,
+    pub focused_pane: FocusedPane,
+    pub detail_tab: DetailTab,
+    pub detail_scroll: usize,
     pub wizard_state: Option<WizardState>,
     pub delete_state: Option<DeleteState>,
     pub tool_explorer_state: Option<ToolExplorerState>,
@@ -150,6 +212,9 @@ impl App {
             search_query: String::new(),
             is_searching: false,
             current_view: CurrentView::Dashboard,
+            focused_pane: FocusedPane::ServersList,
+            detail_tab: DetailTab::Overview,
+            detail_scroll: 0,
             wizard_state: None,
             delete_state: None,
             tool_explorer_state: None,
@@ -161,6 +226,94 @@ impl App {
             discovered_clients,
             selected_client_index: 0,
         })
+    }
+
+    pub fn toggle_focus(&mut self) {
+        self.focused_pane = match self.focused_pane {
+            FocusedPane::ServersList => FocusedPane::ServerDetails,
+            FocusedPane::ServerDetails => FocusedPane::ServersList,
+        };
+    }
+
+    pub fn focus_details(&mut self) {
+        self.focused_pane = FocusedPane::ServerDetails;
+    }
+
+    pub fn focus_servers(&mut self) {
+        self.focused_pane = FocusedPane::ServersList;
+    }
+
+    pub fn generate_canonical_snippet(server: &ServerEntry) -> String {
+        match &server.transport {
+            mcp_core::types::Transport::Stdio { command, args, env } => {
+                let mut val = serde_json::json!({
+                    "command": command,
+                    "args": args,
+                });
+                if !env.is_empty() {
+                    val.as_object_mut().unwrap().insert(
+                        "env".to_string(),
+                        serde_json::to_value(env).unwrap_or_default(),
+                    );
+                }
+                serde_json::to_string_pretty(&serde_json::json!({
+                    server.id.clone(): val
+                }))
+                .unwrap_or_default()
+            }
+            mcp_core::types::Transport::StreamableHttp { url, headers } => {
+                let mut val = serde_json::json!({
+                    "url": url,
+                });
+                if !headers.is_empty() {
+                    val.as_object_mut().unwrap().insert(
+                        "headers".to_string(),
+                        serde_json::to_value(headers).unwrap_or_default(),
+                    );
+                }
+                serde_json::to_string_pretty(&serde_json::json!({
+                    server.id.clone(): val
+                }))
+                .unwrap_or_default()
+            }
+            mcp_core::types::Transport::Sse { url } => {
+                serde_json::to_string_pretty(&serde_json::json!({
+                    server.id.clone(): {
+                        "type": "sse",
+                        "url": url,
+                    }
+                }))
+                .unwrap_or_default()
+            }
+        }
+    }
+
+    pub fn set_detail_tab(&mut self, tab: DetailTab) {
+        self.detail_tab = tab;
+        self.detail_scroll = 0;
+    }
+
+    pub fn next_detail_tab(&mut self) {
+        self.detail_tab = DetailTab::from_index(self.detail_tab.index() + 1);
+        self.detail_scroll = 0;
+    }
+
+    pub fn prev_detail_tab(&mut self) {
+        let idx = if self.detail_tab.index() == 0 {
+            4
+        } else {
+            self.detail_tab.index() - 1
+        };
+        self.detail_tab = DetailTab::from_index(idx);
+        self.detail_scroll = 0;
+    }
+
+    pub fn scroll_detail_down(&mut self, delta: usize) {
+        self.detail_scroll = self.detail_scroll.saturating_add(delta);
+    }
+
+    pub fn scroll_detail_up(&mut self, delta: usize) {
+        self.detail_scroll = self.detail_scroll.saturating_sub(delta);
     }
 
     pub fn select_next_tool(&mut self) {
@@ -359,6 +512,7 @@ impl App {
         let count = self.filtered_servers().len();
         if count > 0 {
             self.selected_index = (self.selected_index + 1) % count;
+            self.detail_scroll = 0;
         }
     }
 
@@ -370,6 +524,7 @@ impl App {
             } else {
                 self.selected_index -= 1;
             }
+            self.detail_scroll = 0;
         }
     }
 

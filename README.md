@@ -83,7 +83,7 @@ As the Model Context Protocol ecosystem has grown, every AI client, autonomous a
 - **Comment-Tolerant JSON Parsing**: Comment-resilient parser gracefully reads configs containing `//` or `/* */` comments and trailing commas without configuration loss.
 - **Automated Rollback & Backup Engine**: Every edit automatically creates timestamped backup snapshots. Roll back any client instantaneously with `mcpforge rollback [--client <id>]` or inspect differences with `mcpforge backup diff`.
 - **Targeted Diagnostic Engine (`mcpforge test`)**: Interactively test single servers or raw executable commands with live JSON-RPC handshakes, tool counts, and latency measurements without altering configurations.
-- **Canonical Snippet Inspector**: Press `v` or `Enter` on any server in the dashboard to inspect its formatted canonical configuration snippet directly in an interactive pop-up modal.
+- **Segmented Inspector & Canonical Snippets**: Press `Enter` or `l` on any server to focus the inspector pane with sub-tabs for Overview, Client Associations, Environment Variables, Telemetry, and syntax-highlighted JSON snippets with 1-click clipboard export (`c`).
 - **Adapter-Accurate Diff Previews**: Every configuration modification is simulated using the target client's actual format engine before touching disk, guaranteeing that existing configurations are never overwritten or corrupted.
 - **Live Telemetry & Diagnostics**: Background ping engine queries stdio subprocesses and HTTP/SSE endpoints with sub-millisecond precision, reporting latency, active tool counts, and server versions.
 - **Interactive Server Removal**: Safely purge servers across all clients at once or interactively pick and choose targets.
@@ -93,8 +93,8 @@ As the Model Context Protocol ecosystem has grown, every AI client, autonomous a
 
 ## Screenshots
 
-### 1. Unified Dashboard & Runtime Telemetry
-Inspect configured servers, execution arguments, environment variables, client installation matrices, and live sub-millisecond diagnostics.
+### 1. Unified Dashboard & Two-Pane Command Center
+Navigate configured servers with instant search filtering (`/`), two-pane focus navigation (`Enter` / `Esc`), and live sub-millisecond runtime health telemetry.
 
 <p align="center">
   <img src="assets/screenshots/dashboard.png" alt="MCPForge Dashboard" width="95%" />
@@ -102,8 +102,17 @@ Inspect configured servers, execution arguments, environment variables, client i
 
 ---
 
+### 1b. Segmented Server Inspector (Sub-Tabs & Scrolling)
+Drill into server configurations without vertical clutter. Seamlessly cycle across Overview, Clients, Environment Variables, Telemetry, and Canonical JSON with number keys `1`–`5`, `[` / `]`, or `Tab`, with independent `j/k` scrolling.
+
+<p align="center">
+  <img src="assets/screenshots/inspector_clients.png" alt="Segmented Server Inspector" width="95%" />
+</p>
+
+---
+
 ### 2. Supported Clients & Agent Harness Matrix
-View all 26 supported AI harnesses, categorized by lifecycle state (`ACTIVE`, `RUNNING`, `READY`, `AVAILABLE`), with binary detection, disk paths, and configured servers.
+View all 27 supported AI harnesses, categorized by lifecycle state (`ACTIVE`, `RUNNING`, `READY`, `AVAILABLE`), with binary detection, disk paths, and configured servers.
 
 <p align="center">
   <img src="assets/screenshots/clients.png" alt="Clients & Harnesses Matrix" width="95%" />

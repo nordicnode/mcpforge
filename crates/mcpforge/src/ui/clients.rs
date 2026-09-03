@@ -42,21 +42,15 @@ pub fn render_header_tabs(f: &mut Frame, app: &App, area: Rect, theme: &Theme, a
         .count();
 
     let tab1_style = if active_tab == 0 {
-        Style::default()
-            .fg(Color::Black)
-            .bg(Color::Rgb(139, 233, 253)) // Cyan active tab
-            .add_modifier(Modifier::BOLD)
+        theme.tab_active
     } else {
-        Style::default().fg(Color::Rgb(98, 114, 164))
+        theme.tab_inactive
     };
 
     let tab2_style = if active_tab == 1 {
-        Style::default()
-            .fg(Color::Black)
-            .bg(Color::Rgb(139, 233, 253)) // Cyan active tab
-            .add_modifier(Modifier::BOLD)
+        theme.tab_active
     } else {
-        Style::default().fg(Color::Rgb(98, 114, 164))
+        theme.tab_inactive
     };
 
     let healthy_count = app
@@ -84,23 +78,23 @@ pub fn render_header_tabs(f: &mut Frame, app: &App, area: Rect, theme: &Theme, a
         Span::styled(
             " MCPFORGE ",
             Style::default()
-                .fg(Color::Rgb(241, 250, 140))
+                .fg(Color::Rgb(139, 233, 253))
                 .add_modifier(Modifier::BOLD),
         ),
         Span::styled("v0.1.0 ", theme.muted),
-        Span::raw(" "),
-        Span::styled(format!(" [1] Servers ({}) ", total_servers), tab1_style),
+        Span::raw("  "),
+        Span::styled(format!(" 1: Servers ({}) ", total_servers), tab1_style),
         Span::raw(" "),
         Span::styled(
             format!(
-                " [2] Clients & Harnesses ({} Supported · {} Installed · {} Active) ",
-                app.discovered_clients.len(),
+                " 2: Clients ({}/{} Installed · {} Active) ",
                 installed_clients,
-                running_count
+                app.discovered_clients.len(),
+                running_count,
             ),
             tab2_style,
         ),
-        Span::raw(" "),
+        Span::raw("  "),
         health_badge,
     ];
 
@@ -475,15 +469,15 @@ fn render_clients_footer(f: &mut Frame, area: Rect, theme: &Theme) {
 
     let key_hints = Line::from(vec![
         Span::styled("[Tab/1]", theme.key_shortcut),
-        Span::raw(" Servers View   "),
+        Span::raw(" Servers   "),
         Span::styled("[j/k]", theme.key_shortcut),
         Span::raw(" Navigate   "),
         Span::styled("[u]", theme.key_shortcut),
-        Span::raw(" Sync to Client   "),
-        Span::styled("[d/Del]", theme.key_shortcut),
-        Span::raw(" Remove Server   "),
+        Span::raw(" Sync   "),
+        Span::styled("[d]", theme.key_shortcut),
+        Span::raw(" Remove   "),
         Span::styled("[r]", theme.key_shortcut),
-        Span::raw(" Rescan Processes   "),
+        Span::raw(" Rescan   "),
         Span::styled("[?]", theme.key_shortcut),
         Span::raw(" Help   "),
         Span::styled("[q]", theme.key_shortcut),

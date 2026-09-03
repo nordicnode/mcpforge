@@ -88,7 +88,8 @@ def render_frame(json_path, output_png, window_title="mcpforge — terminal"):
     print(f"Rendered {output_png} ({total_width}x{total_height})")
 
 render_frame("screenshot_dashboard.json", "assets/screenshots/dashboard.png", "mcpforge — [1] Configured Servers & Health Monitor")
-render_frame("screenshot_clients.json", "assets/screenshots/clients.png", "mcpforge — [2] Clients & Agent Harness Matrix (26 Supported)")
+render_frame("screenshot_inspector_clients.json", "assets/screenshots/inspector_clients.png", "mcpforge — Segmented Server Inspector (Sub-Tab 2: Configured Clients)")
+render_frame("screenshot_clients.json", "assets/screenshots/clients.png", "mcpforge — [2] Clients & Agent Harness Matrix (27 Supported)")
 render_frame("screenshot_wizard_catalog.json", "assets/screenshots/catalog.png", "mcpforge — Add MCP Server (Step 2: Curated 110-Server Catalog)")
 render_frame("screenshot_wizard_diff.json", "assets/screenshots/diff_preview.png", "mcpforge — Add MCP Server (Step 4: Unified Atomic Diff Preview)")
 render_frame("screenshot_delete_modal.json", "assets/screenshots/removal_modal.png", "mcpforge — Remove MCP Server Modal")

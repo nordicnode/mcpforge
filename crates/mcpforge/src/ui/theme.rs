@@ -5,6 +5,7 @@ use ratatui::widgets::BorderType;
 pub struct Theme {
     pub border: Style,
     pub border_focus: Style,
+    pub border_inactive: Style,
     pub border_type: BorderType,
     pub title: Style,
     pub header: Style,
@@ -20,26 +21,32 @@ pub struct Theme {
     pub pill_active: Style,
     pub pill_ready: Style,
     pub pill_avail: Style,
+    pub pill_transport: Style,
+    pub pill_clients: Style,
+    pub tab_active: Style,
+    pub tab_inactive: Style,
+    pub card_header: Style,
     pub banner_bg: Style,
 }
 
 impl Default for Theme {
     fn default() -> Self {
         Self {
-            border: Style::default().fg(Color::Rgb(68, 71, 90)), // Dracula comment/slate
+            border: Style::default().fg(Color::Rgb(60, 65, 85)), // Soft slate gray
             border_focus: Style::default()
-                .fg(Color::Rgb(139, 233, 253)) // Cyan focus
+                .fg(Color::Rgb(139, 233, 253)) // Glowing cyan focus
                 .add_modifier(Modifier::BOLD),
+            border_inactive: Style::default().fg(Color::Rgb(50, 54, 72)), // Subdued border
             border_type: BorderType::Rounded,
             title: Style::default()
-                .fg(Color::Rgb(139, 233, 253)) // Cyan
+                .fg(Color::Rgb(139, 233, 253))
                 .add_modifier(Modifier::BOLD),
             header: Style::default()
-                .fg(Color::Rgb(241, 250, 140)) // Warm soft yellow
+                .fg(Color::Rgb(241, 250, 140)) // Warm soft amber
                 .add_modifier(Modifier::BOLD),
             selected: Style::default()
-                .bg(Color::Rgb(40, 50, 80)) // Deep Indigo-Navy
-                .fg(Color::Rgb(255, 255, 255))
+                .bg(Color::Rgb(40, 48, 75)) // Subtle deep navy
+                .fg(Color::White)
                 .add_modifier(Modifier::BOLD),
             status_healthy: Style::default()
                 .fg(Color::Rgb(80, 250, 123)) // Emerald Green
@@ -66,6 +73,16 @@ impl Default for Theme {
                 .fg(Color::Rgb(139, 233, 253))
                 .add_modifier(Modifier::BOLD),
             pill_avail: Style::default().fg(Color::Rgb(98, 114, 164)),
+            pill_transport: Style::default().fg(Color::Rgb(189, 147, 249)),
+            pill_clients: Style::default().fg(Color::Rgb(139, 233, 253)),
+            tab_active: Style::default()
+                .bg(Color::Rgb(38, 48, 76))
+                .fg(Color::Rgb(139, 233, 253))
+                .add_modifier(Modifier::BOLD),
+            tab_inactive: Style::default().fg(Color::Rgb(120, 125, 145)),
+            card_header: Style::default()
+                .fg(Color::Rgb(189, 147, 249))
+                .add_modifier(Modifier::BOLD),
             banner_bg: Style::default().bg(Color::Rgb(30, 35, 55)).fg(Color::White),
         }
     }

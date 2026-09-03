@@ -133,11 +133,18 @@ fn main() -> Result<()> {
         );
     }
 
-    // 1. Dashboard View
+    // 1. Dashboard View (Overview Tab)
     app.current_view = CurrentView::Dashboard;
+    app.focused_pane = mcpforge::app::FocusedPane::ServerDetails;
+    app.detail_tab = mcpforge::app::DetailTab::Overview;
     app.selected_index = 1; // github
     dump_frame(&mut app, width, height, "screenshot_dashboard.json")?;
     println!("Captured screenshot_dashboard.json");
+
+    // 1b. Dashboard View (Clients Tab)
+    app.detail_tab = mcpforge::app::DetailTab::Clients;
+    dump_frame(&mut app, width, height, "screenshot_inspector_clients.json")?;
+    println!("Captured screenshot_inspector_clients.json");
 
     // 2. Clients View
     app.current_view = CurrentView::Clients;
