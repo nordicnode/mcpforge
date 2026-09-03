@@ -14,29 +14,39 @@ impl FreebuffAdapter {
 
     fn possible_paths() -> Vec<(PathBuf, Scope, &'static str)> {
         let mut paths = Vec::new();
+        if let Some(home) = dirs::home_dir() {
+            paths.push((
+                home.join(".agents").join("mcp.json"),
+                Scope::Global,
+                "Freebuff (Global ~/.agents/mcp.json)",
+            ));
+            paths.push((
+                home.join(".freebuff").join("mcp.json"),
+                Scope::Global,
+                "Freebuff (Home .freebuff)",
+            ));
+        }
         if let Some(config_dir) = dirs::config_dir() {
             paths.push((
                 config_dir.join("freebuff-desktop").join("mcp.json"),
                 Scope::Global,
-                "Freebuff Desktop",
+                "Freebuff Desktop (Config)",
             ));
             paths.push((
                 config_dir.join("Freebuff").join("mcp.json"),
                 Scope::Global,
-                "Freebuff App",
-            ));
-        }
-        if let Some(home) = dirs::home_dir() {
-            paths.push((
-                home.join(".freebuff").join("mcp.json"),
-                Scope::Global,
-                "Freebuff (Home)",
+                "Freebuff App (Config)",
             ));
         }
         paths.push((
+            PathBuf::from(".agents").join("mcp.json"),
+            Scope::Project,
+            "Freebuff (Project .agents)",
+        ));
+        paths.push((
             PathBuf::from(".freebuff").join("mcp.json"),
             Scope::Project,
-            "Freebuff (Project)",
+            "Freebuff (Project .freebuff)",
         ));
         paths
     }

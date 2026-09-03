@@ -22,7 +22,7 @@ use app::{App, CurrentView, WizardSource, WizardStep};
 use cli::{Cli, Commands, PackCommands};
 use doctor::DoctorReport;
 use mcp_core::client::check_server_health;
-use mcp_core::types::ServerEntry;
+use mcp_core::types::{Scope, ServerEntry};
 use mcpforge_adapters::{AdapterManager, ConfigLocation, DiscoveryEngine};
 use mcpforge_registry::{find_pack, Registry, SERVER_PACKS};
 use provisioner::RuntimeCapabilities;
@@ -331,10 +331,16 @@ async fn handle_cli_command(cmd: Commands) -> Result<()> {
         Commands::Sync { auto, target, from } => {
             if auto {
                 let all_servers = manager.read_all_servers()?;
+                let running_clients = DiscoveryEngine::scan_running_processes();
                 let all_targets: Vec<ConfigLocation> = manager
                     .detect_all()
                     .into_iter()
-                    .filter(|l| l.exists)
+                    .filter(|l| {
+                        l.exists
+                            || (l.scope == Scope::Global
+                                && (running_clients.contains(&l.client_id)
+                                    || DiscoveryEngine::is_client_installed(&l.client_id)))
+                    })
                     .collect();
 
                 for s in &all_servers {
