@@ -131,20 +131,101 @@ impl AdapterManager {
         for loc in locations {
             for adapter in &self.adapters {
                 let locs = adapter.detect();
-                if locs.iter().any(|l| l.path == loc.path) {
+                if adapter.id() == loc.client_id || locs.iter().any(|l| l.path == loc.path) {
                     let mut existing = adapter.read_servers(loc).unwrap_or_default();
                     if let Some(idx) = existing.iter().position(|e| e.id == server.id) {
-                        existing[idx] = server.clone();
+                        let mut merged = server.clone();
+                        if let mcp_core::types::Transport::Stdio { env: new_env, .. } =
+                            &mut merged.transport
+                        {
+                            if let mcp_core::types::Transport::Stdio { env: old_env, .. } =
+                                &existing[idx].transport
+                            {
+                                for (k, v) in old_env {
+                                    if !new_env.contains_key(k) {
+                                        new_env.insert(k.clone(), v.clone());
+                                    }
+                                }
+                            }
+                        }
+                        existing[idx] = merged;
                     } else {
                         existing.push(server.clone());
                     }
                     adapter
                         .write_servers(loc, &existing)
                         .with_context(|| format!("Failed to write to client {:?}", loc.path))?;
+                    break;
                 }
             }
         }
         Ok(())
+    }
+
+    pub fn preview_diff_for_server(
+        &self,
+        server: &ServerEntry,
+        loc: &ConfigLocation,
+    ) -> Result<String> {
+        for adapter in &self.adapters {
+            let locs = adapter.detect();
+            if adapter.id() == loc.client_id || locs.iter().any(|l| l.path == loc.path) {
+                let old_content = if loc.path.exists() {
+                    std::fs::read_to_string(&loc.path).unwrap_or_default()
+                } else {
+                    String::new()
+                };
+
+                let temp_dir = tempfile::tempdir()?;
+                let file_name = loc
+                    .path
+                    .file_name()
+                    .unwrap_or_else(|| std::ffi::OsStr::new("config.json"));
+                let temp_file = temp_dir.path().join(file_name);
+
+                if loc.path.exists() {
+                    let _ = std::fs::copy(&loc.path, &temp_file);
+                }
+
+                let temp_loc = ConfigLocation {
+                    client_id: loc.client_id.clone(),
+                    display_name: loc.display_name.clone(),
+                    path: temp_file.clone(),
+                    scope: loc.scope,
+                    exists: temp_file.exists(),
+                };
+
+                let mut existing = adapter.read_servers(loc).unwrap_or_default();
+                if let Some(idx) = existing.iter().position(|e| e.id == server.id) {
+                    let mut merged = server.clone();
+                    if let mcp_core::types::Transport::Stdio { env: new_env, .. } =
+                        &mut merged.transport
+                    {
+                        if let mcp_core::types::Transport::Stdio { env: old_env, .. } =
+                            &existing[idx].transport
+                        {
+                            for (k, v) in old_env {
+                                if !new_env.contains_key(k) {
+                                    new_env.insert(k.clone(), v.clone());
+                                }
+                            }
+                        }
+                    }
+                    existing[idx] = merged;
+                } else {
+                    existing.push(server.clone());
+                }
+
+                adapter.write_servers(&temp_loc, &existing)?;
+                let new_content = std::fs::read_to_string(&temp_file).unwrap_or_default();
+                return Ok(crate::backup::compute_diff(
+                    &old_content,
+                    &new_content,
+                    file_name.to_str().unwrap_or("config"),
+                ));
+            }
+        }
+        Ok(String::new())
     }
 
     pub fn remove_server_from_locations(

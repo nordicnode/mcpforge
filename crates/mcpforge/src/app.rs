@@ -1,8 +1,6 @@
 use anyhow::Result;
 use mcp_core::types::{HealthStatus, Scope, ServerEntry, Transport};
-use mcpforge_adapters::{
-    compute_diff, AdapterManager, ConfigLocation, DiscoveredHarness, DiscoveryEngine,
-};
+use mcpforge_adapters::{AdapterManager, ConfigLocation, DiscoveredHarness, DiscoveryEngine};
 use mcpforge_registry::{CatalogEntry, Registry};
 use std::collections::BTreeMap;
 
@@ -300,6 +298,12 @@ impl App {
     }
 
     pub fn start_wizard(&mut self) {
+        let active_client_id = if self.current_view == CurrentView::Clients {
+            self.selected_client().map(|c| c.id.clone())
+        } else {
+            None
+        };
+
         let locations: Vec<(ConfigLocation, bool)> = self
             .discovered_clients
             .iter()
@@ -311,7 +315,11 @@ impl App {
                     scope: Scope::Global,
                     exists: h.is_installed,
                 };
-                let should_select = h.is_installed;
+                let should_select = if let Some(ref target_id) = active_client_id {
+                    &h.id == target_id
+                } else {
+                    h.is_running
+                };
                 (loc, should_select)
             })
             .collect();
@@ -335,123 +343,98 @@ impl App {
 
     pub fn compute_wizard_diff(&mut self) {
         let entries = self.filtered_registry_entries();
-        if let Some(ref mut wizard) = self.wizard_state {
-            let mut diffs = String::new();
-            let new_server = match wizard.source {
-                WizardSource::FromRegistry => {
-                    if wizard.registry_cursor < entries.len() {
-                        let cat_entry = &entries[wizard.registry_cursor];
-                        cat_entry.to_server_entry(BTreeMap::new())
-                    } else {
-                        return;
+
+        let (
+            source,
+            registry_cursor,
+            server_id,
+            command_str,
+            args_str,
+            pasted_json,
+            selected_targets,
+        ) = {
+            let wizard = match self.wizard_state {
+                Some(ref w) => w,
+                None => return,
+            };
+
+            let targets: Vec<ConfigLocation> = wizard
+                .target_locations
+                .iter()
+                .filter(|(_, sel)| *sel)
+                .map(|(loc, _)| loc.clone())
+                .collect();
+
+            (
+                wizard.source,
+                wizard.registry_cursor,
+                wizard.server_id.clone(),
+                wizard.command.clone(),
+                wizard.args.clone(),
+                wizard.pasted_json.clone(),
+                targets,
+            )
+        };
+
+        let new_server = match source {
+            WizardSource::FromRegistry => {
+                if registry_cursor < entries.len() {
+                    let cat_entry = &entries[registry_cursor];
+                    let mut env = BTreeMap::new();
+                    for k in &cat_entry.required_env {
+                        if let Ok(val) = std::env::var(k) {
+                            env.insert(k.clone(), val);
+                        }
                     }
+                    cat_entry.to_server_entry(env)
+                } else {
+                    return;
                 }
-                WizardSource::Manual => {
-                    let args = wizard
-                        .args
-                        .split_whitespace()
-                        .map(|s| s.to_string())
-                        .collect();
-                    ServerEntry::new_stdio(
-                        &wizard.server_id,
-                        &wizard.command,
-                        args,
-                        BTreeMap::new(),
-                    )
-                }
-                WizardSource::PasteJson => {
-                    if let Ok(val) = serde_json::from_str::<serde_json::Value>(&wizard.pasted_json)
-                    {
-                        if let Some(obj) = val.as_object() {
-                            if let Some(cmd) = obj.get("command").and_then(|c| c.as_str()) {
-                                let args = obj
-                                    .get("args")
-                                    .and_then(|a| a.as_array())
-                                    .map(|arr| {
-                                        arr.iter()
-                                            .filter_map(|x| x.as_str().map(|s| s.to_string()))
-                                            .collect()
-                                    })
-                                    .unwrap_or_default();
-                                ServerEntry::new_stdio(
-                                    &wizard.server_id,
-                                    cmd,
-                                    args,
-                                    BTreeMap::new(),
-                                )
-                            } else {
-                                wizard.error_message =
-                                    Some("JSON must have 'command' property".to_string());
-                                return;
-                            }
+            }
+            WizardSource::Manual => {
+                let args = args_str.split_whitespace().map(|s| s.to_string()).collect();
+                ServerEntry::new_stdio(&server_id, &command_str, args, BTreeMap::new())
+            }
+            WizardSource::PasteJson => {
+                if let Ok(val) = serde_json::from_str::<serde_json::Value>(&pasted_json) {
+                    if let Some(obj) = val.as_object() {
+                        if let Some(cmd) = obj.get("command").and_then(|c| c.as_str()) {
+                            let args = obj
+                                .get("args")
+                                .and_then(|a| a.as_array())
+                                .map(|arr| {
+                                    arr.iter()
+                                        .filter_map(|x| x.as_str().map(|s| s.to_string()))
+                                        .collect()
+                                })
+                                .unwrap_or_default();
+                            ServerEntry::new_stdio(&server_id, cmd, args, BTreeMap::new())
                         } else {
-                            wizard.error_message = Some("Invalid JSON object".to_string());
+                            if let Some(ref mut w) = self.wizard_state {
+                                w.error_message =
+                                    Some("JSON must have 'command' property".to_string());
+                            }
                             return;
                         }
                     } else {
-                        wizard.error_message = Some("Failed to parse JSON".to_string());
+                        if let Some(ref mut w) = self.wizard_state {
+                            w.error_message = Some("Invalid JSON object".to_string());
+                        }
                         return;
                     }
+                } else {
+                    if let Some(ref mut w) = self.wizard_state {
+                        w.error_message = Some("Failed to parse JSON".to_string());
+                    }
+                    return;
                 }
-            };
+            }
+        };
 
-            for (loc, selected) in &wizard.target_locations {
-                if *selected {
-                    let old_content = std::fs::read_to_string(&loc.path).unwrap_or_default();
-                    let mut simulated_json: serde_json::Value = serde_json::from_str(&old_content)
-                        .unwrap_or_else(|_| serde_json::json!({}));
-
-                    if !simulated_json.is_object() {
-                        simulated_json = serde_json::json!({});
-                    }
-                    if !simulated_json
-                        .as_object()
-                        .unwrap()
-                        .contains_key("mcpServers")
-                    {
-                        simulated_json
-                            .as_object_mut()
-                            .unwrap()
-                            .insert("mcpServers".to_string(), serde_json::json!({}));
-                    }
-
-                    let server_json = match &new_server.transport {
-                        Transport::Stdio { command, args, env } => {
-                            serde_json::json!({
-                                "command": command,
-                                "args": args,
-                                "env": env,
-                            })
-                        }
-                        Transport::StreamableHttp { url, headers } => {
-                            serde_json::json!({
-                                "url": url,
-                                "headers": headers,
-                            })
-                        }
-                        Transport::Sse { url } => {
-                            serde_json::json!({
-                                "type": "sse",
-                                "url": url,
-                            })
-                        }
-                    };
-
-                    simulated_json
-                        .get_mut("mcpServers")
-                        .unwrap()
-                        .as_object_mut()
-                        .unwrap()
-                        .insert(new_server.id.clone(), server_json);
-
-                    let new_content =
-                        serde_json::to_string_pretty(&simulated_json).unwrap_or_default() + "\n";
-                    let file_name = loc
-                        .path
-                        .file_name()
-                        .and_then(|f| f.to_str())
-                        .unwrap_or("config.json");
-                    let d = compute_diff(&old_content, &new_content, file_name);
+        let mut diffs = String::new();
+        for loc in &selected_targets {
+            match self.manager.preview_diff_for_server(&new_server, loc) {
+                Ok(d) if !d.is_empty() => {
                     diffs.push_str(&format!(
                         "--- Target: {} ({})\n",
                         loc.display_name,
@@ -460,8 +443,23 @@ impl App {
                     diffs.push_str(&d);
                     diffs.push('\n');
                 }
+                Ok(_) => {}
+                Err(e) => {
+                    diffs.push_str(&format!(
+                        "--- Target: {} ({})\n[Error generating diff: {}]\n\n",
+                        loc.display_name,
+                        loc.path.display(),
+                        e
+                    ));
+                }
             }
+        }
 
+        if diffs.is_empty() {
+            diffs = "No changes or all configurations are already up-to-date.".to_string();
+        }
+
+        if let Some(ref mut wizard) = self.wizard_state {
             wizard.diff_preview = diffs;
         }
     }
@@ -666,6 +664,32 @@ impl App {
     pub fn toggle_delete_mode(&mut self) {
         if let Some(ref mut state) = self.delete_state {
             state.remove_all_mode = !state.remove_all_mode;
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_deepseek_diff() {
+        let mut app = App::new().unwrap();
+        app.start_wizard();
+        if let Some(ref mut w) = app.wizard_state {
+            for (loc, sel) in &mut w.target_locations {
+                if loc.client_id == "deepseek" {
+                    *sel = true;
+                }
+            }
+            w.registry_cursor = 25; // different server
+        }
+        app.compute_wizard_diff();
+        if let Some(ref w) = app.wizard_state {
+            println!("=== DIFF RESULT ===\n{}", w.diff_preview);
+            assert!(w.diff_preview.contains("--- Target: DeepSeek Harness"));
+            assert!(!w.diff_preview.contains("-      \"command\": \"npx\","));
+            assert!(!w.diff_preview.contains("-      \"args\": ["));
         }
     }
 }
