@@ -113,6 +113,43 @@ impl Drop for StdioClient {
     }
 }
 
+pub fn resolve_executable_path(command: &str) -> Option<std::path::PathBuf> {
+    if command.contains('/') || (cfg!(windows) && command.contains('\\')) {
+        let p = std::path::PathBuf::from(command);
+        if p.is_file() {
+            return Some(p);
+        }
+        #[cfg(windows)]
+        {
+            for ext in [".exe", ".cmd", ".bat"] {
+                let with_ext = p.with_extension(&ext[1..]);
+                if with_ext.is_file() {
+                    return Some(with_ext);
+                }
+            }
+        }
+        return None;
+    }
+
+    let paths = std::env::var_os("PATH")?;
+    for dir in std::env::split_paths(&paths) {
+        let candidate = dir.join(command);
+        if candidate.is_file() {
+            return Some(candidate);
+        }
+        #[cfg(windows)]
+        {
+            for ext in [".cmd", ".exe", ".bat"] {
+                let candidate_ext = dir.join(format!("{}{}", command, ext));
+                if candidate_ext.is_file() {
+                    return Some(candidate_ext);
+                }
+            }
+        }
+    }
+    None
+}
+
 pub async fn check_stdio_health(
     command: &str,
     args: &[String],
@@ -121,16 +158,8 @@ pub async fn check_stdio_health(
 ) -> HealthStatus {
     let start = std::time::Instant::now();
 
-    // Check if binary command exists
-    let binary_exists = if command.contains('/') {
-        std::path::Path::new(command).exists()
-    } else {
-        std::env::var_os("PATH").is_some_and(|paths| {
-            std::env::split_paths(&paths).any(|dir| dir.join(command).is_file())
-        })
-    };
-
-    if !binary_exists {
+    // Check if binary command exists cross-platform
+    if resolve_executable_path(command).is_none() {
         return HealthStatus::Broken {
             error: format!("Executable '{}' not found in PATH", command),
         };

@@ -210,6 +210,7 @@ mcpforge
 | `Tab` / `1` / `2` | Global | Switch between `[1] Servers` and `[2] Clients` views |
 | `j` / `k` or `Down` / `Up` | Navigation | Move cursor through server or client lists |
 | `Space` | Servers View | Toggle server enabled / disabled |
+| `v` / `Enter` | Dashboard | View canonical configuration snippet modal |
 | `a` | Global | Open Add Server Wizard (4-step provisioning) |
 | `d` / `Delete` / `x` | Global | Open Interactive Server Removal Modal |
 | `u` | Global | Sync all servers across all detected clients |
@@ -234,6 +235,12 @@ mcpforge verify
 # Audit a specific client adapter only
 mcpforge verify --client codex
 
+# Test a configured server with live JSON-RPC handshake and latency report
+mcpforge test fetch
+
+# Test an arbitrary command before adding it to any client
+mcpforge test --command uvx --args mcp-server-fetch
+
 # Auto-synchronize all configured servers across every detected client
 mcpforge sync --auto
 
@@ -242,6 +249,18 @@ mcpforge list
 
 # Run diagnostic health checks and measure latency for all servers
 mcpforge doctor
+
+# Auto-heal broken configurations and resolve missing environment variables
+mcpforge doctor --fix
+
+# Roll back a client configuration to its previous snapshot
+mcpforge rollback --client freebuff
+
+# List all configuration backup snapshots
+mcpforge backup list
+
+# View diff between current client config and its latest backup
+mcpforge backup diff freebuff
 
 # Add a server from the curated catalog to all installed clients
 mcpforge setup postgres

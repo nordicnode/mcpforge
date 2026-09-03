@@ -402,6 +402,8 @@ fn render_footer(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             Span::raw(" Toggle  "),
             Span::styled("[d]", theme.key_shortcut),
             Span::raw(" Delete  "),
+            Span::styled("[v]", theme.key_shortcut),
+            Span::raw(" Snippet  "),
             Span::styled("[r]", theme.key_shortcut),
             Span::raw(" Health  "),
             Span::styled("[/]", theme.key_shortcut),
@@ -415,4 +417,86 @@ fn render_footer(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     let p = Paragraph::new(line);
     f.render_widget(p, area);
+}
+
+pub fn render_snippet_modal(f: &mut Frame, app: &App) {
+    let server = match app.selected_server() {
+        Some(s) => s,
+        None => return,
+    };
+
+    let theme = Theme::default();
+    let area = crate::ui::layout::centered_rect(72, 65, f.area());
+    f.render_widget(ratatui::widgets::Clear, area);
+
+    let title = format!(" CANONICAL CONFIGURATION SNIPPET: {} ", server.id);
+    let block = Block::default()
+        .title(title)
+        .title_style(theme.title)
+        .borders(Borders::ALL)
+        .border_type(theme.border_type)
+        .border_style(theme.border);
+
+    let inner = block.inner(area);
+    f.render_widget(block, area);
+
+    let snippet_json = match &server.transport {
+        Transport::Stdio { command, args, env } => {
+            let mut val = serde_json::json!({
+                "command": command,
+                "args": args,
+            });
+            if !env.is_empty() {
+                val.as_object_mut().unwrap().insert(
+                    "env".to_string(),
+                    serde_json::to_value(env).unwrap_or_default(),
+                );
+            }
+            serde_json::to_string_pretty(&serde_json::json!({
+                server.id.clone(): val
+            }))
+            .unwrap_or_default()
+        }
+        Transport::StreamableHttp { url, headers } => {
+            let mut val = serde_json::json!({
+                "url": url,
+            });
+            if !headers.is_empty() {
+                val.as_object_mut().unwrap().insert(
+                    "headers".to_string(),
+                    serde_json::to_value(headers).unwrap_or_default(),
+                );
+            }
+            serde_json::to_string_pretty(&serde_json::json!({
+                server.id.clone(): val
+            }))
+            .unwrap_or_default()
+        }
+        Transport::Sse { url } => serde_json::to_string_pretty(&serde_json::json!({
+            server.id.clone(): {
+                "type": "sse",
+                "url": url,
+            }
+        }))
+        .unwrap_or_default(),
+    };
+
+    let chunks = ratatui::layout::Layout::default()
+        .direction(ratatui::layout::Direction::Vertical)
+        .constraints([
+            ratatui::layout::Constraint::Min(5),
+            ratatui::layout::Constraint::Length(2),
+        ])
+        .split(inner);
+
+    let code = Paragraph::new(snippet_json)
+        .style(Style::default().fg(Color::Rgb(248, 248, 242)))
+        .block(Block::default().borders(Borders::NONE));
+    f.render_widget(code, chunks[0]);
+
+    let footer_line = Line::from(vec![
+        Span::styled(" [Esc] / [v] / [Enter] ", theme.key_shortcut),
+        Span::raw(" Close Snippet Modal"),
+    ]);
+    f.render_widget(Paragraph::new(footer_line), chunks[1]);
 }

@@ -32,7 +32,10 @@ pub mod vscode;
 pub mod windsurf;
 pub mod zed;
 
-pub use backup::{atomic_write, compute_diff, create_backup, default_backup_dir};
+pub use backup::{
+    atomic_write, compute_diff, create_backup, default_backup_dir, find_latest_backup_for_client,
+    list_backups, restore_backup, BackupInfo,
+};
 pub use discovery::{DiscoveredHarness, DiscoveryEngine};
 pub use manager::AdapterManager;
 pub use traits::{ClientAdapter, ConfigLocation, TransportSupport};
@@ -104,5 +107,56 @@ mod tests {
         // Verify sidecar .bak was created
         let bak_path = config_path.with_extension("json.bak");
         assert!(bak_path.exists());
+    }
+
+    #[test]
+    fn test_commented_jsonc_roundtrip_with_comments_and_trailing_commas() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let config_path = temp_dir.path().join("vscode_mcp.json");
+
+        let jsonc_content = r#"{
+  // Global editor preferences
+  "workbench.colorTheme": "Dracula",
+  /* Model Context Protocol Configurations */
+  "mcpServers": {
+    // Filesystem provider
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    }
+  }
+}
+"#;
+        std::fs::write(&config_path, jsonc_content).unwrap();
+
+        let loc = ConfigLocation {
+            client_id: "vscode".to_string(),
+            display_name: "VS Code".to_string(),
+            path: config_path.clone(),
+            scope: Scope::Global,
+            exists: true,
+        };
+
+        // Reading commented JSON should succeed without error
+        let servers = common::read_mcp_servers_from_json(&config_path, "mcpServers", &loc).unwrap();
+        assert_eq!(servers.len(), 1);
+        assert_eq!(servers[0].id, "filesystem");
+
+        // Adding another server and writing back must preserve unrelated key "workbench.colorTheme"
+        let mut new_servers = servers;
+        new_servers.push(ServerEntry::new_stdio(
+            "fetch",
+            "uvx",
+            vec!["mcp-server-fetch".to_string()],
+            BTreeMap::new(),
+        ));
+
+        common::write_mcp_servers_to_json(&config_path, "mcpServers", "vscode", &new_servers)
+            .unwrap();
+
+        let updated = std::fs::read_to_string(&config_path).unwrap();
+        assert!(updated.contains("\"workbench.colorTheme\": \"Dracula\""));
+        assert!(updated.contains("\"filesystem\""));
+        assert!(updated.contains("\"fetch\""));
     }
 }

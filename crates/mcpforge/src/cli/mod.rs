@@ -155,6 +155,63 @@ pub enum Commands {
         #[arg(short, long, value_delimiter = ',')]
         to: Option<Vec<String>>,
     },
+
+    /// Test an MCP server or direct command with live handshake and latency diagnostics
+    Test {
+        /// Server identifier from configured servers or curated registry
+        server: Option<String>,
+
+        /// Direct command executable to test (e.g. 'npx', 'uvx')
+        #[arg(short, long)]
+        command: Option<String>,
+
+        /// Arguments for the direct command
+        #[arg(short, long, num_args = 0..)]
+        args: Vec<String>,
+
+        /// Timeout in seconds
+        #[arg(short, long, default_value_t = 5)]
+        timeout: u64,
+    },
+
+    /// Roll back client configurations to their previous backup snapshot
+    Rollback {
+        /// Specific client adapter to roll back (defaults to the most recently modified client)
+        #[arg(short, long)]
+        client: Option<String>,
+    },
+
+    /// Inspect, compare, or restore configuration backups
+    Backup {
+        #[command(subcommand)]
+        command: BackupCommands,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum BackupCommands {
+    /// List all available configuration backups
+    List {
+        /// Output results as JSON
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// View diff between a backup and the current configuration file
+    Diff {
+        /// Client ID or path to backup file
+        target: String,
+    },
+
+    /// Restore a specific backup file
+    Restore {
+        /// Path to the backup file
+        backup_file: PathBuf,
+
+        /// Target configuration path to restore to
+        #[arg(short, long)]
+        target: Option<PathBuf>,
+    },
 }
 
 #[derive(Debug, Subcommand)]

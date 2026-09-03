@@ -1,4 +1,4 @@
-use crate::cli::{Commands, PackCommands};
+use crate::cli::{BackupCommands, Commands, PackCommands};
 use crate::doctor::DoctorReport;
 use crate::provisioner::RuntimeCapabilities;
 use crate::resolver::EnvResolver;
@@ -213,13 +213,18 @@ pub async fn execute(cmd: Commands) -> Result<()> {
                         }
                     }
                 }
-                let all_targets: Vec<ConfigLocation> = manager
-                    .detect_all()
-                    .into_iter()
-                    .filter(|l| l.exists)
-                    .collect();
+                let all_locations = manager.detect_all();
                 for s in &servers {
-                    let _ = manager.write_server_to_locations(s, &all_targets);
+                    // CRITICAL INVARIANT: Only write back to locations where THIS server was already installed
+                    let target_locs: Vec<ConfigLocation> = all_locations
+                        .iter()
+                        .filter(|l| s.clients.iter().any(|c| c.config_path == l.path))
+                        .cloned()
+                        .collect();
+
+                    if !target_locs.is_empty() {
+                        let _ = manager.write_server_to_locations(s, &target_locs);
+                    }
                 }
             }
 
@@ -510,6 +515,208 @@ pub async fn execute(cmd: Commands) -> Result<()> {
                 std::process::exit(1);
             }
         }
+
+        Commands::Test {
+            server,
+            command,
+            args,
+            timeout,
+        } => {
+            let test_entry = if let Some(cmd) = command {
+                println!("Testing direct command: {} {:?}", cmd, args);
+                ServerEntry::new_stdio("direct-test", &cmd, args, BTreeMap::new())
+            } else if let Some(id) = server {
+                let configured = manager.read_all_servers()?;
+                if let Some(entry) = configured.into_iter().find(|s| s.id == id) {
+                    println!("Testing configured server '{}'...", id);
+                    entry
+                } else if let Some(cat_entry) = registry.find_by_id(&id) {
+                    println!("Testing registry server '{}'...", id);
+                    let (env, missing) = resolver.resolve_for_keys(&cat_entry.required_env);
+                    if !missing.is_empty() {
+                        eprintln!(
+                            "Warning: Missing required environment variables: {}",
+                            missing.join(", ")
+                        );
+                    }
+                    cat_entry.to_server_entry(env)
+                } else {
+                    anyhow::bail!("Server '{}' not found in configured servers or catalog", id);
+                }
+            } else {
+                anyhow::bail!("Specify either a server name (e.g. 'mcpforge test fetch') or a direct command (--command <cmd>)");
+            };
+
+            let status = check_server_health(&test_entry, timeout).await;
+            match status {
+                mcp_core::types::HealthStatus::Healthy {
+                    latency_ms,
+                    tool_count,
+                    server_name,
+                    server_version,
+                } => {
+                    println!("\n● OK: Server Handshake Succeeded");
+                    println!("  Server Info:   {} v{}", server_name, server_version);
+                    println!("  Tools Exposed: {}", tool_count);
+                    println!("  Roundtrip:     {}ms", latency_ms);
+                    println!("Status: OPERATIONAL\n");
+                }
+                mcp_core::types::HealthStatus::Degraded { reason, latency_ms } => {
+                    let ms_str = latency_ms.map_or(String::new(), |m| format!(" ({}ms)", m));
+                    println!("\n▲ WARN: Degraded Performance: {}{}\n", reason, ms_str);
+                }
+                mcp_core::types::HealthStatus::Broken { error } => {
+                    eprintln!("\n✖ FAIL: Handshake Failed");
+                    eprintln!("  Diagnostic Error: {}\n", error);
+                    std::process::exit(1);
+                }
+                mcp_core::types::HealthStatus::Disabled => {
+                    println!("\n○ Server is currently disabled.\n");
+                }
+                mcp_core::types::HealthStatus::Unknown => {
+                    println!("\n? Server status unknown.\n");
+                }
+            }
+        }
+
+        Commands::Rollback { client } => {
+            let all_locations = manager.detect_all();
+
+            let (target_loc, backup) = if let Some(client_id) = client {
+                let loc = all_locations
+                    .into_iter()
+                    .find(|l| l.client_id == client_id)
+                    .with_context(|| format!("Unknown client identifier '{}'", client_id))?;
+                let b = mcpforge_adapters::find_latest_backup_for_client(&client_id)?
+                    .with_context(|| {
+                        format!("No backup snapshots found for client '{}'", client_id)
+                    })?;
+                (loc, b)
+            } else {
+                let backups = mcpforge_adapters::list_backups()?;
+                let b = backups
+                    .into_iter()
+                    .next()
+                    .context("No configuration backups found on system")?;
+                let loc = all_locations
+                    .into_iter()
+                    .find(|l| l.client_id == b.client_id)
+                    .with_context(|| format!("Target client '{}' not found", b.client_id))?;
+                (loc, b)
+            };
+
+            println!(
+                "Rolling back {} configuration from snapshot {:?} ({}) ...",
+                target_loc.display_name, backup.backup_path, backup.timestamp
+            );
+
+            mcpforge_adapters::restore_backup(&backup.backup_path, &target_loc.path)?;
+            println!(
+                "✓ Restored {} configuration to {:?}\n",
+                target_loc.display_name, target_loc.path
+            );
+        }
+
+        Commands::Backup { command } => match command {
+            BackupCommands::List { json } => {
+                let backups = mcpforge_adapters::list_backups()?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&backups)?);
+                } else {
+                    println!("\nCONFIGURATION BACKUP SNAPSHOTS");
+                    println!(
+                        "{:<18} {:<24} {:<20} {:<10} {:<30}",
+                        "CLIENT", "TIMESTAMP", "FILE", "SIZE", "SNAPSHOT PATH"
+                    );
+                    println!("{}", "-".repeat(105));
+                    for b in &backups {
+                        let size_str = format!("{} B", b.size_bytes);
+                        println!(
+                            "{:<18} {:<24} {:<20} {:<10} {:<30}",
+                            b.client_id,
+                            b.timestamp,
+                            b.original_file,
+                            size_str,
+                            b.backup_path.display()
+                        );
+                    }
+                    println!("{}", "-".repeat(105));
+                    println!("Total snapshots found: {}\n", backups.len());
+                }
+            }
+
+            BackupCommands::Diff { target } => {
+                let all_locations = manager.detect_all();
+                let backup = if std::path::Path::new(&target).is_file() {
+                    let path = std::path::PathBuf::from(&target);
+                    mcpforge_adapters::list_backups()?
+                        .into_iter()
+                        .find(|b| b.backup_path == path)
+                        .with_context(|| format!("Backup file '{}' not recognized", target))?
+                } else {
+                    mcpforge_adapters::find_latest_backup_for_client(&target)?
+                        .with_context(|| format!("No backup found for client '{}'", target))?
+                };
+
+                let loc = all_locations
+                    .into_iter()
+                    .find(|l| l.client_id == backup.client_id)
+                    .with_context(|| {
+                        format!("No config location found for client '{}'", backup.client_id)
+                    })?;
+
+                let backup_content = std::fs::read_to_string(&backup.backup_path)?;
+                let current_content = if loc.path.exists() {
+                    std::fs::read_to_string(&loc.path)?
+                } else {
+                    String::new()
+                };
+
+                let diff = mcpforge_adapters::compute_diff(
+                    &current_content,
+                    &backup_content,
+                    &loc.path.file_name().unwrap_or_default().to_string_lossy(),
+                );
+
+                if diff.trim().is_empty() {
+                    println!(
+                        "Current config is identical to backup snapshot ({})",
+                        backup.timestamp
+                    );
+                } else {
+                    println!("\nDiff (Current -> Backup Snapshot {}):", backup.timestamp);
+                    println!("{}", diff);
+                }
+            }
+
+            BackupCommands::Restore {
+                backup_file,
+                target,
+            } => {
+                let target_path = match target {
+                    Some(p) => p,
+                    None => {
+                        let backups = mcpforge_adapters::list_backups()?;
+                        let b = backups
+                            .into_iter()
+                            .find(|b| b.backup_path == backup_file)
+                            .with_context(|| format!("Cannot infer target: backup file {:?} not found in index. Please specify --target", backup_file))?;
+                        let all_locations = manager.detect_all();
+                        let loc = all_locations
+                            .into_iter()
+                            .find(|l| l.client_id == b.client_id)
+                            .with_context(|| {
+                                format!("Cannot find client config location for '{}'", b.client_id)
+                            })?;
+                        loc.path
+                    }
+                };
+
+                println!("Restoring {:?} to {:?}...", backup_file, target_path);
+                mcpforge_adapters::restore_backup(&backup_file, &target_path)?;
+                println!("✓ Restored successfully!\n");
+            }
+        },
     }
 
     Ok(())

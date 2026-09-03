@@ -140,6 +140,9 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                 app.refresh_servers();
                             }
                         }
+                        KeyCode::Char('v') | KeyCode::Enter if app.selected_server().is_some() => {
+                            app.current_view = CurrentView::ViewSnippet;
+                        }
                         _ => {}
                     },
 
@@ -372,6 +375,12 @@ async fn main_loop<B: ratatui::backend::Backend>(
                         }
                         KeyCode::Char('c') => {
                             app.toggle_delete_all_targets(false);
+                        }
+                        _ => {}
+                    },
+                    CurrentView::ViewSnippet => match key.code {
+                        KeyCode::Char('q') | KeyCode::Esc | KeyCode::Char('v') | KeyCode::Enter => {
+                            app.current_view = CurrentView::Dashboard;
                         }
                         _ => {}
                     },

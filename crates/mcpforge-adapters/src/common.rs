@@ -19,9 +19,15 @@ pub fn read_mcp_servers_from_json(
         .with_context(|| format!("Failed to read config file at {:?}", path))?;
     let root: Value = match serde_json::from_str(&content) {
         Ok(val) => val,
-        Err(e) => {
-            tracing::warn!("Failed to parse JSON in {:?}: {}", path, e);
-            return Ok(Vec::new());
+        Err(_) => {
+            let clean = strip_jsonc_comments(&content);
+            match serde_json::from_str(&clean) {
+                Ok(val) => val,
+                Err(e) => {
+                    tracing::warn!("Failed to parse JSON in {:?}: {}", path, e);
+                    return Ok(Vec::new());
+                }
+            }
         }
     };
 
@@ -130,7 +136,13 @@ pub fn write_mcp_servers_to_json(
     // 1. Read existing root or create empty object
     let mut root: Value = if path.exists() {
         let content = std::fs::read_to_string(path)?;
-        serde_json::from_str(&content).unwrap_or_else(|_| Value::Object(Map::new()))
+        match serde_json::from_str(&content) {
+            Ok(v) => v,
+            Err(_) => {
+                let clean = strip_jsonc_comments(&content);
+                serde_json::from_str(&clean).unwrap_or_else(|_| Value::Object(Map::new()))
+            }
+        }
     } else {
         Value::Object(Map::new())
     };

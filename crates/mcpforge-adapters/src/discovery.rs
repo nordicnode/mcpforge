@@ -104,9 +104,61 @@ impl DiscoveryEngine {
                     if dir.join(bin).is_file() {
                         return true;
                     }
+                    #[cfg(windows)]
+                    {
+                        for ext in [".cmd", ".exe", ".bat"] {
+                            if dir.join(format!("{}{}", bin, ext)).is_file() {
+                                return true;
+                            }
+                        }
+                    }
                 }
             }
         }
+
+        #[cfg(target_os = "macos")]
+        {
+            let app_bundles: &[&str] = match client_id {
+                "vscode" => &["Visual Studio Code.app", "VSCodium.app"],
+                "cursor" => &["Cursor.app"],
+                "claude-desktop" => &["Claude.app"],
+                "windsurf" => &["Windsurf.app"],
+                "zed" => &["Zed.app"],
+                "anythingllm" => &["AnythingLLM.app"],
+                "librechat" => &["LibreChat.app"],
+                "jetbrains" => &[
+                    "IntelliJ IDEA.app",
+                    "PyCharm.app",
+                    "WebStorm.app",
+                    "RustRover.app",
+                    "CLion.app",
+                ],
+                _ => &[],
+            };
+            for bundle in app_bundles {
+                if std::path::Path::new("/Applications").join(bundle).exists() {
+                    return true;
+                }
+                if let Some(home) = dirs::home_dir() {
+                    if home.join("Applications").join(bundle).exists() {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        #[cfg(windows)]
+        {
+            if let Some(local_app_data) = dirs::data_local_dir() {
+                let programs = local_app_data.join("Programs");
+                for bin in bins {
+                    if programs.join(bin).join(format!("{}.exe", bin)).is_file() {
+                        return true;
+                    }
+                }
+            }
+        }
+
         false
     }
 

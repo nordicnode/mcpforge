@@ -33,6 +33,7 @@ pub enum CurrentView {
     AddWizard,
     Help,
     DeleteConfirm,
+    ViewSnippet,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -380,12 +381,8 @@ impl App {
             WizardSource::FromRegistry => {
                 if registry_cursor < entries.len() {
                     let cat_entry = &entries[registry_cursor];
-                    let mut env = BTreeMap::new();
-                    for k in &cat_entry.required_env {
-                        if let Ok(val) = std::env::var(k) {
-                            env.insert(k.clone(), val);
-                        }
-                    }
+                    let (env, _) = crate::resolver::EnvResolver::new()
+                        .resolve_for_keys(&cat_entry.required_env);
                     cat_entry.to_server_entry(env)
                 } else {
                     return;
@@ -475,7 +472,9 @@ impl App {
             WizardSource::FromRegistry => {
                 if wizard.registry_cursor < entries.len() {
                     let cat_entry = &entries[wizard.registry_cursor];
-                    cat_entry.to_server_entry(BTreeMap::new())
+                    let (env, _) = crate::resolver::EnvResolver::new()
+                        .resolve_for_keys(&cat_entry.required_env);
+                    cat_entry.to_server_entry(env)
                 } else {
                     return Ok(());
                 }

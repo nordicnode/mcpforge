@@ -29,5 +29,9 @@ pub fn render_ui(f: &mut Frame, app: &App) {
             dashboard::render_dashboard(f, app);
             delete::render_delete_modal(f, app);
         }
+        CurrentView::ViewSnippet => {
+            dashboard::render_dashboard(f, app);
+            dashboard::render_snippet_modal(f, app);
+        }
     }
 }

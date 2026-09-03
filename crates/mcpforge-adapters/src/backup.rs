@@ -81,6 +81,73 @@ pub fn compute_diff(old_content: &str, new_content: &str, file_name: &str) -> St
         .to_string()
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BackupInfo {
+    pub client_id: String,
+    pub original_file: String,
+    pub timestamp: String,
+    pub backup_path: PathBuf,
+    pub size_bytes: u64,
+}
+
+pub fn list_backups() -> Result<Vec<BackupInfo>> {
+    let backup_dir = default_backup_dir();
+    if !backup_dir.exists() {
+        return Ok(Vec::new());
+    }
+
+    let mut backups = Vec::new();
+    for entry in std::fs::read_dir(&backup_dir)?.flatten() {
+        let path = entry.path();
+        if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("bak") {
+            if let Some(file_name) = path.file_name().and_then(|f| f.to_str()) {
+                let stem = file_name.trim_end_matches(".bak");
+                let parts: Vec<&str> = stem.split('_').collect();
+                if parts.len() >= 4 {
+                    let client_id = parts[0].to_string();
+                    let date = parts[parts.len() - 3];
+                    let time = parts[parts.len() - 2];
+                    let ms = parts[parts.len() - 1];
+                    let timestamp = format!("{}_{}_{}", date, time, ms);
+                    let stem_parts = &parts[1..parts.len() - 3];
+                    let original_file = if stem_parts.is_empty() {
+                        "config".to_string()
+                    } else {
+                        stem_parts.join("_")
+                    };
+                    let size_bytes = entry.metadata().map(|m| m.len()).unwrap_or(0);
+
+                    backups.push(BackupInfo {
+                        client_id,
+                        original_file,
+                        timestamp,
+                        backup_path: path,
+                        size_bytes,
+                    });
+                }
+            }
+        }
+    }
+
+    backups.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    Ok(backups)
+}
+
+pub fn find_latest_backup_for_client(client_id: &str) -> Result<Option<BackupInfo>> {
+    let all = list_backups()?;
+    Ok(all.into_iter().find(|b| b.client_id == client_id))
+}
+
+pub fn restore_backup(backup_path: &Path, target_path: &Path) -> Result<()> {
+    if !backup_path.exists() {
+        anyhow::bail!("Backup file {:?} does not exist", backup_path);
+    }
+    let content = std::fs::read_to_string(backup_path)
+        .with_context(|| format!("Failed to read backup file {:?}", backup_path))?;
+    atomic_write(target_path, &content)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -33,12 +33,22 @@ impl ClientAdapter for WindsurfAdapter {
             let exists = path.exists();
             locs.push(ConfigLocation {
                 client_id: self.id().to_string(),
-                display_name: self.display_name().to_string(),
+                display_name: format!("{} (Global)", self.display_name()),
                 path,
                 scope: Scope::Global,
                 exists,
             });
         }
+
+        let project_path = PathBuf::from(".windsurf").join("mcp_config.json");
+        let exists = project_path.exists();
+        locs.push(ConfigLocation {
+            client_id: self.id().to_string(),
+            display_name: format!("{} (Project)", self.display_name()),
+            path: project_path,
+            scope: Scope::Project,
+            exists,
+        });
 
         locs
     }
