@@ -6,9 +6,16 @@ use crate::antigravity::AntigravityAdapter;
 use crate::claude_code::ClaudeCodeAdapter;
 use crate::claude_desktop::ClaudeDesktopAdapter;
 use crate::cline::ClineAdapter;
+use crate::codex::CodexAdapter;
 use crate::continue_dev::ContinueAdapter;
 use crate::cursor::CursorAdapter;
 use crate::custom::CustomHarnessAdapter;
+use crate::freebuff::FreebuffAdapter;
+use crate::grok::GrokAdapter;
+use crate::jcode::JcodeAdapter;
+use crate::manicode::ManicodeAdapter;
+use crate::opencode::OpenCodeAdapter;
+use crate::roo_code::RooCodeAdapter;
 use crate::traits::{ClientAdapter, ConfigLocation};
 use crate::vscode::VsCodeAdapter;
 use crate::windsurf::WindsurfAdapter;
@@ -36,6 +43,13 @@ impl AdapterManager {
             Box::new(ClineAdapter::new()),
             Box::new(ContinueAdapter::new()),
             Box::new(ZedAdapter::new()),
+            Box::new(GrokAdapter::new()),
+            Box::new(JcodeAdapter::new()),
+            Box::new(FreebuffAdapter::new()),
+            Box::new(OpenCodeAdapter::new()),
+            Box::new(CodexAdapter::new()),
+            Box::new(RooCodeAdapter::new()),
+            Box::new(ManicodeAdapter::new()),
             Box::new(CustomHarnessAdapter::load()),
         ];
         Self { adapters }

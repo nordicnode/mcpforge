@@ -100,6 +100,24 @@ impl DiscoveryEngine {
         if name.contains("freebuff") {
             set.insert("freebuff".to_string());
         }
+        if name.contains("grok") {
+            set.insert("grok".to_string());
+        }
+        if name.contains("jcode") {
+            set.insert("jcode".to_string());
+        }
+        if name.contains("opencode") {
+            set.insert("opencode".to_string());
+        }
+        if name.contains("codex") {
+            set.insert("codex".to_string());
+        }
+        if name.contains("roo") {
+            set.insert("roo-code".to_string());
+        }
+        if name.contains("manicode") {
+            set.insert("manicode".to_string());
+        }
     }
 
     pub fn discover_all(&self) -> Vec<DiscoveredHarness> {

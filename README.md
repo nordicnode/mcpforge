@@ -1,31 +1,39 @@
 # MCPForge
 
-> **A terminal UI and CLI for discovering, installing, configuring, and health-checking MCP servers across every local AI client.**
+> **A high-performance terminal UI and automation CLI for discovering, installing, configuring, and health-checking MCP servers across 16+ local AI clients and harnesses.**
 
 ---
 
 ## What makes MCPForge different?
 
-MCPForge is designed to be **as automated as possible**:
-1. **Automated Client & Process Discovery**: Scans running OS processes and standard config locations to find all installed and active AI clients (Antigravity, Claude Desktop, Claude Code, Cursor, VS Code, Cline, Continue.dev, Windsurf, Zed).
-2. **Automated Credential & Secret Resolution**: Automatically extracts required tokens and credentials using local tooling (`gh auth token`), `.env` files, and environment variables—no manual token copy-pasting.
-3. **One-Command Setup & Verification**: `mcpforge setup <server>` checks runtimes, fetches tokens, installs into all detected clients, and immediately tests live health via the MCP JSON-RPC handshake.
-4. **Curated Server Packs**: Install complete developer stacks (`dev-core`, `data`, `web-research`, `cloud-dev`) in a single command.
-5. **Self-Healing Diagnostics (`doctor --fix`)**: Detects missing tokens or configuration drift and automatically repairs them.
-6. **Zero-Diff Safety**: Always creates timestamped `.bak` backups before modifying files and preserves existing formatting, comments, and unknown keys with atomic writes.
+MCPForge is built for **zero-friction automation**:
+1. **Automated Client & Process Discovery**: Scans running OS processes (`/proc` and `pgrep`) and standard configuration paths to locate all installed and active AI clients on the machine.
+2. **50+ Curated Server Catalog**: Built-in, offline-ready registry covering filesystems, databases (Postgres, MySQL, SQLite, Mongo, Redis, Supabase, Qdrant, Neo4j), web search (Brave, Tavily, Perplexity, Fetch, Puppeteer, Playwright), cloud devops (Docker, Kubernetes, AWS, Cloudflare, Sentry, Datadog), productivity (Slack, Discord, Linear, Jira, Notion, Obsidian, Google Drive, Todoist), and reasoning agents.
+3. **Automated Credential & Secret Resolution**: Automatically extracts tokens and credentials from local developer tooling (`gh auth token`), `.env` files, and encrypted secret stores.
+4. **One-Command Setup & Verification**: `mcpforge setup <server>` checks execution runtimes, resolves tokens, writes configurations across all detected clients, and immediately tests live health via the MCP JSON-RPC protocol.
+5. **Curated Multi-Server Packs**: Install complete developer suites (`dev-core`, `data`, `web-research`, `cloud-dev`, `productivity`, `ai-agent`, `full-stack`, `enterprise`) in one shot.
+6. **Cross-Client Auto-Sync (`mcpforge sync --auto`)**: Aggregates all servers configured across any client and synchronizes them to every installed client with a single keystroke (`[u]` in TUI).
+7. **Zero-Diff Safety**: Creates timestamped `.bak` backups before modifying files and preserves formatting, comments, and unknown keys with atomic writes.
 
 ---
 
-## Supported AI Clients & Harnesses
+## Supported AI Clients & Harnesses (16+)
 
-| Client | Auto-Detected Paths | Transport Support | Active Process Detection |
+| Client / Harness | Default Config Paths | Transport Support | Live Process Detection |
 |---|---|---|---|
+| **Freebuff** | `~/.config/freebuff-desktop/mcp.json`, `~/.freebuff/mcp.json`, `.freebuff/mcp.json` | stdio, Streamable HTTP | ✓ |
+| **Grok Build / Grok CLI** | `~/.grok/config.toml`, `.grok/config.toml` | stdio, Streamable HTTP | ✓ |
+| **J-Code** | `~/.jcode/servers.json`, `~/.config/jcode/servers.json` | stdio, Streamable HTTP | ✓ |
+| **OpenCode** | `~/.config/opencode/mcp.json`, `~/.opencode/mcp.json`, `.opencode/mcp.json` | stdio, Streamable HTTP | ✓ |
+| **Codex** | `~/.codex/config.json`, `~/.config/codex/mcp.json`, `.codex/mcp.json` | stdio, Streamable HTTP | ✓ |
+| **Roo Code** | `cline_mcp_settings.json` (VS Code & Cursor), `.roo/mcp.json` | stdio, Streamable HTTP | ✓ |
+| **Manicode** | `~/.config/manicode/mcp.json`, `.manicode/mcp.json` | stdio, Streamable HTTP | ✓ |
 | **Antigravity / Gemini** | `~/.gemini/config/mcp_config.json` | stdio, Streamable HTTP | ✓ |
+| **Cline** | `saoudrizwan.claude-dev/settings/cline_mcp_settings.json` | stdio, Streamable HTTP | ✓ |
 | **Claude Desktop** | `~/.config/Claude/claude_desktop_config.json` (Linux/Mac/Win) | stdio | ✓ |
 | **Claude Code** | `~/.claude.json`, `.mcp.json` | stdio, Streamable HTTP | ✓ |
 | **Cursor** | `~/.cursor/mcp.json`, `.cursor/mcp.json` | stdio, Streamable HTTP, SSE | ✓ |
 | **VS Code / Copilot** | `~/.vscode/mcp.json`, `.vscode/mcp.json` | stdio, Streamable HTTP | ✓ |
-| **Cline** | VS Code & Cursor extension settings | stdio, Streamable HTTP | ✓ |
 | **Windsurf** | `~/.codeium/windsurf/mcp_config.json` | stdio | ✓ |
 | **Continue.dev** | `~/.continue/config.json` | stdio | ✓ |
 | **Zed** | `~/.config/zed/settings.json` | stdio | ✓ |
@@ -36,20 +44,25 @@ MCPForge is designed to be **as automated as possible**:
 ## Automated CLI Commands
 
 ```bash
-# 1. Audit and discover all AI clients & running processes on the machine
+# 1. Audit and discover all AI clients & running processes
 mcpforge discover
 
 # 2. Automated one-command setup: auto-resolves tokens (e.g. from `gh auth token` or `.env`),
-#    installs to all detected clients, and immediately tests health
+#    installs to all detected clients, and runs immediate verification
 mcpforge setup github
-mcpforge setup filesystem
+mcpforge setup sequential-thinking --to freebuff
 mcpforge setup postgres
 
 # 3. View and install curated server packs
 mcpforge pack list
-mcpforge pack install dev-core       # installs filesystem, git, memory, and fetch
-mcpforge pack install data           # installs postgres, sqlite, and memory
-mcpforge pack install web-research   # installs brave-search, fetch, and puppeteer
+mcpforge pack install dev-core       # filesystem, git, memory, fetch, sequential-thinking
+mcpforge pack install data           # postgres, mysql, sqlite, mongodb, redis, memory
+mcpforge pack install web-research   # brave-search, tavily, fetch, puppeteer, playwright
+mcpforge pack install cloud-dev      # docker, kubernetes, aws, cloudflare, sentry, datadog
+mcpforge pack install productivity   # linear, notion, slack, discord, google-drive, todoist
+mcpforge pack install ai-agent       # memory, sequential-thinking, context7, time, fetch, filesystem
+mcpforge pack install full-stack     # filesystem, git, github, postgres, redis, docker, fetch
+mcpforge pack install enterprise     # github, gitlab, jira, slack, sentry, kubernetes
 
 # 4. List all configured servers across all clients
 mcpforge list
