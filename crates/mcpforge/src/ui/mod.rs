@@ -1,8 +1,10 @@
+pub mod backups;
 pub mod clients;
 pub mod dashboard;
 pub mod delete;
 pub mod help;
 pub mod layout;
+pub mod pager;
 pub mod theme;
 pub mod tools;
 pub mod wizard;
@@ -37,6 +39,14 @@ pub fn render_ui(f: &mut Frame, app: &App) {
         CurrentView::ToolExplorer => {
             dashboard::render_dashboard(f, app);
             tools::render_tools_modal(f, app);
+        }
+        CurrentView::ToolOutputPager => {
+            dashboard::render_dashboard(f, app);
+            pager::render_pager_modal(f, app);
+        }
+        CurrentView::BackupManager => {
+            dashboard::render_dashboard(f, app);
+            backups::render_backup_modal(f, app);
         }
     }
 }

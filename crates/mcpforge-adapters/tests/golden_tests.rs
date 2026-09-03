@@ -89,6 +89,7 @@ const ADAPTER_FIXTURES: &[(&str, &str)] = &[
     ("anythingllm", "anythingllm.golden.json"),
     ("mcphub", "mcphub.golden.json"),
     ("claude-desktop", "claude_desktop.golden.json"),
+    ("pi", "pi.golden.json"),
 ];
 
 #[test]

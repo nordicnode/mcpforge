@@ -57,7 +57,7 @@ impl DiscoveryEngine {
 
         // 2. Query pgrep with strict pattern
         if let Ok(output) = std::process::Command::new("pgrep")
-            .args(["-a", "freebuff|codebuff|grok|jcode|opencode|codex|claude|cursor|windsurf|zed|antigravity|goose|librechat|mcphub|anythingllm|idea|pycharm|hermes|openclaw|deepseek|dsh|prime|letta|memgpt"])
+            .args(["-a", "pi|freebuff|codebuff|grok|jcode|opencode|codex|claude|cursor|windsurf|zed|antigravity|goose|librechat|mcphub|anythingllm|idea|pycharm|hermes|openclaw|deepseek|dsh|prime|letta|memgpt"])
             .output()
         {
             if let Ok(out_str) = String::from_utf8(output.stdout) {
@@ -95,6 +95,7 @@ impl DiscoveryEngine {
             "deepseek" => &["dsh", "deepseek"],
             "prime" => &["prime", "prime-agent"],
             "letta" => &["letta", "memgpt"],
+            "pi" => &["pi", "pi-agent", "pi-coding-agent"],
             _ => &[],
         };
 
@@ -257,6 +258,10 @@ impl DiscoveryEngine {
             set.insert("letta".to_string());
             return;
         }
+        if name == "pi" || name.starts_with("pi-") || name.contains("pi-agent") {
+            set.insert("pi".to_string());
+            return;
+        }
 
         // Strict check for real VS Code / Codium:
         // Must NOT match codebuff, opencode, jcode, or other agents
@@ -287,9 +292,8 @@ impl DiscoveryEngine {
             }
 
             let category = match id.as_str() {
-                "freebuff" | "goose" | "hermes" | "openclaw" | "deepseek" | "prime" | "letta" => {
-                    "Agent".to_string()
-                }
+                "freebuff" | "goose" | "hermes" | "openclaw" | "deepseek" | "prime" | "letta"
+                | "pi" => "Agent".to_string(),
                 "claude-code" | "codex" | "opencode" | "antigravity" | "jcode" | "manicode"
                 | "grok" => "CLI".to_string(),
                 "cursor" | "vscode" | "windsurf" | "zed" | "jetbrains" | "mcphub" | "cline"

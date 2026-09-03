@@ -35,6 +35,25 @@ pub enum CurrentView {
     DeleteConfirm,
     ViewSnippet,
     ToolExplorer,
+    ToolOutputPager,
+    BackupManager,
+}
+
+#[derive(Debug, Clone)]
+pub struct FormField {
+    pub name: String,
+    pub field_type: String,
+    pub is_required: bool,
+    pub description: String,
+    pub value: String,
+    pub enum_options: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct BackupManagerState {
+    pub backups: Vec<mcpforge_adapters::BackupInfo>,
+    pub selected_index: usize,
+    pub diff_preview: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -85,6 +104,9 @@ pub struct ToolExplorerState {
     pub error_message: Option<String>,
     pub params_input: String,
     pub is_editing_params: bool,
+    pub is_form_mode: bool,
+    pub form_fields: Vec<FormField>,
+    pub form_active_index: usize,
 }
 
 pub struct App {
@@ -100,6 +122,8 @@ pub struct App {
     pub wizard_state: Option<WizardState>,
     pub delete_state: Option<DeleteState>,
     pub tool_explorer_state: Option<ToolExplorerState>,
+    pub backup_state: Option<BackupManagerState>,
+    pub pager_scroll: usize,
     pub should_quit: bool,
     pub status_message: Option<String>,
     pub running_processes: std::collections::HashSet<String>,
@@ -129,6 +153,8 @@ impl App {
             wizard_state: None,
             delete_state: None,
             tool_explorer_state: None,
+            backup_state: None,
+            pager_scroll: 0,
             should_quit: false,
             status_message: None,
             running_processes,
@@ -167,6 +193,79 @@ impl App {
                 let def_val = generate_default_args(tool.input_schema.as_ref());
                 s.params_input =
                     serde_json::to_string(&def_val).unwrap_or_else(|_| "{}".to_string());
+                if s.is_form_mode {
+                    s.form_fields = init_form_fields_from_schema(tool.input_schema.as_ref());
+                    s.form_active_index = 0;
+                }
+            }
+        }
+    }
+
+    pub fn toggle_form_mode(&mut self) {
+        if let Some(ref mut s) = self.tool_explorer_state {
+            s.is_form_mode = !s.is_form_mode;
+            if s.is_form_mode {
+                s.is_editing_params = false;
+                if let Some(tool) = s.tools.get(s.selected_index) {
+                    s.form_fields = init_form_fields_from_schema(tool.input_schema.as_ref());
+                    s.form_active_index = 0;
+                }
+            } else {
+                s.params_input = assemble_form_to_json(&s.form_fields);
+            }
+        }
+    }
+
+    pub fn form_next_field(&mut self) {
+        if let Some(ref mut s) = self.tool_explorer_state {
+            if !s.form_fields.is_empty() {
+                s.form_active_index = (s.form_active_index + 1) % s.form_fields.len();
+            }
+        }
+    }
+
+    pub fn form_prev_field(&mut self) {
+        if let Some(ref mut s) = self.tool_explorer_state {
+            if !s.form_fields.is_empty() {
+                if s.form_active_index == 0 {
+                    s.form_active_index = s.form_fields.len() - 1;
+                } else {
+                    s.form_active_index -= 1;
+                }
+            }
+        }
+    }
+
+    pub fn open_backup_manager(&mut self) {
+        let backups = mcpforge_adapters::list_backups().unwrap_or_default();
+        let mut state = BackupManagerState {
+            backups,
+            selected_index: 0,
+            diff_preview: String::new(),
+        };
+        state.compute_diff();
+        self.backup_state = Some(state);
+        self.current_view = CurrentView::BackupManager;
+    }
+
+    pub fn select_next_backup(&mut self) {
+        if let Some(ref mut s) = self.backup_state {
+            if !s.backups.is_empty() {
+                s.selected_index = (s.selected_index + 1) % s.backups.len();
+                s.compute_diff();
+            }
+        }
+    }
+
+    pub fn select_prev_backup(&mut self) {
+        if let Some(ref mut s) = self.backup_state {
+            if !s.backups.is_empty() {
+                if s.selected_index == 0 {
+                    s.selected_index = s.backups.len() - 1;
+                } else {
+                    s.selected_index -= 1;
+                }
+                s.compute_diff();
             }
         }
     }
@@ -801,6 +900,167 @@ pub fn generate_default_args(schema: Option<&serde_json::Value>) -> serde_json::
     serde_json::Value::Object(map)
 }
 
+impl BackupManagerState {
+    pub fn compute_diff(&mut self) {
+        if let Some(b) = self.backups.get(self.selected_index) {
+            let backup_content = std::fs::read_to_string(&b.backup_path).unwrap_or_default();
+            let current_content = if b.target_path.exists() {
+                std::fs::read_to_string(&b.target_path).unwrap_or_default()
+            } else {
+                String::new()
+            };
+            self.diff_preview = mcpforge_adapters::compute_diff(
+                &backup_content,
+                &current_content,
+                &b.original_file,
+            );
+        } else {
+            self.diff_preview = "No backup snapshots available.".to_string();
+        }
+    }
+}
+
+pub fn init_form_fields_from_schema(schema: Option<&serde_json::Value>) -> Vec<FormField> {
+    let schema = match schema {
+        Some(s) => s,
+        None => return Vec::new(),
+    };
+
+    let props = match schema.get("properties").and_then(|p| p.as_object()) {
+        Some(p) => p,
+        None => return Vec::new(),
+    };
+
+    let required: std::collections::HashSet<&str> = schema
+        .get("required")
+        .and_then(|r| r.as_array())
+        .map(|arr| arr.iter().filter_map(|v| v.as_str()).collect())
+        .unwrap_or_default();
+
+    let mut fields = Vec::new();
+
+    for (name, spec) in props {
+        let is_required = required.contains(name.as_str());
+        let desc = spec
+            .get("description")
+            .and_then(|d| d.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let field_type = if let Some(t) = spec.get("type").and_then(|t| t.as_str()) {
+            t.to_string()
+        } else if let Some(arr) = spec.get("type").and_then(|t| t.as_array()) {
+            arr.first()
+                .and_then(|v| v.as_str())
+                .unwrap_or("string")
+                .to_string()
+        } else {
+            "string".to_string()
+        };
+
+        let mut enum_options = Vec::new();
+        if let Some(arr) = spec.get("enum").and_then(|e| e.as_array()) {
+            for item in arr {
+                if let Some(s) = item.as_str() {
+                    enum_options.push(s.to_string());
+                }
+            }
+        }
+
+        let initial_val = if let Some(def) = spec.get("default") {
+            match def {
+                serde_json::Value::String(s) => s.clone(),
+                other => other.to_string(),
+            }
+        } else if let Some(first) = enum_options.first() {
+            first.clone()
+        } else {
+            match field_type.as_str() {
+                "boolean" => "false".to_string(),
+                "integer" | "number" => {
+                    let min = spec.get("minimum").and_then(|m| m.as_i64()).unwrap_or(1);
+                    min.to_string()
+                }
+                _ => {
+                    let lower = name.to_lowercase();
+                    if lower.contains("path") || lower.contains("file") {
+                        "/tmp/test.txt".to_string()
+                    } else if lower.contains("url") || lower.contains("uri") {
+                        "https://example.com".to_string()
+                    } else if lower.contains("thought") {
+                        "Initial reasoning step".to_string()
+                    } else if is_required {
+                        "test".to_string()
+                    } else {
+                        "".to_string()
+                    }
+                }
+            }
+        };
+
+        fields.push(FormField {
+            name: name.clone(),
+            field_type,
+            is_required,
+            description: desc,
+            value: initial_val,
+            enum_options,
+        });
+    }
+
+    fields.sort_by(|a, b| {
+        b.is_required
+            .cmp(&a.is_required)
+            .then_with(|| a.name.cmp(&b.name))
+    });
+
+    fields
+}
+
+pub fn assemble_form_to_json(fields: &[FormField]) -> String {
+    let mut map = serde_json::Map::new();
+
+    for f in fields {
+        let val_trim = f.value.trim();
+        if val_trim.is_empty() && !f.is_required {
+            continue;
+        }
+
+        let json_val = match f.field_type.as_str() {
+            "boolean" => serde_json::Value::Bool(f.value.trim().eq_ignore_ascii_case("true")),
+            "integer" => {
+                let n: i64 = f.value.trim().parse().unwrap_or(1);
+                serde_json::Value::Number(serde_json::Number::from(n))
+            }
+            "number" => {
+                let n: f64 = f.value.trim().parse().unwrap_or(1.0);
+                serde_json::Number::from_f64(n)
+                    .map(serde_json::Value::Number)
+                    .unwrap_or_else(|| serde_json::Value::Number(serde_json::Number::from(1)))
+            }
+            "array" => {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(val_trim) {
+                    v
+                } else {
+                    serde_json::Value::Array(Vec::new())
+                }
+            }
+            "object" => {
+                if let Ok(v) = serde_json::from_str::<serde_json::Value>(val_trim) {
+                    v
+                } else {
+                    serde_json::Value::Object(serde_json::Map::new())
+                }
+            }
+            _ => serde_json::Value::String(f.value.clone()),
+        };
+
+        map.insert(f.name.clone(), json_val);
+    }
+
+    serde_json::to_string(&serde_json::Value::Object(map)).unwrap_or_else(|_| "{}".to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -844,5 +1104,42 @@ mod tests {
         assert!(args.get("nextThoughtNeeded").unwrap().is_boolean());
         assert_eq!(args.get("thoughtNumber").unwrap().as_i64(), Some(1));
         assert_eq!(args.get("totalThoughts").unwrap().as_i64(), Some(1));
+    }
+
+    #[test]
+    fn test_form_builder_schema_roundtrip() {
+        let schema = serde_json::json!({
+            "type": "object",
+            "properties": {
+                "thought": { "type": "string", "description": "Thinking step" },
+                "nextThoughtNeeded": { "type": "boolean" },
+                "thoughtNumber": { "type": "integer", "minimum": 1 }
+            },
+            "required": ["thought", "nextThoughtNeeded"]
+        });
+
+        let mut fields = init_form_fields_from_schema(Some(&schema));
+        assert_eq!(fields.len(), 3);
+        // Required fields first
+        assert!(fields[0].is_required);
+        assert!(fields[1].is_required);
+
+        // Mutate a field
+        for f in &mut fields {
+            if f.name == "thought" {
+                f.value = "Custom deep thought".to_string();
+            }
+        }
+
+        let json_str = assemble_form_to_json(&fields);
+        let parsed: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+        assert_eq!(
+            parsed.get("thought").and_then(|v| v.as_str()),
+            Some("Custom deep thought")
+        );
+        assert_eq!(
+            parsed.get("nextThoughtNeeded").and_then(|v| v.as_bool()),
+            Some(false)
+        );
     }
 }

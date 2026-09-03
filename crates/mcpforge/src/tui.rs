@@ -154,6 +154,9 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                     error_message: None,
                                     params_input: "{}".to_string(),
                                     is_editing_params: false,
+                                    is_form_mode: false,
+                                    form_fields: Vec::new(),
+                                    form_active_index: 0,
                                 });
                                 app.current_view = CurrentView::ToolExplorer;
                                 terminal.draw(|f| ui::render_ui(f, app))?;
@@ -216,6 +219,9 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                     _ => {}
                                 }
                             }
+                        }
+                        KeyCode::Char('b') => {
+                            app.open_backup_manager();
                         }
                         KeyCode::Char('v') | KeyCode::Enter if app.selected_server().is_some() => {
                             app.current_view = CurrentView::ViewSnippet;
@@ -462,12 +468,76 @@ async fn main_loop<B: ratatui::backend::Backend>(
                         _ => {}
                     },
                     CurrentView::ToolExplorer => {
+                        let is_form = app
+                            .tool_explorer_state
+                            .as_ref()
+                            .is_some_and(|s| s.is_form_mode);
+
                         let is_editing = app
                             .tool_explorer_state
                             .as_ref()
                             .is_some_and(|s| s.is_editing_params);
 
-                        if is_editing {
+                        if is_form {
+                            match key.code {
+                                KeyCode::Esc | KeyCode::Char('f') => {
+                                    app.toggle_form_mode();
+                                    continue;
+                                }
+                                KeyCode::Tab | KeyCode::Down => {
+                                    app.form_next_field();
+                                    continue;
+                                }
+                                KeyCode::BackTab | KeyCode::Up => {
+                                    app.form_prev_field();
+                                    continue;
+                                }
+                                KeyCode::Char(' ') => {
+                                    if let Some(ref mut s) = app.tool_explorer_state {
+                                        if let Some(f) = s.form_fields.get_mut(s.form_active_index)
+                                        {
+                                            if f.field_type == "boolean" {
+                                                if f.value == "true" {
+                                                    f.value = "false".to_string();
+                                                } else {
+                                                    f.value = "true".to_string();
+                                                }
+                                            } else {
+                                                f.value.push(' ');
+                                            }
+                                        }
+                                    }
+                                    continue;
+                                }
+                                KeyCode::Backspace => {
+                                    if let Some(ref mut s) = app.tool_explorer_state {
+                                        if let Some(f) = s.form_fields.get_mut(s.form_active_index)
+                                        {
+                                            f.value.pop();
+                                        }
+                                    }
+                                    continue;
+                                }
+                                KeyCode::Char(c) => {
+                                    if let Some(ref mut s) = app.tool_explorer_state {
+                                        if let Some(f) = s.form_fields.get_mut(s.form_active_index)
+                                        {
+                                            if f.field_type != "boolean" {
+                                                f.value.push(c);
+                                            }
+                                        }
+                                    }
+                                    continue;
+                                }
+                                KeyCode::Enter => {
+                                    if let Some(ref mut s) = app.tool_explorer_state {
+                                        s.params_input =
+                                            crate::app::assemble_form_to_json(&s.form_fields);
+                                    }
+                                }
+                                _ => continue,
+                            }
+                        } else if is_editing {
                             match key.code {
                                 KeyCode::Esc => {
                                     if let Some(ref mut s) = app.tool_explorer_state {
@@ -506,6 +576,17 @@ async fn main_loop<B: ratatui::backend::Backend>(
                             }
                             KeyCode::Char('k') | KeyCode::Up => {
                                 app.select_prev_tool();
+                            }
+                            KeyCode::Char('f') => {
+                                app.toggle_form_mode();
+                            }
+                            KeyCode::Char('v') => {
+                                if let Some(ref s) = app.tool_explorer_state {
+                                    if s.execution_result.is_some() || s.error_message.is_some() {
+                                        app.current_view = CurrentView::ToolOutputPager;
+                                        app.pager_scroll = 0;
+                                    }
+                                }
                             }
                             KeyCode::Char('e') => {
                                 if let Some(ref mut s) = app.tool_explorer_state {
@@ -589,10 +670,113 @@ async fn main_loop<B: ratatui::backend::Backend>(
                             _ => {}
                         }
                     }
+
+                    CurrentView::ToolOutputPager => match key.code {
+                        KeyCode::Esc | KeyCode::Char('q') => {
+                            app.current_view = CurrentView::ToolExplorer;
+                        }
+                        KeyCode::Char('j') | KeyCode::Down => {
+                            app.pager_scroll = app.pager_scroll.saturating_add(1);
+                        }
+                        KeyCode::Char('k') | KeyCode::Up => {
+                            app.pager_scroll = app.pager_scroll.saturating_sub(1);
+                        }
+                        KeyCode::PageDown => {
+                            app.pager_scroll = app.pager_scroll.saturating_add(15);
+                        }
+                        KeyCode::PageUp => {
+                            app.pager_scroll = app.pager_scroll.saturating_sub(15);
+                        }
+                        KeyCode::Char('g') => {
+                            app.pager_scroll = 0;
+                        }
+                        KeyCode::Char('G') => {
+                            app.pager_scroll = usize::MAX / 2;
+                        }
+                        KeyCode::Char('c') => {
+                            if let Some(ref s) = app.tool_explorer_state {
+                                let text = s
+                                    .execution_result
+                                    .as_deref()
+                                    .or(s.error_message.as_deref())
+                                    .unwrap_or("");
+                                use std::io::Write;
+                                let b64 = base64_encode(text.as_bytes());
+                                let osc52 = format!("\x1b]52;c;{}\x07", b64);
+                                let _ = std::io::stdout().write_all(osc52.as_bytes());
+                                let _ = std::io::stdout().flush();
+                                app.status_message = Some(
+                                    "✓ Output copied to system clipboard via OSC 52!".to_string(),
+                                );
+                            }
+                        }
+                        _ => {}
+                    },
+
+                    CurrentView::BackupManager => match key.code {
+                        KeyCode::Esc | KeyCode::Char('q') => {
+                            app.current_view = CurrentView::Dashboard;
+                            app.backup_state = None;
+                        }
+                        KeyCode::Char('j') | KeyCode::Down => {
+                            app.select_next_backup();
+                        }
+                        KeyCode::Char('k') | KeyCode::Up => {
+                            app.select_prev_backup();
+                        }
+                        KeyCode::Char('r') => {
+                            if let Some(ref state) = app.backup_state {
+                                if let Some(b) = state.backups.get(state.selected_index) {
+                                    match mcpforge_adapters::restore_backup(
+                                        &b.backup_path,
+                                        &b.target_path,
+                                    ) {
+                                        Ok(_) => {
+                                            app.status_message = Some(format!(
+                                                "✓ Successfully restored snapshot for '{}'!",
+                                                b.client_id
+                                            ));
+                                            app.refresh_servers();
+                                            app.current_view = CurrentView::Dashboard;
+                                            app.backup_state = None;
+                                        }
+                                        Err(e) => {
+                                            app.status_message =
+                                                Some(format!("Error restoring snapshot: {}", e));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        _ => {}
+                    },
                 }
             }
         }
     }
 
     Ok(())
+}
+
+fn base64_encode(input: &[u8]) -> String {
+    const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::new();
+    for chunk in input.chunks(3) {
+        let b0 = chunk[0];
+        let b1 = if chunk.len() > 1 { chunk[1] } else { 0 };
+        let b2 = if chunk.len() > 2 { chunk[2] } else { 0 };
+        out.push(CHARSET[(b0 >> 2) as usize] as char);
+        out.push(CHARSET[(((b0 & 3) << 4) | (b1 >> 4)) as usize] as char);
+        if chunk.len() > 1 {
+            out.push(CHARSET[(((b1 & 15) << 2) | (b2 >> 6)) as usize] as char);
+        } else {
+            out.push('=');
+        }
+        if chunk.len() > 2 {
+            out.push(CHARSET[(b2 & 63) as usize] as char);
+        } else {
+            out.push('=');
+        }
+    }
+    out
 }

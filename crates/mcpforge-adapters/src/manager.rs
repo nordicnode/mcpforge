@@ -24,6 +24,7 @@ use crate::manicode::ManicodeAdapter;
 use crate::mcphub::McpHubAdapter;
 use crate::openclaw::OpenClawAdapter;
 use crate::opencode::OpenCodeAdapter;
+use crate::pi::PiAdapter;
 use crate::prime::PrimeAdapter;
 use crate::roo_code::RooCodeAdapter;
 use crate::traits::{ClientAdapter, ConfigLocation};
@@ -70,6 +71,7 @@ impl AdapterManager {
             Box::new(DeepSeekAdapter::new()),
             Box::new(PrimeAdapter::new()),
             Box::new(LettaAdapter::new()),
+            Box::new(PiAdapter::new()),
             Box::new(CustomHarnessAdapter::load()),
         ];
         Self { adapters }

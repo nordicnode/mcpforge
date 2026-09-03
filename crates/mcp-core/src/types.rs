@@ -162,4 +162,22 @@ impl HealthStatus {
             HealthStatus::Unknown => "Unknown (not checked)".to_string(),
         }
     }
+
+    pub fn performance_badge(&self) -> &'static str {
+        match self {
+            HealthStatus::Healthy { latency_ms, .. } => {
+                if *latency_ms < 50 {
+                    "⚡ Blazing"
+                } else if *latency_ms < 200 {
+                    "● Fast"
+                } else {
+                    "▲ Sluggish"
+                }
+            }
+            HealthStatus::Degraded { .. } => "▲ Degraded",
+            HealthStatus::Broken { .. } => "✖ Broken",
+            HealthStatus::Disabled => "○ Disabled",
+            HealthStatus::Unknown => "? Unchecked",
+        }
+    }
 }

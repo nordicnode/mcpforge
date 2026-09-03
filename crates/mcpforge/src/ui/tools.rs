@@ -11,7 +11,7 @@ use ratatui::{
 
 pub fn render_tools_modal(f: &mut Frame, app: &App) {
     let theme = Theme::default();
-    let area = centered_rect(90, 86, f.area());
+    let area = centered_rect(90, 88, f.area());
     f.render_widget(Clear, area);
 
     let state = match app.tool_explorer_state {
@@ -29,7 +29,7 @@ pub fn render_tools_modal(f: &mut Frame, app: &App) {
 
     let inner = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(36), Constraint::Percentage(64)])
+        .constraints([Constraint::Percentage(34), Constraint::Percentage(66)])
         .margin(1)
         .split(area);
 
@@ -77,15 +77,26 @@ pub fn render_tools_modal(f: &mut Frame, app: &App) {
         .border_style(theme.border);
     f.render_widget(List::new(items).block(list_block), inner[0]);
 
-    // Right pane: Schema, Parameters, and Execution
-    let right_splits = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage(48), // Upper: Tool spec & schema
-            Constraint::Length(3),      // Middle: Parameters JSON input bar
-            Constraint::Min(5),         // Lower: Live execution output
-        ])
-        .split(inner[1]);
+    // Right pane splits: Tool Spec, Parameters/Form, Live Output
+    let right_splits = if state.is_form_mode {
+        Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Percentage(40), // Tool spec & schema
+                Constraint::Length(6),      // Interactive Form Bar
+                Constraint::Min(5),         // Output
+            ])
+            .split(inner[1])
+    } else {
+        Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Percentage(45), // Tool spec & schema
+                Constraint::Length(3),      // Raw JSON input bar
+                Constraint::Min(5),         // Output
+            ])
+            .split(inner[1])
+    };
 
     // 1. Tool Specification & Schema
     let details_content = if let Some(tool) = state.tools.get(state.selected_index) {
@@ -187,58 +198,153 @@ pub fn render_tools_modal(f: &mut Frame, app: &App) {
         right_splits[0],
     );
 
-    // 2. Interactive Parameters Input Bar
-    let (param_title, param_border_style, param_text) = if state.is_editing_params {
-        (
-            " [EDITING PARAMETERS: Type JSON · Enter to Run · Esc to Cancel] ",
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-            format!("{}█", state.params_input),
-        )
-    } else {
-        (
-            " Test Parameters (JSON) · [e] Edit · [r] Reset Schema Defaults ",
-            theme.border,
-            state.params_input.clone(),
-        )
-    };
+    // 2. Interactive Parameters: Form Mode or Raw JSON Mode
+    if state.is_form_mode {
+        let form_lines = if let Some(field) = state.form_fields.get(state.form_active_index) {
+            let req_badge = if field.is_required { " *" } else { "" };
+            let toggle_hint = if field.field_type == "boolean" {
+                "  (Press [Space] to toggle)"
+            } else {
+                ""
+            };
 
-    let param_block = Block::default()
-        .title(Span::styled(
-            param_title,
-            if state.is_editing_params {
+            vec![
+                Line::from(vec![
+                    Span::styled(
+                        format!(
+                            "[Field {}/{}] ",
+                            state.form_active_index + 1,
+                            state.form_fields.len()
+                        ),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        format!("{}{}", field.name, req_badge),
+                        Style::default()
+                            .fg(Color::Cyan)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        format!(" [{}]", field.field_type),
+                        Style::default().fg(Color::Magenta),
+                    ),
+                ]),
+                Line::from(vec![
+                    Span::styled("  Value: ", theme.key_shortcut),
+                    Span::styled(
+                        format!("{}█", field.value),
+                        Style::default()
+                            .fg(Color::White)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(toggle_hint, Style::default().fg(Color::Yellow)),
+                ]),
+                Line::from(vec![
+                    Span::styled("  Desc:  ", theme.muted),
+                    Span::styled(
+                        if field.description.is_empty() {
+                            "No description"
+                        } else {
+                            &field.description
+                        },
+                        theme.muted,
+                    ),
+                ]),
+            ]
+        } else {
+            vec![Line::from(
+                "This tool takes no parameters. Press [Enter] to run.",
+            )]
+        };
+
+        let form_title =
+            " INTERACTIVE SCHEMA FORM · [Tab/Shift+Tab] Next/Prev · [Enter] Run · [f] JSON Mode ";
+        let form_block = Block::default()
+            .title(Span::styled(
+                form_title,
                 Style::default()
                     .fg(Color::Yellow)
-                    .add_modifier(Modifier::BOLD)
-            } else {
-                theme.key_shortcut
-            },
-        ))
-        .borders(Borders::ALL)
-        .border_type(theme.border_type)
-        .border_style(param_border_style);
-    f.render_widget(
-        Paragraph::new(param_text)
-            .block(param_block)
-            .style(Style::default().fg(Color::White)),
-        right_splits[1],
-    );
+                    .add_modifier(Modifier::BOLD),
+            ))
+            .borders(Borders::ALL)
+            .border_type(theme.border_type)
+            .border_style(
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            );
+        f.render_widget(
+            Paragraph::new(form_lines).block(form_block),
+            right_splits[1],
+        );
+    } else {
+        let (param_title, param_border_style, param_text) = if state.is_editing_params {
+            (
+                " [EDITING PARAMETERS: Type JSON · Enter to Run · Esc to Cancel] ",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+                format!("{}█", state.params_input),
+            )
+        } else {
+            (
+                " Parameters (JSON) · [f] Form Builder · [e] Edit · [r] Reset Schema Defaults ",
+                theme.border,
+                state.params_input.clone(),
+            )
+        };
+
+        let param_block = Block::default()
+            .title(Span::styled(
+                param_title,
+                if state.is_editing_params {
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    theme.key_shortcut
+                },
+            ))
+            .borders(Borders::ALL)
+            .border_type(theme.border_type)
+            .border_style(param_border_style);
+        f.render_widget(
+            Paragraph::new(param_text)
+                .block(param_block)
+                .style(Style::default().fg(Color::White)),
+            right_splits[1],
+        );
+    }
 
     // 3. Lower right: Live Execution Output Panel
     let mut exec_lines = Vec::new();
+    let mut output_ready = false;
+
     if let Some(ref res) = state.execution_result {
+        output_ready = true;
         exec_lines.push(Line::from(Span::styled(
-            "Execution Output:",
+            "Execution Output (Press [v] for Fullscreen Inspector):",
             theme.status_healthy,
         )));
-        for l in res.lines() {
+        for l in res.lines().take(12) {
             exec_lines.push(Line::from(Span::styled(
                 l,
                 Style::default().fg(Color::White),
             )));
         }
+        if res.lines().count() > 12 {
+            exec_lines.push(Line::from(Span::styled(
+                format!(
+                    "... (+{} more lines. Press [v] to view full output)",
+                    res.lines().count() - 12
+                ),
+                Style::default().fg(Color::Yellow),
+            )));
+        }
     } else if let Some(ref err) = state.error_message {
+        output_ready = true;
         exec_lines.push(Line::from(Span::styled(
             format!("Error: {}", err),
             theme.status_broken,
@@ -247,7 +353,7 @@ pub fn render_tools_modal(f: &mut Frame, app: &App) {
         exec_lines.push(Line::from(vec![
             Span::styled("Playground Ready: ", theme.key_shortcut),
             Span::styled(
-                "Press [Enter] to invoke this tool with the parameters above.",
+                "Press [Enter] to invoke this tool, or [f] for step-by-step form builder.",
                 Style::default().fg(Color::Yellow),
             ),
         ]));
@@ -270,11 +376,14 @@ pub fn render_tools_modal(f: &mut Frame, app: &App) {
         ]));
     }
 
+    let exec_title = if output_ready {
+        " Live Playground Output · [v] Fullscreen Pager · [Enter] Test Call "
+    } else {
+        " Live Playground Output · [Enter] Test Call "
+    };
+
     let exec_block = Block::default()
-        .title(Span::styled(
-            " Live Playground Output · [Enter] Test Call ",
-            theme.header,
-        ))
+        .title(Span::styled(exec_title, theme.header))
         .borders(Borders::ALL)
         .border_type(theme.border_type)
         .border_style(theme.border);

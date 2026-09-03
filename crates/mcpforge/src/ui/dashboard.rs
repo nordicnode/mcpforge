@@ -306,7 +306,7 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         .cloned()
         .unwrap_or(HealthStatus::Unknown);
 
-    let (health_icon, health_text, health_style) = match health {
+    let (health_icon, health_text, health_style) = match &health {
         HealthStatus::Healthy {
             latency_ms,
             tool_count,
@@ -345,6 +345,13 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         Span::raw("  "),
         Span::styled(format!("{} ", health_icon), health_style),
         Span::styled(health_text, health_style),
+        Span::raw("  "),
+        Span::styled(
+            format!("[{}]", health.performance_badge()),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
     ]));
 
     if let Some(ref notes) = server.notes {
@@ -402,6 +409,8 @@ fn render_footer(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             Span::raw(" Handshake  "),
             Span::styled("[u]", theme.key_shortcut),
             Span::raw(" Sync  "),
+            Span::styled("[b]", theme.key_shortcut),
+            Span::raw(" Backups  "),
             Span::styled("[Space]", theme.key_shortcut),
             Span::raw(" Toggle  "),
             Span::styled("[d]", theme.key_shortcut),

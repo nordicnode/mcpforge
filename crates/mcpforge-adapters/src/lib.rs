@@ -24,6 +24,7 @@ pub mod manicode;
 pub mod mcphub;
 pub mod openclaw;
 pub mod opencode;
+pub mod pi;
 pub mod prime;
 pub mod roo_code;
 pub mod traits;
