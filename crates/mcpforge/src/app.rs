@@ -12,6 +12,7 @@ pub enum CurrentView {
     Clients,
     AddWizard,
     Help,
+    DeleteConfirm,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -43,6 +44,14 @@ pub struct WizardState {
     pub error_message: Option<String>,
 }
 
+#[derive(Debug, Clone)]
+pub struct DeleteState {
+    pub server_id: String,
+    pub target_locations: Vec<(ConfigLocation, bool)>,
+    pub target_cursor: usize,
+    pub remove_all_mode: bool,
+}
+
 pub struct App {
     pub manager: AdapterManager,
     pub registry: Registry,
@@ -54,6 +63,7 @@ pub struct App {
     pub is_searching: bool,
     pub current_view: CurrentView,
     pub wizard_state: Option<WizardState>,
+    pub delete_state: Option<DeleteState>,
     pub should_quit: bool,
     pub status_message: Option<String>,
     pub running_processes: std::collections::HashSet<String>,
@@ -81,6 +91,7 @@ impl App {
             is_searching: false,
             current_view: CurrentView::Dashboard,
             wizard_state: None,
+            delete_state: None,
             should_quit: false,
             status_message: None,
             running_processes,
@@ -417,5 +428,148 @@ impl App {
         ));
         self.current_view = CurrentView::Dashboard;
         Ok(())
+    }
+
+    pub fn start_delete(&mut self) {
+        if let Some(server) = self.selected_server().cloned() {
+            let locs: Vec<(ConfigLocation, bool)> = self
+                .detected_clients
+                .iter()
+                .filter(|c| server.clients.iter().any(|sc| sc.config_path == c.path))
+                .map(|c| (c.clone(), true))
+                .collect();
+
+            if locs.is_empty() {
+                self.status_message = Some(format!(
+                    "Server '{}' is not installed in any client",
+                    server.id
+                ));
+                return;
+            }
+
+            self.delete_state = Some(DeleteState {
+                server_id: server.id,
+                target_locations: locs,
+                target_cursor: 0,
+                remove_all_mode: true,
+            });
+            self.current_view = CurrentView::DeleteConfirm;
+        }
+    }
+
+    pub fn start_delete_for_current_client(&mut self) {
+        if let Some(client) = self.selected_client().cloned() {
+            let servers_in_client: Vec<_> = self
+                .servers
+                .iter()
+                .filter(|s| {
+                    s.clients
+                        .iter()
+                        .any(|sc| sc.config_path == client.config_path)
+                })
+                .cloned()
+                .collect();
+
+            if servers_in_client.is_empty() {
+                self.status_message =
+                    Some(format!("No servers configured in {}", client.display_name));
+                return;
+            }
+
+            if let Some(loc) = self
+                .detected_clients
+                .iter()
+                .find(|l| l.path == client.config_path)
+                .cloned()
+            {
+                let first_server = &servers_in_client[0];
+                self.delete_state = Some(DeleteState {
+                    server_id: first_server.id.clone(),
+                    target_locations: vec![(loc, true)],
+                    target_cursor: 0,
+                    remove_all_mode: false,
+                });
+                self.current_view = CurrentView::DeleteConfirm;
+            }
+        }
+    }
+
+    pub fn confirm_delete(&mut self) -> Result<usize> {
+        if let Some(state) = self.delete_state.take() {
+            let targets: Vec<ConfigLocation> = if state.remove_all_mode {
+                state.target_locations.into_iter().map(|(l, _)| l).collect()
+            } else {
+                state
+                    .target_locations
+                    .into_iter()
+                    .filter(|(_, sel)| *sel)
+                    .map(|(l, _)| l)
+                    .collect()
+            };
+
+            let count = targets.len();
+            if count > 0 {
+                self.manager
+                    .remove_server_from_locations(&state.server_id, &targets)?;
+                self.refresh_servers();
+                self.refresh_discovery();
+                self.status_message = Some(format!(
+                    "Removed server '{}' from {} client(s)",
+                    state.server_id, count
+                ));
+            }
+            self.current_view = CurrentView::Dashboard;
+            Ok(count)
+        } else {
+            self.current_view = CurrentView::Dashboard;
+            Ok(0)
+        }
+    }
+
+    pub fn cancel_delete(&mut self) {
+        self.delete_state = None;
+        self.current_view = CurrentView::Dashboard;
+    }
+
+    pub fn toggle_delete_target(&mut self) {
+        if let Some(ref mut state) = self.delete_state {
+            if let Some((_, sel)) = state.target_locations.get_mut(state.target_cursor) {
+                *sel = !*sel;
+            }
+        }
+    }
+
+    pub fn toggle_delete_all_targets(&mut self, select: bool) {
+        if let Some(ref mut state) = self.delete_state {
+            for (_, sel) in &mut state.target_locations {
+                *sel = select;
+            }
+        }
+    }
+
+    pub fn select_next_delete_target(&mut self) {
+        if let Some(ref mut state) = self.delete_state {
+            if !state.target_locations.is_empty() {
+                state.target_cursor = (state.target_cursor + 1) % state.target_locations.len();
+            }
+        }
+    }
+
+    pub fn select_prev_delete_target(&mut self) {
+        if let Some(ref mut state) = self.delete_state {
+            if !state.target_locations.is_empty() {
+                if state.target_cursor == 0 {
+                    state.target_cursor = state.target_locations.len() - 1;
+                } else {
+                    state.target_cursor -= 1;
+                }
+            }
+        }
+    }
+
+    pub fn toggle_delete_mode(&mut self) {
+        if let Some(ref mut state) = self.delete_state {
+            state.remove_all_mode = !state.remove_all_mode;
+        }
     }
 }

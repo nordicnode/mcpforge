@@ -1,5 +1,6 @@
 pub mod clients;
 pub mod dashboard;
+pub mod delete;
 pub mod help;
 pub mod layout;
 pub mod theme;
@@ -23,6 +24,10 @@ pub fn render_ui(f: &mut Frame, app: &App) {
         CurrentView::Help => {
             dashboard::render_dashboard(f, app);
             help::render_help(f);
+        }
+        CurrentView::DeleteConfirm => {
+            dashboard::render_dashboard(f, app);
+            delete::render_delete_modal(f, app);
         }
     }
 }

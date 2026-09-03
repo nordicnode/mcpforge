@@ -94,6 +94,20 @@ pub enum Commands {
         to: Vec<String>,
     },
 
+    /// Remove an MCP server from one or more clients (or all clients)
+    Remove {
+        /// Identifier / name of the server to remove
+        server: String,
+
+        /// Specific target client IDs to remove from (comma-separated). Defaults to all clients containing this server
+        #[arg(short, long, value_delimiter = ',')]
+        from: Option<Vec<String>>,
+
+        /// Remove from all clients without prompting
+        #[arg(short, long)]
+        all: bool,
+    },
+
     /// Sync configured servers between clients (or auto-sync across all clients)
     Sync {
         /// Automatically synchronize all servers across every detected client on the machine

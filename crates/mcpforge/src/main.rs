@@ -328,6 +328,50 @@ async fn handle_cli_command(cmd: Commands) -> Result<()> {
             );
         }
 
+        Commands::Remove { server, from, all } => {
+            let all_servers = manager.read_all_servers()?;
+            let existing = all_servers.iter().find(|s| s.id == server);
+            if existing.is_none() {
+                eprintln!(
+                    "Error: Server '{}' is not configured in any client.",
+                    server
+                );
+                std::process::exit(1);
+            }
+
+            let all_locations = manager.detect_all();
+            let targets: Vec<ConfigLocation> = if let Some(client_ids) = from {
+                all_locations
+                    .into_iter()
+                    .filter(|l| client_ids.contains(&l.client_id) && l.exists)
+                    .collect()
+            } else if all {
+                all_locations.into_iter().filter(|l| l.exists).collect()
+            } else {
+                let server_entry = existing.unwrap();
+                all_locations
+                    .into_iter()
+                    .filter(|l| server_entry.clients.iter().any(|c| c.config_path == l.path))
+                    .collect()
+            };
+
+            if targets.is_empty() {
+                eprintln!("Error: No matching client configurations found to remove from.");
+                std::process::exit(1);
+            }
+
+            println!(
+                "Removing server '{}' from {} client(s)...",
+                server,
+                targets.len()
+            );
+            manager.remove_server_from_locations(&server, &targets)?;
+            for t in &targets {
+                println!("  ✓ Removed from {} ({})", t.display_name, t.path.display());
+            }
+            println!("Removal complete.\n");
+        }
+
         Commands::Sync { auto, target, from } => {
             if auto {
                 let all_servers = manager.read_all_servers()?;
@@ -550,20 +594,11 @@ async fn main_loop<B: ratatui::backend::Backend>(
                         KeyCode::Char('a') => {
                             app.start_wizard();
                         }
-                        KeyCode::Char('d') => {
-                            if let Some(server) = app.selected_server().cloned() {
-                                let locs: Vec<ConfigLocation> = app
-                                    .detected_clients
-                                    .iter()
-                                    .filter(|c| {
-                                        server.clients.iter().any(|sc| sc.config_path == c.path)
-                                    })
-                                    .cloned()
-                                    .collect();
-                                let _ = app.manager.remove_server_from_locations(&server.id, &locs);
-                                app.refresh_servers();
-                                app.status_message = Some(format!("Removed '{}'", server.id));
-                            }
+                        KeyCode::Char('d')
+                        | KeyCode::Delete
+                        | KeyCode::Backspace
+                        | KeyCode::Char('x') => {
+                            app.start_delete();
                         }
                         KeyCode::Char(' ') => {
                             if let Some(mut server) = app.selected_server().cloned() {
@@ -628,6 +663,12 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                     ));
                                 }
                             }
+                        }
+                        KeyCode::Char('d')
+                        | KeyCode::Delete
+                        | KeyCode::Backspace
+                        | KeyCode::Char('x') => {
+                            app.start_delete_for_current_client();
                         }
                         _ => {}
                     },
@@ -756,6 +797,34 @@ async fn main_loop<B: ratatui::backend::Backend>(
                     CurrentView::Help => match key.code {
                         KeyCode::Esc | KeyCode::Char('?') | KeyCode::Char('q') => {
                             app.current_view = CurrentView::Dashboard;
+                        }
+                        _ => {}
+                    },
+
+                    CurrentView::DeleteConfirm => match key.code {
+                        KeyCode::Enter | KeyCode::Char('y') | KeyCode::Char('Y') => {
+                            let _ = app.confirm_delete();
+                        }
+                        KeyCode::Esc | KeyCode::Char('n') | KeyCode::Char('N') => {
+                            app.cancel_delete();
+                        }
+                        KeyCode::Tab | KeyCode::Char('m') => {
+                            app.toggle_delete_mode();
+                        }
+                        KeyCode::Up | KeyCode::Char('k') => {
+                            app.select_prev_delete_target();
+                        }
+                        KeyCode::Down | KeyCode::Char('j') => {
+                            app.select_next_delete_target();
+                        }
+                        KeyCode::Char(' ') => {
+                            app.toggle_delete_target();
+                        }
+                        KeyCode::Char('a') => {
+                            app.toggle_delete_all_targets(true);
+                        }
+                        KeyCode::Char('c') => {
+                            app.toggle_delete_all_targets(false);
                         }
                         _ => {}
                     },
