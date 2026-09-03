@@ -459,12 +459,12 @@ pub async fn execute(cmd: Commands) -> Result<()> {
             );
         }
 
-        Commands::Verify { client, json } => {
+        Commands::Verify { client, all, json } => {
             let verifier = SchemaVerifier::new();
             let report = if let Some(ref c) = client {
                 verifier.verify_client(c)?
             } else {
-                verifier.verify_all()?
+                verifier.verify_all(all)?
             };
 
             if json {

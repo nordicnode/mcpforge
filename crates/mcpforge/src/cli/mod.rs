@@ -141,6 +141,10 @@ pub enum Commands {
         #[arg(short, long)]
         client: Option<String>,
 
+        /// Audit all 26 client adapters including uninstalled baselines
+        #[arg(short, long)]
+        all: bool,
+
         /// Output verification results as JSON
         #[arg(long)]
         json: bool,

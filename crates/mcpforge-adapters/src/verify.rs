@@ -48,14 +48,19 @@ impl SchemaVerifier {
         }
     }
 
-    pub fn verify_all(&self) -> Result<VerificationReport> {
+    pub fn verify_all(&self, include_uninstalled: bool) -> Result<VerificationReport> {
         let mut report = VerificationReport::default();
+        let fixtures_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures");
 
         for adapter in self.manager.adapters() {
             let locations = adapter.detect();
-            for loc in locations {
-                let res = self.verify_location(adapter.id(), adapter.display_name(), &loc);
-                if res.is_installed {
+            let mut installed_found = false;
+            for loc in &locations {
+                if loc.path.exists() {
+                    installed_found = true;
+                    let res = self.verify_location(adapter.id(), adapter.display_name(), loc);
                     report.total_checked += 1;
                     if res.schema_compliant {
                         report.compliant_count += 1;
@@ -63,6 +68,39 @@ impl SchemaVerifier {
                         report.drift_detected_count += 1;
                     }
                     report.results.push(res);
+                }
+            }
+
+            if !installed_found && include_uninstalled {
+                let id_clean = adapter.id().replace('-', "_");
+                let candidate_names = [
+                    format!("{}.golden.json", id_clean),
+                    format!("{}.golden.jsonc", id_clean),
+                    format!("{}.golden.yaml", id_clean),
+                    format!("{}.golden.toml", id_clean),
+                    format!("{}_dev.golden.json", id_clean),
+                ];
+
+                for c_name in candidate_names {
+                    let fix_path = fixtures_dir.join(&c_name);
+                    if fix_path.exists() {
+                        let loc = ConfigLocation {
+                            client_id: adapter.id().to_string(),
+                            display_name: format!("{} (Fixture)", adapter.display_name()),
+                            path: fix_path,
+                            scope: mcp_core::types::Scope::Global,
+                            exists: true,
+                        };
+                        let res = self.verify_location(adapter.id(), &loc.display_name, &loc);
+                        report.total_checked += 1;
+                        if res.schema_compliant {
+                            report.compliant_count += 1;
+                        } else {
+                            report.drift_detected_count += 1;
+                        }
+                        report.results.push(res);
+                        break;
+                    }
                 }
             }
         }
@@ -166,7 +204,26 @@ impl SchemaVerifier {
                                 _ => "mcpServers",
                             };
 
-                            if let Some(servers) = root.get(expected_key) {
+                            if client_id == "continue" {
+                                if let Some(exp) =
+                                    root.get("experimental").and_then(|e| e.as_object())
+                                {
+                                    if let Some(arr) = exp
+                                        .get("modelContextProtocolServers")
+                                        .and_then(|a| a.as_array())
+                                    {
+                                        server_count = arr.len();
+                                        for (idx, s_cfg) in arr.iter().enumerate() {
+                                            if !s_cfg.is_object() {
+                                                errors.push(format!(
+                                                    "Server at index {idx} must be an object"
+                                                ));
+                                                schema_compliant = false;
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if let Some(servers) = root.get(expected_key) {
                                 if let Some(map) = servers.as_object() {
                                     server_count = map.len();
                                     for (s_id, s_cfg) in map {
@@ -175,19 +232,11 @@ impl SchemaVerifier {
                                                 "Server '{s_id}' configuration must be an object"
                                             ));
                                             schema_compliant = false;
-                                        } else if client_id != "continue"
-                                            && s_cfg.get("command").is_none()
+                                        } else if s_cfg.get("command").is_none()
                                             && s_cfg.get("url").is_none()
                                         {
                                             warnings.push(format!("Server '{s_id}' has neither 'command' nor 'url' property"));
                                         }
-                                    }
-                                } else if client_id == "continue" {
-                                    if let Some(arr) = servers
-                                        .get("modelContextProtocolServers")
-                                        .and_then(|a| a.as_array())
-                                    {
-                                        server_count = arr.len();
                                     }
                                 }
                             }

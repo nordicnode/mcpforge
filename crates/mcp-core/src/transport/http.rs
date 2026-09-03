@@ -61,18 +61,39 @@ pub async fn check_http_health(
         let init_result: InitializeResult =
             serde_json::from_value(init_val).context("Failed to parse InitializeResult")?;
 
+        let mut tool_count = 0;
+        let mut tools_builder = client.post(url);
+        for (k, v) in headers {
+            tools_builder = tools_builder.header(k, v);
+        }
+        let tools_req = JsonRpcRequest::new(2, "tools/list", Some(serde_json::json!({})));
+        if let Ok(tools_resp) = tools_builder.json(&tools_req).send().await {
+            if tools_resp.status().is_success() {
+                if let Ok(tools_json) = tools_resp.json::<JsonRpcResponse>().await {
+                    if let Some(res_val) = tools_json.result {
+                        if let Ok(tools_res) =
+                            serde_json::from_value::<crate::protocol::ToolsListResult>(res_val)
+                        {
+                            tool_count = tools_res.tools.len();
+                        }
+                    }
+                }
+            }
+        }
+
         Ok((
             init_result.server_info.name,
             init_result.server_info.version,
+            tool_count,
         ))
     };
 
     match timeout(timeout_duration, check).await {
-        Ok(Ok((server_name, server_version))) => {
+        Ok(Ok((server_name, server_version, tool_count))) => {
             let latency_ms = start.elapsed().as_millis() as u64;
             HealthStatus::Healthy {
                 latency_ms,
-                tool_count: 0,
+                tool_count,
                 server_name,
                 server_version,
             }
