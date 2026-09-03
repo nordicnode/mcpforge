@@ -1,0 +1,21 @@
+{
+  // User custom preferences
+  "theme": "catppuccin-macchiato",
+  "tabSize": 2,
+  "mcp": {
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "enabled": true
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "enabled": true
+    }
+  },
+  "autocomplete": {
+    "enabled": true,
+    "debounceMs": 150
+  }
+}

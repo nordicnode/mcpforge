@@ -176,6 +176,13 @@ impl ClientAdapter for CodexAdapter {
                 .as_table_mut()
                 .context("mcp_servers is not a table")?;
 
+            let desired_ids: std::collections::HashSet<String> = entries
+                .iter()
+                .filter(|e| e.enabled)
+                .map(|e| e.id.clone())
+                .collect();
+            mcp_table.retain(|k, _| desired_ids.contains(k));
+
             for entry in entries {
                 if !entry.enabled {
                     mcp_table.remove(&entry.id);

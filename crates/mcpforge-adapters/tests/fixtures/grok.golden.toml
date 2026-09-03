@@ -1,0 +1,22 @@
+[cli]
+auto_confirm = false
+editor = "nvim"
+
+[marketplace]
+enabled = true
+url = "https://marketplace.grok.x.ai"
+
+[mcp_servers.fetch]
+command = "uvx"
+args = ["mcp-server-fetch"]
+
+[mcp_servers.git]
+command = "uvx"
+args = ["mcp-server-git"]
+
+[models]
+default = "grok-3"
+temperature = 0.2
+
+[ui]
+theme = "dark"

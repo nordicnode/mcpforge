@@ -93,4 +93,56 @@ mod tests {
             .iter()
             .any(|e| e.id == "git" || e.id == "github"));
     }
+
+    #[test]
+    fn test_all_catalog_entries_have_provenance_and_valid_schemas() {
+        let registry = Registry::default();
+        assert_eq!(registry.entries().len(), 110);
+
+        for entry in registry.entries() {
+            assert!(!entry.id.trim().is_empty(), "Entry has empty ID");
+            assert!(
+                !entry.name.trim().is_empty(),
+                "Entry {} has empty name",
+                entry.id
+            );
+            assert!(
+                !entry.description.trim().is_empty(),
+                "Entry {} has empty description",
+                entry.id
+            );
+            assert!(
+                !entry.command.trim().is_empty(),
+                "Entry {} has empty command",
+                entry.id
+            );
+            assert!(
+                entry
+                    .source_url
+                    .as_ref()
+                    .map(|s| !s.trim().is_empty())
+                    .unwrap_or(false),
+                "Entry {} is missing source_url provenance",
+                entry.id
+            );
+            assert!(
+                entry
+                    .last_verified
+                    .as_ref()
+                    .map(|s| !s.trim().is_empty())
+                    .unwrap_or(false),
+                "Entry {} is missing last_verified timestamp",
+                entry.id
+            );
+            assert!(
+                entry
+                    .maintainer
+                    .as_ref()
+                    .map(|s| !s.trim().is_empty())
+                    .unwrap_or(false),
+                "Entry {} is missing maintainer attribution",
+                entry.id
+            );
+        }
+    }
 }

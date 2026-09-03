@@ -1,0 +1,14 @@
+version: 1.1.5
+endpoints:
+  custom:
+    - name: local
+      url: http://localhost:8000
+mcpServers:
+  fetch:
+    type: stdio
+    command: uvx
+    args:
+      - mcp-server-fetch
+interface:
+  privacyPolicy:
+    externalUrl: https://librechat.ai/privacy

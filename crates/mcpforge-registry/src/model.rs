@@ -19,6 +19,12 @@ pub struct CatalogEntry {
     pub transport: String,
     #[serde(default)]
     pub tags: Vec<String>,
+    #[serde(default)]
+    pub source_url: Option<String>,
+    #[serde(default)]
+    pub last_verified: Option<String>,
+    #[serde(default)]
+    pub maintainer: Option<String>,
 }
 
 fn default_transport() -> String {

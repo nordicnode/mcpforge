@@ -1,0 +1,12 @@
+{
+  "window.zoomLevel": 1,
+  "mcpServers": {
+    "git": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-git"
+      ]
+    }
+  },
+  "files.autoSave": "afterDelay"
+}

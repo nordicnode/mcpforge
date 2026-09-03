@@ -1,7 +1,8 @@
 # MCPForge
 
 <p align="center">
-  <strong>The Universal Control Plane & Terminal Command Center for Model Context Protocol (MCP)</strong>
+  <strong>The TUI that discovers every MCP client on your machine and syncs them all.</strong><br>
+  <em>One native binary. 26 client adapters. 110 audited servers. Zero config fragmentation.</em>
 </p>
 
 <p align="center">
@@ -9,13 +10,13 @@
   <img src="https://img.shields.io/badge/Rust-2021_Edition-orange.svg?style=flat-square&logo=rust" alt="Rust 2021" />
   <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License MIT" />
   <img src="https://img.shields.io/badge/Supported_Clients-26_Harnesses-purple.svg?style=flat-square" alt="26 Supported Clients" />
-  <img src="https://img.shields.io/badge/Curated_Catalog-110_MCP_Servers-green.svg?style=flat-square" alt="110 Curated Servers" />
+  <img src="https://img.shields.io/badge/Curated_Catalog-110_Audited_Servers-green.svg?style=flat-square" alt="110 Audited Servers" />
   <img src="https://img.shields.io/badge/Architecture-Modular_Workspace-blueviolet.svg?style=flat-square" alt="Modular Workspace" />
 </p>
 
 <p align="center">
   <a href="#overview">Overview</a> •
-  <a href="#key-features">Key Features</a> •
+  <a href="#why-mcpforge">Why MCPForge?</a> •
   <a href="#screenshots">Screenshots</a> •
   <a href="#supported-clients">Supported Clients</a> •
   <a href="#installation">Installation</a> •
@@ -32,7 +33,7 @@
 
 ## Overview
 
-As the Model Context Protocol ecosystem has exploded, every AI client, autonomous agent harness, and code editor has introduced its own configuration format and path. Your tools end up fragmented across:
+As the Model Context Protocol ecosystem has grown, every AI client, autonomous agent harness, and code editor has introduced its own configuration format and path. Your tools end up fragmented across:
 
 - `~/.agents/mcp.json` (Freebuff Desktop & CLI)
 - `~/.claude.json` (Claude Code)
@@ -42,9 +43,25 @@ As the Model Context Protocol ecosystem has exploded, every AI client, autonomou
 - `~/.codex/config.toml` (Codex - TOML)
 - `~/.grok/config.toml` (Grok Build - TOML)
 - `~/.config/opencode/opencode.jsonc` (OpenCode - JSONC)
-- Plus VS Code, Cursor, Windsurf, Zed, JetBrains, Continue.dev, Cline, and 14 others.
+- Plus VS Code, Cursor, Windsurf, Zed, JetBrains, Continue.dev, Cline, and 13 others.
 
-**MCPForge** eliminates this fragmentation. Written in modern, memory-safe Rust with a high-performance [Ratatui](https://ratatui.rs) terminal interface, MCPForge acts as a single, centralized command center where you can inspect, provision, synchronize, health-check, and remove MCP servers across all your tools simultaneously.
+**MCPForge** eliminates this fragmentation. Built in Rust with a fast, zero-flicker [Ratatui](https://ratatui.rs) terminal UI, MCPForge gives you an interactive command center to inspect live client processes, provision audited MCP servers, verify schema drift, and sync configurations across all 26 clients simultaneously.
+
+---
+
+## Why MCPForge?
+
+| Capability | **MCPForge** | mcpm.sh / mcpman | mcps / APM |
+| :--- | :---: | :---: | :---: |
+| **Interface** | **Interactive TUI + Scriptable CLI** | Pure CLI | Pure CLI |
+| **Runtime** | **Single native binary (Rust, zero Node.js)** | Node.js / npm | Python or Node.js |
+| **Client Process Discovery** | **Live OS process watcher + scanner** | Manual | None |
+| **Client Ecosystem** | **26 Clients (JSON, JSONC, YAML, TOML)** | 1–3 Clients | 1–4 Clients |
+| **Format Preservation** | **Non-destructive AST round-tripping** | Overwrites or clobbers | Clobbers root keys |
+| **Diff Preview** | **Unified color diff before disk write** | None | None |
+| **Schema Drift Audit** | **`mcpforge verify` built-in** | None | None |
+| **Catalog Provenance** | **110 audited servers with source URL & audit dates** | Unverified / Partial | Unverified |
+| **Self-Healing Doctor** | **Sub-millisecond ping + auto-fix** | Basic ping | None |
 
 ---
 
@@ -199,6 +216,15 @@ MCPForge provides a scriptable CLI for automation, CI/CD pipelines, and dotfile 
 # Discover all installed AI harnesses and client configuration files
 mcpforge discover
 
+# Audit all detected client configuration files for syntax errors and schema drift
+mcpforge verify
+
+# Audit a specific client adapter only
+mcpforge verify --client codex
+
+# Auto-synchronize all configured servers across every detected client
+mcpforge sync --auto
+
 # List all configured MCP servers and client associations
 mcpforge list
 
@@ -214,11 +240,11 @@ mcpforge setup github --to freebuff,deepseek,claude-code
 # Remove a server across all clients
 mcpforge remove brave-search --all
 
-# Export multi-client setup to a portable JSON pack
-mcpforge pack export --output my-team-mcp.json
+# Export multi-client setup to a portable JSON file (with secrets redacted)
+mcpforge export --output my-team-mcp.json
 
-# Import and provision an MCP pack onto a new system
-mcpforge pack import my-team-mcp.json --apply
+# Import and provision servers onto a new system
+mcpforge import --input my-team-mcp.json
 ```
 
 ---

@@ -1,0 +1,21 @@
+{
+  "theme": "One Dark",
+  "ui_font_size": 16,
+  "context_servers": {
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/mikey"
+      ]
+    }
+  },
+  "buffer_font_size": 14
+}

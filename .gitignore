@@ -2,7 +2,7 @@
 /target
 Cargo.lock
 dist/
-mcpforge-*
+/mcpforge-*
 
 # Backup files
 *.bak
@@ -35,13 +35,14 @@ mcpforge-*
 .opencode/
 
 # Root test configs
-*.json
-*.yaml
-*.yml
-*.toml
+/*.json
+/*.yaml
+/*.yml
+/*.toml
 !Cargo.toml
 !crates/**/Cargo.toml
 !catalog/default_registry.json
+!crates/**/tests/fixtures/**
 !.github/**
 
 # Screenshots temp data

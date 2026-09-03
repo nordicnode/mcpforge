@@ -64,6 +64,9 @@ jobs:
       - name: Build workspace binaries
         run: cargo build --workspace --verbose
 
+      - name: Verify schema compliance and detect drift
+        run: cargo run --bin mcpforge -- verify
+
   security:
     name: Security & Vulnerability Audit
     runs-on: ubuntu-latest

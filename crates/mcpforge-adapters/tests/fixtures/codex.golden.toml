@@ -1,0 +1,15 @@
+[general]
+debug = false
+log_level = "info"
+history_size = 500
+
+[mcp_servers.fetch]
+command = "uvx"
+args = ["mcp-server-fetch"]
+
+[mcp_servers.memory]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-memory"]
+
+[ui]
+color_scheme = "nord"

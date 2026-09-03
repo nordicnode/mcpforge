@@ -154,6 +154,14 @@ pub fn write_mcp_servers_to_json(
     }
     let servers_map = servers_val.as_object_mut().unwrap();
 
+    // Retain only servers that are present in the provided entries
+    let desired_ids: std::collections::HashSet<String> = entries
+        .iter()
+        .filter(|e| e.enabled)
+        .map(|e| e.id.clone())
+        .collect();
+    servers_map.retain(|k, _| desired_ids.contains(k));
+
     // 3. Upsert entries
     for entry in entries {
         if !entry.enabled {
@@ -205,4 +213,57 @@ pub fn write_mcp_servers_to_json(
     atomic_write(path, &output)?;
 
     Ok(())
+}
+
+pub fn strip_jsonc_comments(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    let mut in_string = false;
+    let mut in_escape = false;
+    let chars: Vec<char> = input.chars().collect();
+    let mut i = 0;
+
+    while i < chars.len() {
+        let ch = chars[i];
+        if in_escape {
+            out.push(ch);
+            in_escape = false;
+            i += 1;
+            continue;
+        }
+
+        if ch == '\\' && in_string {
+            in_escape = true;
+            out.push(ch);
+            i += 1;
+            continue;
+        }
+
+        if ch == '"' {
+            in_string = !in_string;
+            out.push(ch);
+            i += 1;
+            continue;
+        }
+
+        if !in_string && i + 1 < chars.len() && ch == '/' && chars[i + 1] == '/' {
+            while i < chars.len() && chars[i] != '\n' {
+                i += 1;
+            }
+            continue;
+        }
+
+        if !in_string && i + 1 < chars.len() && ch == '/' && chars[i + 1] == '*' {
+            i += 2;
+            while i + 1 < chars.len() && !(chars[i] == '*' && chars[i + 1] == '/') {
+                i += 1;
+            }
+            i += 2;
+            continue;
+        }
+
+        out.push(ch);
+        i += 1;
+    }
+
+    out
 }

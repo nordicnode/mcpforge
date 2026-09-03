@@ -1,0 +1,32 @@
+{
+  "models": [
+    {
+      "title": "Claude 3.7",
+      "provider": "anthropic"
+    }
+  ],
+  "experimental": {
+    "modelContextProtocolServers": [
+      {
+        "transport": {
+          "type": "stdio",
+          "command": "uvx",
+          "args": [
+            "mcp-server-fetch"
+          ]
+        }
+      },
+      {
+        "transport": {
+          "type": "stdio",
+          "command": "npx",
+          "args": [
+            "-y",
+            "@modelcontextprotocol/server-memory"
+          ]
+        }
+      }
+    ]
+  },
+  "tabAutocompleteModel": "starcoder-7b"
+}

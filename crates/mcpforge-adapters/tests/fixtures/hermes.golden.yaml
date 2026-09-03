@@ -1,0 +1,17 @@
+agent_name: hermes-primary
+version: 2
+mcp_servers:
+  filesystem:
+    command: npx
+    args:
+    - -y
+    - '@modelcontextprotocol/server-filesystem'
+    - /home/mikey
+    env:
+      ALLOWED_DIR: /home/mikey
+  git:
+    command: uvx
+    args:
+    - mcp-server-git
+memory_persistence: true
+max_iterations: 25

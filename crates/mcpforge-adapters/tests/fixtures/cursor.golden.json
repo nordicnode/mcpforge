@@ -1,0 +1,12 @@
+{
+  "editor.fontSize": 14,
+  "mcpServers": {
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ]
+    }
+  },
+  "workbench.colorTheme": "Default Dark Modern"
+}

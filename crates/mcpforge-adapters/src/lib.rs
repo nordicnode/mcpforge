@@ -27,6 +27,7 @@ pub mod opencode;
 pub mod prime;
 pub mod roo_code;
 pub mod traits;
+pub mod verify;
 pub mod vscode;
 pub mod windsurf;
 pub mod zed;
@@ -35,6 +36,7 @@ pub use backup::{atomic_write, compute_diff, create_backup, default_backup_dir};
 pub use discovery::{DiscoveredHarness, DiscoveryEngine};
 pub use manager::AdapterManager;
 pub use traits::{ClientAdapter, ConfigLocation, TransportSupport};
+pub use verify::{SchemaVerificationResult, SchemaVerifier, VerificationReport};
 
 #[cfg(test)]
 mod tests {

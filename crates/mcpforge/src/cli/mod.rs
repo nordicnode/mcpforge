@@ -1,3 +1,5 @@
+pub mod handlers;
+
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
@@ -131,6 +133,17 @@ pub enum Commands {
         /// Include decrypted environment variables and tokens
         #[arg(long)]
         include_secrets: bool,
+    },
+
+    /// Audit and verify client configuration schemas for drift, syntax errors, and corruption
+    Verify {
+        /// Target specific client adapter only (e.g. "claude-code", "codex", "freebuff")
+        #[arg(short, long)]
+        client: Option<String>,
+
+        /// Output verification results as JSON
+        #[arg(long)]
+        json: bool,
     },
 
     /// Import server configurations from an exported JSON file

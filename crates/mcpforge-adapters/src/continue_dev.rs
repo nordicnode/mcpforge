@@ -168,6 +168,7 @@ impl ClientAdapter for ContinueAdapter {
             }
             if let Transport::Stdio { command, args, .. } = &e.transport {
                 servers_arr.push(serde_json::json!({
+                    "name": e.id,
                     "transport": {
                         "type": "stdio",
                         "command": command,

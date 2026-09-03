@@ -261,6 +261,23 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                             Span::styled(repo, Style::default().fg(Color::Rgb(139, 233, 253))),
                         ]));
                     }
+
+                    if let Some(ref maintainer) = entry.maintainer {
+                        details_lines.push(Line::from(vec![
+                            Span::styled("Maintainer:    ", theme.header),
+                            Span::styled(maintainer, Style::default().fg(Color::Rgb(80, 250, 123))),
+                        ]));
+                    }
+
+                    if let Some(ref verified) = entry.last_verified {
+                        details_lines.push(Line::from(vec![
+                            Span::styled("Verified:      ", theme.header),
+                            Span::styled(
+                                format!("{} [Schema Audited]", verified),
+                                Style::default().fg(Color::Rgb(241, 250, 140)),
+                            ),
+                        ]));
+                    }
                     details_lines.push(Line::raw(""));
 
                     details_lines.push(Line::from(vec![Span::styled(

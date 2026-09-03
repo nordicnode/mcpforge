@@ -18,7 +18,10 @@
       "local",
       "io",
       "core"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "github",
@@ -42,7 +45,10 @@
       "prs",
       "code",
       "vcs"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/github",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "gitlab",
@@ -65,7 +71,10 @@
       "issues",
       "mr",
       "cicd"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gitlab",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "git",
@@ -87,7 +96,10 @@
       "diff",
       "log",
       "repo"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/git",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "gitea",
@@ -110,7 +122,10 @@
       "gitea",
       "forgejo",
       "self-hosted"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gitea",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "postgres",
@@ -133,7 +148,10 @@
       "postgres",
       "rdbms",
       "data"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/postgres",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "mysql",
@@ -156,7 +174,10 @@
       "mysql",
       "mariadb",
       "data"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/mysql",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "sqlite",
@@ -178,7 +199,10 @@
       "sqlite",
       "embedded",
       "local"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sqlite",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "mongodb",
@@ -200,7 +224,10 @@
       "mongodb",
       "documents",
       "data"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/mongodb",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "redis",
@@ -223,7 +250,10 @@
       "in-memory",
       "key-value",
       "data"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/redis",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "supabase",
@@ -247,7 +277,10 @@
       "postgres",
       "cloud",
       "auth"
-    ]
+    ],
+    "source_url": "https://github.com/supabase/mcp-server",
+    "last_verified": "2026-09-02",
+    "maintainer": "Supabase"
   },
   {
     "id": "qdrant",
@@ -270,7 +303,10 @@
       "qdrant",
       "similarity",
       "ai"
-    ]
+    ],
+    "source_url": "https://github.com/qdrant/mcp-server-qdrant",
+    "last_verified": "2026-09-02",
+    "maintainer": "qdrant"
   },
   {
     "id": "chroma",
@@ -291,7 +327,10 @@
       "chroma",
       "embeddings",
       "rag"
-    ]
+    ],
+    "source_url": "https://github.com/chroma-core/chroma-mcp",
+    "last_verified": "2026-09-02",
+    "maintainer": "chroma-core"
   },
   {
     "id": "neo4j",
@@ -315,7 +354,10 @@
       "neo4j",
       "cypher",
       "knowledge-graph"
-    ]
+    ],
+    "source_url": "https://github.com/neo4j-contrib/mcp-neo4j",
+    "last_verified": "2026-09-02",
+    "maintainer": "neo4j-contrib"
   },
   {
     "id": "memory",
@@ -336,7 +378,10 @@
       "entities",
       "persistent",
       "core"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "sequential-thinking",
@@ -357,7 +402,10 @@
       "planning",
       "logic",
       "agent"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "context7",
@@ -378,7 +426,10 @@
       "frameworks",
       "reference",
       "code"
-    ]
+    ],
+    "source_url": "https://github.com/context7/mcp-server",
+    "last_verified": "2026-09-02",
+    "maintainer": "context7"
   },
   {
     "id": "everything",
@@ -398,7 +449,10 @@
       "testing",
       "mcp-spec",
       "debug"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/everything",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "brave-search",
@@ -421,7 +475,10 @@
       "internet",
       "brave",
       "privacy"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/brave-search",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "fetch",
@@ -441,7 +498,10 @@
       "web",
       "scrape",
       "markdown"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "tavily",
@@ -464,7 +524,10 @@
       "agent",
       "citations",
       "web"
-    ]
+    ],
+    "source_url": "https://github.com/tavily-ai/tavily-mcp",
+    "last_verified": "2026-09-02",
+    "maintainer": "tavily-ai"
   },
   {
     "id": "perplexity",
@@ -486,7 +549,10 @@
       "search",
       "citations",
       "web"
-    ]
+    ],
+    "source_url": "https://github.com/perplexity-ai/perplexity-mcp",
+    "last_verified": "2026-09-02",
+    "maintainer": "perplexity-ai"
   },
   {
     "id": "firecrawl",
@@ -508,7 +574,10 @@
       "scraper",
       "markdown",
       "web"
-    ]
+    ],
+    "source_url": "https://github.com/mendableai/firecrawl-mcp-server",
+    "last_verified": "2026-09-02",
+    "maintainer": "mendableai"
   },
   {
     "id": "puppeteer",
@@ -529,7 +598,10 @@
       "automation",
       "screenshots",
       "headless"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "playwright",
@@ -549,7 +621,10 @@
       "playwright",
       "testing",
       "automation"
-    ]
+    ],
+    "source_url": "https://github.com/executeautomation/mcp-playwright",
+    "last_verified": "2026-09-02",
+    "maintainer": "executeautomation"
   },
   {
     "id": "docker",
@@ -569,7 +644,10 @@
       "devops",
       "cloud",
       "infra"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/docker",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "kubernetes",
@@ -592,7 +670,10 @@
       "containers",
       "devops",
       "cloud"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/kubernetes",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "aws",
@@ -616,7 +697,10 @@
       "s3",
       "ec2",
       "lambda"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/aws",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "cloudflare",
@@ -640,7 +724,10 @@
       "workers",
       "kv",
       "cdn"
-    ]
+    ],
+    "source_url": "https://github.com/cloudflare/mcp-server-cloudflare",
+    "last_verified": "2026-09-02",
+    "maintainer": "Cloudflare"
   },
   {
     "id": "sentry",
@@ -664,7 +751,10 @@
       "monitoring",
       "crash",
       "logs"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sentry",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "datadog",
@@ -688,7 +778,10 @@
       "monitoring",
       "traces",
       "apm"
-    ]
+    ],
+    "source_url": "https://github.com/DataDog/mcp-datadog",
+    "last_verified": "2026-09-02",
+    "maintainer": "DataDog"
   },
   {
     "id": "terraform",
@@ -708,7 +801,10 @@
       "iac",
       "cloud",
       "infra"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/terraform",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "slack",
@@ -731,7 +827,10 @@
       "chat",
       "messaging",
       "collaboration"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/slack",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "discord",
@@ -753,7 +852,10 @@
       "chat",
       "bot",
       "community"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/discord",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "linear",
@@ -775,7 +877,10 @@
       "issues",
       "agile",
       "project-management"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/linear",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "jira",
@@ -800,7 +905,10 @@
       "issues",
       "sprints",
       "tickets"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/jira",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "notion",
@@ -823,7 +931,10 @@
       "wiki",
       "knowledge",
       "notes"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/notion",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "obsidian",
@@ -845,7 +956,10 @@
       "notes",
       "pkm",
       "local"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/obsidian",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "google-drive",
@@ -868,7 +982,10 @@
       "files",
       "cloud",
       "docs"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gdrive",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "google-maps",
@@ -891,7 +1008,10 @@
       "geocoding",
       "directions",
       "location"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/google-maps",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "todoist",
@@ -913,7 +1033,10 @@
       "tasks",
       "todos",
       "productivity"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/todoist",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "time",
@@ -933,7 +1056,10 @@
       "datetime",
       "clock",
       "agent"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/time",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "weather",
@@ -955,7 +1081,10 @@
       "forecast",
       "climate",
       "temperature"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/weather",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "openapi",
@@ -978,7 +1107,10 @@
       "rest",
       "api",
       "dynamic"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/openapi",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "graphql",
@@ -1001,7 +1133,10 @@
       "mutation",
       "schema",
       "api"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/graphql",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "shell",
@@ -1021,7 +1156,10 @@
       "terminal",
       "cli",
       "exec"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/shell",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "python-eval",
@@ -1041,7 +1179,10 @@
       "code",
       "runner",
       "sandbox"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/python",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "ffmpeg",
@@ -1062,7 +1203,10 @@
       "audio",
       "media",
       "transcode"
-    ]
+    ],
+    "source_url": "https://github.com/ffmpeg-mcp/server",
+    "last_verified": "2026-09-02",
+    "maintainer": "ffmpeg-mcp"
   },
   {
     "id": "langchain",
@@ -1085,7 +1229,10 @@
       "langchain",
       "langgraph",
       "orchestration"
-    ]
+    ],
+    "source_url": "https://github.com/langchain-ai/langchain",
+    "last_verified": "2026-09-02",
+    "maintainer": "langchain-ai"
   },
   {
     "id": "autogen",
@@ -1106,7 +1253,10 @@
       "agents",
       "autogen",
       "microsoft"
-    ]
+    ],
+    "source_url": "https://github.com/microsoft/autogen",
+    "last_verified": "2026-09-02",
+    "maintainer": "microsoft"
   },
   {
     "id": "cohere",
@@ -1128,7 +1278,10 @@
       "embeddings",
       "rerank",
       "nlp"
-    ]
+    ],
+    "source_url": "https://github.com/cohere-ai/cohere-developer-experience",
+    "last_verified": "2026-09-02",
+    "maintainer": "cohere-ai"
   },
   {
     "id": "huggingface",
@@ -1150,7 +1303,10 @@
       "huggingface",
       "transformers",
       "datasets"
-    ]
+    ],
+    "source_url": "https://github.com/huggingface/huggingface_hub",
+    "last_verified": "2026-09-02",
+    "maintainer": "huggingface"
   },
   {
     "id": "replicate",
@@ -1174,7 +1330,10 @@
       "vision",
       "flux",
       "llama"
-    ]
+    ],
+    "source_url": "https://github.com/replicate/replicate-javascript",
+    "last_verified": "2026-09-02",
+    "maintainer": "replicate"
   },
   {
     "id": "ollama",
@@ -1195,7 +1354,10 @@
       "ollama",
       "llm",
       "offline"
-    ]
+    ],
+    "source_url": "https://github.com/ollama/ollama",
+    "last_verified": "2026-09-02",
+    "maintainer": "ollama"
   },
   {
     "id": "deepseek-api",
@@ -1218,7 +1380,10 @@
       "deepseek",
       "r1",
       "code"
-    ]
+    ],
+    "source_url": "https://github.com/deepseek-ai",
+    "last_verified": "2026-09-02",
+    "maintainer": "deepseek-ai"
   },
   {
     "id": "gemini",
@@ -1241,7 +1406,10 @@
       "google",
       "multimodal",
       "flash"
-    ]
+    ],
+    "source_url": "https://github.com/google-gemini",
+    "last_verified": "2026-09-02",
+    "maintainer": "google-gemini"
   },
   {
     "id": "anthropic",
@@ -1264,7 +1432,10 @@
       "anthropic",
       "sonnet",
       "thinking"
-    ]
+    ],
+    "source_url": "https://github.com/anthropics/anthropic-sdk-typescript",
+    "last_verified": "2026-09-02",
+    "maintainer": "anthropics"
   },
   {
     "id": "agent-eval",
@@ -1283,7 +1454,10 @@
       "eval",
       "benchmark",
       "quality"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "duckdb",
@@ -1303,7 +1477,10 @@
       "olap",
       "parquet",
       "analytics"
-    ]
+    ],
+    "source_url": "https://github.com/duckdb/duckdb",
+    "last_verified": "2026-09-02",
+    "maintainer": "DuckDB Labs"
   },
   {
     "id": "snowflake",
@@ -1327,7 +1504,10 @@
       "warehouse",
       "snowflake",
       "enterprise"
-    ]
+    ],
+    "source_url": "https://github.com/snowflakedb",
+    "last_verified": "2026-09-02",
+    "maintainer": "Snowflake Inc."
   },
   {
     "id": "bigquery",
@@ -1350,7 +1530,10 @@
       "google-cloud",
       "bigquery",
       "sql"
-    ]
+    ],
+    "source_url": "https://github.com/googleapis/google-cloud-node",
+    "last_verified": "2026-09-02",
+    "maintainer": "googleapis"
   },
   {
     "id": "clickhouse",
@@ -1373,7 +1556,10 @@
       "clickhouse",
       "real-time",
       "logs"
-    ]
+    ],
+    "source_url": "https://github.com/ClickHouse/ClickHouse",
+    "last_verified": "2026-09-02",
+    "maintainer": "ClickHouse"
   },
   {
     "id": "elasticsearch",
@@ -1397,7 +1583,10 @@
       "elasticsearch",
       "elastic",
       "indices"
-    ]
+    ],
+    "source_url": "https://github.com/elastic/elasticsearch",
+    "last_verified": "2026-09-02",
+    "maintainer": "elastic"
   },
   {
     "id": "opensearch",
@@ -1419,7 +1608,10 @@
       "search",
       "opensearch",
       "analytics"
-    ]
+    ],
+    "source_url": "https://github.com/opensearch-project/OpenSearch",
+    "last_verified": "2026-09-02",
+    "maintainer": "opensearch-project"
   },
   {
     "id": "pinecone",
@@ -1442,7 +1634,10 @@
       "pinecone",
       "rag",
       "embeddings"
-    ]
+    ],
+    "source_url": "https://github.com/pinecone-io",
+    "last_verified": "2026-09-02",
+    "maintainer": "pinecone-io"
   },
   {
     "id": "weaviate",
@@ -1463,7 +1658,10 @@
       "vector",
       "weaviate",
       "hybrid-search"
-    ]
+    ],
+    "source_url": "https://github.com/weaviate/weaviate",
+    "last_verified": "2026-09-02",
+    "maintainer": "weaviate"
   },
   {
     "id": "milvus",
@@ -1484,7 +1682,10 @@
       "vector",
       "milvus",
       "billion-scale"
-    ]
+    ],
+    "source_url": "https://github.com/milvus-io/milvus",
+    "last_verified": "2026-09-02",
+    "maintainer": "milvus-io"
   },
   {
     "id": "astra-db",
@@ -1508,7 +1709,10 @@
       "astra",
       "serverless",
       "vector"
-    ]
+    ],
+    "source_url": "https://github.com/datastax/astra-client-nodejs",
+    "last_verified": "2026-09-02",
+    "maintainer": "datastax"
   },
   {
     "id": "timescaledb",
@@ -1531,7 +1735,10 @@
       "postgresql",
       "iot",
       "metrics"
-    ]
+    ],
+    "source_url": "https://github.com/timescale/timescaledb",
+    "last_verified": "2026-09-02",
+    "maintainer": "timescale"
   },
   {
     "id": "ripgrep",
@@ -1552,7 +1759,10 @@
       "ripgrep",
       "grep",
       "regex"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "eslint",
@@ -1573,7 +1783,10 @@
       "javascript",
       "typescript",
       "quality"
-    ]
+    ],
+    "source_url": "https://github.com/eslint/eslint",
+    "last_verified": "2026-09-02",
+    "maintainer": "eslint"
   },
   {
     "id": "prettier",
@@ -1593,7 +1806,10 @@
       "formatting",
       "prettier",
       "style"
-    ]
+    ],
+    "source_url": "https://github.com/prettier/prettier",
+    "last_verified": "2026-09-02",
+    "maintainer": "prettier"
   },
   {
     "id": "rust-analyzer",
@@ -1613,7 +1829,10 @@
       "lsp",
       "compiler",
       "types"
-    ]
+    ],
+    "source_url": "https://github.com/rust-lang/rust-analyzer",
+    "last_verified": "2026-09-02",
+    "maintainer": "rust-lang"
   },
   {
     "id": "pyright",
@@ -1634,7 +1853,10 @@
       "types",
       "pyright",
       "lsp"
-    ]
+    ],
+    "source_url": "https://github.com/microsoft/pyright",
+    "last_verified": "2026-09-02",
+    "maintainer": "microsoft"
   },
   {
     "id": "gopls",
@@ -1655,7 +1877,10 @@
       "golang",
       "lsp",
       "compiler"
-    ]
+    ],
+    "source_url": "https://github.com/golang/tools/tree/master/gopls",
+    "last_verified": "2026-09-02",
+    "maintainer": "golang"
   },
   {
     "id": "postman",
@@ -1678,7 +1903,10 @@
       "postman",
       "rest",
       "testing"
-    ]
+    ],
+    "source_url": "https://github.com/postmanlabs",
+    "last_verified": "2026-09-02",
+    "maintainer": "Postman, Inc."
   },
   {
     "id": "curl",
@@ -1699,7 +1927,10 @@
       "curl",
       "http",
       "requests"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "jwt",
@@ -1720,7 +1951,10 @@
       "jwt",
       "tokens",
       "auth"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "semgrep",
@@ -1740,7 +1974,10 @@
       "sast",
       "audit",
       "vulnerabilities"
-    ]
+    ],
+    "source_url": "https://github.com/semgrep/semgrep",
+    "last_verified": "2026-09-02",
+    "maintainer": "semgrep"
   },
   {
     "id": "trufflehog",
@@ -1760,7 +1997,10 @@
       "secrets",
       "credentials",
       "scanner"
-    ]
+    ],
+    "source_url": "https://github.com/trufflesecurity/trufflehog",
+    "last_verified": "2026-09-02",
+    "maintainer": "trufflesecurity"
   },
   {
     "id": "valgrind",
@@ -1781,7 +2021,10 @@
       "cpp",
       "memory",
       "debugging"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "bitbucket",
@@ -1804,7 +2047,10 @@
       "bitbucket",
       "atlassian",
       "pull-requests"
-    ]
+    ],
+    "source_url": "https://github.com/atlassian",
+    "last_verified": "2026-09-02",
+    "maintainer": "atlassian"
   },
   {
     "id": "github-actions",
@@ -1828,7 +2074,10 @@
       "ci",
       "cd",
       "workflows"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "git-lfs",
@@ -1849,7 +2098,10 @@
       "storage",
       "binary",
       "assets"
-    ]
+    ],
+    "source_url": "https://github.com/git-lfs/git-lfs",
+    "last_verified": "2026-09-02",
+    "maintainer": "git-lfs"
   },
   {
     "id": "git-graph",
@@ -1869,7 +2121,10 @@
       "visualization",
       "graph",
       "branches"
-    ]
+    ],
+    "source_url": "https://github.com/modelcontextprotocol/servers",
+    "last_verified": "2026-09-02",
+    "maintainer": "Model Context Protocol (Official)"
   },
   {
     "id": "azure",
@@ -1894,7 +2149,10 @@
       "microsoft",
       "infra",
       "vms"
-    ]
+    ],
+    "source_url": "https://github.com/Azure/azure-sdk-for-js",
+    "last_verified": "2026-09-02",
+    "maintainer": "Azure"
   },
   {
     "id": "gcp",
@@ -1918,7 +2176,10 @@
       "google-cloud",
       "compute",
       "storage"
-    ]
+    ],
+    "source_url": "https://github.com/googleapis/google-cloud-node",
+    "last_verified": "2026-09-02",
+    "maintainer": "googleapis"
   },
   {
     "id": "vercel",
@@ -1941,7 +2202,10 @@
       "frontend",
       "nextjs",
       "deploy"
-    ]
+    ],
+    "source_url": "https://github.com/vercel/vercel",
+    "last_verified": "2026-09-02",
+    "maintainer": "vercel"
   },
   {
     "id": "netlify",
@@ -1963,7 +2227,10 @@
       "netlify",
       "hosting",
       "jamstack"
-    ]
+    ],
+    "source_url": "https://github.com/netlify/js-client",
+    "last_verified": "2026-09-02",
+    "maintainer": "netlify"
   },
   {
     "id": "render",
@@ -1985,7 +2252,10 @@
       "render",
       "hosting",
       "containers"
-    ]
+    ],
+    "source_url": "https://github.com/render-examples",
+    "last_verified": "2026-09-02",
+    "maintainer": "render-examples"
   },
   {
     "id": "grafana",
@@ -2009,7 +2279,10 @@
       "grafana",
       "dashboards",
       "metrics"
-    ]
+    ],
+    "source_url": "https://github.com/grafana/grafana",
+    "last_verified": "2026-09-02",
+    "maintainer": "grafana"
   },
   {
     "id": "prometheus",
@@ -2031,7 +2304,10 @@
       "prometheus",
       "promql",
       "metrics"
-    ]
+    ],
+    "source_url": "https://github.com/prometheus/prometheus",
+    "last_verified": "2026-09-02",
+    "maintainer": "prometheus"
   },
   {
     "id": "pagerduty",
@@ -2054,7 +2330,10 @@
       "pagerduty",
       "oncall",
       "alerts"
-    ]
+    ],
+    "source_url": "https://github.com/PagerDuty",
+    "last_verified": "2026-09-02",
+    "maintainer": "PagerDuty"
   },
   {
     "id": "ansible",
@@ -2074,7 +2353,10 @@
       "ansible",
       "playbook",
       "devops"
-    ]
+    ],
+    "source_url": "https://github.com/ansible/ansible",
+    "last_verified": "2026-09-02",
+    "maintainer": "ansible"
   },
   {
     "id": "helm",
@@ -2096,7 +2378,10 @@
       "kubernetes",
       "helm",
       "packages"
-    ]
+    ],
+    "source_url": "https://github.com/helm/helm",
+    "last_verified": "2026-09-02",
+    "maintainer": "helm"
   },
   {
     "id": "google-search",
@@ -2119,7 +2404,10 @@
       "search",
       "google",
       "live-data"
-    ]
+    ],
+    "source_url": "https://github.com/googleapis/google-api-nodejs-client",
+    "last_verified": "2026-09-02",
+    "maintainer": "googleapis"
   },
   {
     "id": "bing-search",
@@ -2141,7 +2429,10 @@
       "search",
       "bing",
       "microsoft"
-    ]
+    ],
+    "source_url": "https://github.com/microsoft/azure-sdk-for-js",
+    "last_verified": "2026-09-02",
+    "maintainer": "microsoft"
   },
   {
     "id": "serpapi",
@@ -2163,7 +2454,10 @@
       "search",
       "serpapi",
       "scraper"
-    ]
+    ],
+    "source_url": "https://github.com/serpapi/serpapi-javascript",
+    "last_verified": "2026-09-02",
+    "maintainer": "serpapi"
   },
   {
     "id": "jina-reader",
@@ -2186,7 +2480,10 @@
       "markdown",
       "jina",
       "extractor"
-    ]
+    ],
+    "source_url": "https://github.com/jina-ai/reader",
+    "last_verified": "2026-09-02",
+    "maintainer": "jina-ai"
   },
   {
     "id": "spider",
@@ -2208,7 +2505,10 @@
       "crawler",
       "scraper",
       "headless"
-    ]
+    ],
+    "source_url": "https://github.com/spider-rs/spider",
+    "last_verified": "2026-09-02",
+    "maintainer": "spider-rs"
   },
   {
     "id": "trello",
@@ -2231,7 +2531,10 @@
       "trello",
       "kanban",
       "tasks"
-    ]
+    ],
+    "source_url": "https://github.com/atlassian",
+    "last_verified": "2026-09-02",
+    "maintainer": "atlassian"
   },
   {
     "id": "asana",
@@ -2253,7 +2556,10 @@
       "asana",
       "projects",
       "tasks"
-    ]
+    ],
+    "source_url": "https://github.com/Asana/node-asana",
+    "last_verified": "2026-09-02",
+    "maintainer": "Asana"
   },
   {
     "id": "airtable",
@@ -2275,7 +2581,10 @@
       "airtable",
       "database",
       "nocode"
-    ]
+    ],
+    "source_url": "https://github.com/Airtable/airtable.js",
+    "last_verified": "2026-09-02",
+    "maintainer": "Airtable"
   },
   {
     "id": "clickup",
@@ -2297,7 +2606,10 @@
       "clickup",
       "sprints",
       "project-management"
-    ]
+    ],
+    "source_url": "https://github.com/clickup",
+    "last_verified": "2026-09-02",
+    "maintainer": "clickup"
   },
   {
     "id": "confluence",
@@ -2321,7 +2633,10 @@
       "confluence",
       "wiki",
       "docs"
-    ]
+    ],
+    "source_url": "https://github.com/atlassian",
+    "last_verified": "2026-09-02",
+    "maintainer": "atlassian"
   },
   {
     "id": "zendesk",
@@ -2346,7 +2661,10 @@
       "zendesk",
       "helpdesk",
       "tickets"
-    ]
+    ],
+    "source_url": "https://github.com/zendesk",
+    "last_verified": "2026-09-02",
+    "maintainer": "zendesk"
   },
   {
     "id": "google-calendar",
@@ -2369,7 +2687,10 @@
       "meetings",
       "events",
       "google"
-    ]
+    ],
+    "source_url": "https://github.com/googleapis/google-api-nodejs-client",
+    "last_verified": "2026-09-02",
+    "maintainer": "googleapis"
   },
   {
     "id": "twilio",
@@ -2393,7 +2714,10 @@
       "voice",
       "twilio",
       "notifications"
-    ]
+    ],
+    "source_url": "https://github.com/twilio/twilio-node",
+    "last_verified": "2026-09-02",
+    "maintainer": "twilio"
   },
   {
     "id": "sendgrid",
@@ -2415,7 +2739,10 @@
       "email",
       "sendgrid",
       "transactional"
-    ]
+    ],
+    "source_url": "https://github.com/sendgrid/sendgrid-nodejs",
+    "last_verified": "2026-09-02",
+    "maintainer": "sendgrid"
   },
   {
     "id": "stripe",
@@ -2438,6 +2765,9 @@
       "stripe",
       "billing",
       "subscriptions"
-    ]
+    ],
+    "source_url": "https://github.com/stripe/stripe-node",
+    "last_verified": "2026-09-02",
+    "maintainer": "stripe"
   }
 ]

@@ -1,0 +1,12 @@
+{
+  "cascade.autoExecute": true,
+  "mcpServers": {
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
+    }
+  }
+}
