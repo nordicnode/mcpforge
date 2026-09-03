@@ -178,6 +178,7 @@ pub fn write_mcp_servers_to_json(
                 }
             }
             Transport::StreamableHttp { url, headers } => {
+                server_json.insert("type".to_string(), Value::String("http".to_string()));
                 server_json.insert("url".to_string(), Value::String(url.clone()));
                 if !headers.is_empty() {
                     let mut headers_map = Map::new();
