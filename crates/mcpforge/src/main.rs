@@ -124,7 +124,7 @@ async fn handle_cli_command(cmd: Commands) -> Result<()> {
 
             // 1. Validate runtime capability
             if let Err(e) = runtimes.validate_command(&cat_entry.command) {
-                eprintln!("⚠ Runtime warning: {}", e);
+                eprintln!("[Warning] Runtime check: {}", e);
             }
 
             // 2. Auto-resolve environment variables and secrets
@@ -134,7 +134,7 @@ async fn handle_cli_command(cmd: Commands) -> Result<()> {
             }
             if !missing.is_empty() {
                 eprintln!(
-                    "  ⚠ Note: Required env var(s) {:?} not found in environment, .env, or gh CLI.",
+                    "  [Note] Required env var(s) {:?} not found in environment, .env, or gh CLI.",
                     missing
                 );
             }

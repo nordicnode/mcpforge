@@ -90,12 +90,12 @@ fn render_server_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     let title = if total > 0 {
         format!(
-            " 📦 CONFIGURED SERVERS ({}/{}) ",
+            " CONFIGURED SERVERS ({}/{}) ",
             app.selected_index + 1,
             total
         )
     } else {
-        " 📦 CONFIGURED SERVERS (0/0) ".to_string()
+        " CONFIGURED SERVERS (0/0) ".to_string()
     };
 
     let list_block = Block::default()
@@ -114,7 +114,7 @@ fn render_server_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
 fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     let block = Block::default()
-        .title(" 🔍 SERVER INSPECTOR & CLIENT STATUS ")
+        .title(" SERVER INSPECTOR & CLIENT STATUS ")
         .title_style(theme.title)
         .borders(Borders::ALL)
         .border_type(theme.border_type)
@@ -160,7 +160,7 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     // 2. Command & Execution Configuration
     lines.push(Line::from(vec![Span::styled(
-        "⚙️  EXECUTION CONFIGURATION",
+        "EXECUTION CONFIGURATION",
         theme.header,
     )]));
 
@@ -246,7 +246,7 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     // 3. Client Installation Matrix
     lines.push(Line::from(vec![Span::styled(
-        "🎯  INSTALLED IN CLIENTS & HARNESSES",
+        "INSTALLED IN CLIENTS & HARNESSES",
         theme.header,
     )]));
 
@@ -296,7 +296,7 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     // 4. Runtime Health Check & Telemetry
     lines.push(Line::from(vec![Span::styled(
-        "🩺  RUNTIME HEALTH & TELEMETRY",
+        "RUNTIME HEALTH & TELEMETRY",
         theme.header,
     )]));
 

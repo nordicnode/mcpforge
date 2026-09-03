@@ -12,7 +12,7 @@ pub fn render_help(f: &mut Frame) {
     f.render_widget(Clear, area);
 
     let block = Block::default()
-        .title(" 💡 MCPFORGE HELP & INTERACTIVE GUIDE ")
+        .title(" MCPFORGE HELP & INTERACTIVE GUIDE ")
         .title_style(theme.title)
         .borders(Borders::ALL)
         .border_type(theme.border_type)
@@ -22,7 +22,7 @@ pub fn render_help(f: &mut Frame) {
     f.render_widget(block, area);
 
     let shortcuts = [
-        ("⚡ Dashboard Navigation", ""),
+        ("Dashboard Navigation", ""),
         ("  j / Down", "Move selection cursor down"),
         ("  k / Up", "Move selection cursor up"),
         ("  Space", "Toggle server enabled / disabled"),
@@ -37,7 +37,7 @@ pub fn render_help(f: &mut Frame) {
         ("  ?", "Toggle this interactive help screen"),
         ("  q / Esc", "Quit MCPForge"),
         ("", ""),
-        ("🤖 Clients & Harnesses View", ""),
+        ("Clients & Harnesses View", ""),
         (
             "  Tab / 1 / 2",
             "Toggle between [1] Servers and [2] Clients views",
@@ -47,7 +47,7 @@ pub fn render_help(f: &mut Frame) {
         ("  d / Del / x", "Remove server from selected client"),
         ("  r", "Rescan OS process table for live AI clients"),
         ("", ""),
-        ("🗑️ Remove Server Dialog", ""),
+        ("Remove Server Dialog", ""),
         (
             "  Tab / m",
             "Switch between [Remove from All] and [Selective]",
@@ -57,7 +57,7 @@ pub fn render_help(f: &mut Frame) {
         ("  Enter / y", "Confirm and apply removal with .bak safety"),
         ("  Esc / n", "Cancel removal and return to dashboard"),
         ("", ""),
-        ("🚦 Client Lifecycle & Status Legend", ""),
+        ("Client Lifecycle & Status Legend", ""),
         (
             "  ● ACTIVE",
             "Application process running + config file active on disk",
@@ -75,7 +75,7 @@ pub fn render_help(f: &mut Frame) {
             "Supported adapter. Not yet installed or configured",
         ),
         ("", ""),
-        ("🚀 Add Server Wizard", ""),
+        ("Add Server Wizard", ""),
         ("  j / k / Up / Down", "Navigate catalog entries or options"),
         ("  Space", "Toggle target client selection in Step 3"),
         ("  a / n", "Select all clients (a) / deselect all (n)"),

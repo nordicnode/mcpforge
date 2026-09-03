@@ -24,7 +24,7 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
         WizardStep::PreviewDiff => (4, "Preview Configuration Diff & Apply"),
     };
 
-    let title = format!(" 🚀 ADD MCP SERVER (Step {}/4: {}) ", step_num, step_title);
+    let title = format!(" ADD MCP SERVER (Step {}/4: {}) ", step_num, step_title);
 
     let block = Block::default()
         .title(title)
@@ -299,7 +299,7 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                             let (status_icon, status_style, status_note) = if is_set {
                                 ("✓", theme.status_healthy, "detected in shell environment")
                             } else {
-                                ("⚠️", theme.status_degraded, "not set in current shell")
+                                ("[ ! ]", theme.status_degraded, "not set in current shell")
                             };
                             details_lines.push(Line::from(vec![
                                 Span::raw("  • "),

@@ -18,14 +18,14 @@ pub const REGISTRY_CATEGORIES: &[&str] = &[
 ];
 
 pub const CATEGORY_LABELS: &[&str] = &[
-    "All (52)",
-    "🤖 Agents",
-    "🛠️ Dev Tools",
-    "🗄️ Data & DBs",
-    "🌐 Web",
-    "📦 Git & Code",
-    "☁️ Cloud",
-    "📝 Productivity",
+    "All (110)",
+    "Agents",
+    "Dev Tools",
+    "Data & DBs",
+    "Web",
+    "Git & Code",
+    "Cloud",
+    "Productivity",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

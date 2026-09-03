@@ -82,7 +82,7 @@ pub fn render_header_tabs(f: &mut Frame, app: &App, area: Rect, theme: &Theme, a
 
     let mut spans = vec![
         Span::styled(
-            " ⚡ MCPFORGE ",
+            " MCPFORGE ",
             Style::default()
                 .fg(Color::Rgb(241, 250, 140))
                 .add_modifier(Modifier::BOLD),
@@ -217,12 +217,12 @@ fn render_client_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     let title = if total > 0 {
         format!(
-            " 🤖 CLIENTS & AGENT HARNESSES ({}/{}) ",
+            " CLIENTS & AGENT HARNESSES ({}/{}) ",
             app.selected_client_index + 1,
             total
         )
     } else {
-        " 🤖 CLIENTS & AGENT HARNESSES (0/0) ".to_string()
+        " CLIENTS & AGENT HARNESSES (0/0) ".to_string()
     };
 
     let list = List::new(items).block(
@@ -242,7 +242,7 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         .borders(Borders::ALL)
         .border_type(theme.border_type)
         .border_style(theme.border)
-        .title(" 🔍 HARNESS SPECIFICATIONS & STATUS ")
+        .title(" HARNESS SPECIFICATIONS & STATUS ")
         .title_style(theme.title);
 
     let client = match app.selected_client() {
@@ -259,11 +259,11 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     let mut lines = Vec::new();
 
     // 1. Overview & Identity
-    let cat_emoji = match client.category.as_str() {
-        "Agent" => "🤖 Autonomous Agent",
-        "CLI" => "💻 Terminal & CLI Tool",
-        "IDE" => "🖥️ IDE / Code Editor",
-        "Chat" => "💬 Chat & Desktop Client",
+    let cat_desc = match client.category.as_str() {
+        "Agent" => "Autonomous Agent",
+        "CLI" => "Terminal & CLI Tool",
+        "IDE" => "IDE / Code Editor",
+        "Chat" => "Chat & Desktop Client",
         _ => "Custom Harness",
     };
 
@@ -281,7 +281,7 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         ),
         Span::raw("  "),
         Span::styled(
-            format!("({})", cat_emoji),
+            format!("({})", cat_desc),
             Style::default().fg(Color::Rgb(189, 147, 249)),
         ),
     ]));
@@ -341,7 +341,7 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     // 3. Known Configuration Locations
     lines.push(Line::from(vec![Span::styled(
-        "📁  CONFIGURATION LOCATIONS & PATHS",
+        "CONFIGURATION LOCATIONS & PATHS",
         theme.header,
     )]));
 
@@ -409,7 +409,7 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     // 5. Configured Servers in this Client
     lines.push(Line::from(vec![Span::styled(
         format!(
-            "📦  CONFIGURED SERVERS IN THIS CLIENT ({}/{}):",
+            "CONFIGURED SERVERS IN THIS CLIENT ({}/{}):",
             client.server_count,
             app.servers.len()
         ),

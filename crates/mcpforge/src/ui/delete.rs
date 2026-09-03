@@ -17,7 +17,7 @@ pub fn render_delete_modal(f: &mut Frame, app: &App) {
     let area = centered_rect(72, 70, f.area());
     f.render_widget(Clear, area);
 
-    let title = format!(" 🗑️  REMOVE MCP SERVER: {} ", state.server_id);
+    let title = format!(" REMOVE MCP SERVER: {} ", state.server_id);
 
     let block = Block::default()
         .title(title)
@@ -57,7 +57,7 @@ pub fn render_delete_modal(f: &mut Frame, app: &App) {
     };
 
     let warning_text = Line::from(vec![
-        Span::styled("⚠️  Warning: ", theme.status_degraded),
+        Span::styled("Warning: ", theme.status_degraded),
         Span::styled(
             format!("You are about to remove MCP server '{}'.", state.server_id),
             Style::default()
@@ -142,7 +142,7 @@ pub fn render_delete_modal(f: &mut Frame, app: &App) {
 
     // 3. Safety Notice & Actions
     let safety_line = Line::from(vec![
-        Span::styled("🛡️  Atomic Safety: ", theme.status_healthy),
+        Span::styled("Atomic Safety: ", theme.status_healthy),
         Span::styled(
             "Sidecar backups (.bak) will be created automatically before saving.",
             theme.muted,
