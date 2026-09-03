@@ -1,0 +1,28 @@
+[package]
+name = "mcpforge"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "mcpforge"
+path = "src/main.rs"
+
+[dependencies]
+mcp-core = { path = "../mcp-core" }
+mcpforge-adapters = { path = "../mcpforge-adapters" }
+mcpforge-registry = { path = "../mcpforge-registry" }
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+dirs.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true
+clap.workspace = true
+chrono.workspace = true
+similar.workspace = true

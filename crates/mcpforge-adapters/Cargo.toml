@@ -1,0 +1,19 @@
+[package]
+name = "mcpforge-adapters"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+mcp-core = { path = "../mcp-core" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+dirs.workspace = true
+tempfile.workspace = true
+chrono.workspace = true
+similar.workspace = true
+toml.workspace = true
