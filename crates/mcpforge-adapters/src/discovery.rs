@@ -51,21 +51,15 @@ impl DiscoveryEngine {
             }
         }
 
-        // 2. Fallback or augment with pgrep / ps command check
-        if running.is_empty() {
-            if let Ok(output) = std::process::Command::new("pgrep")
-                .args([
-                    "-l",
-                    "-i",
-                    "code|cursor|claude|windsurf|zed|antigravity|freebuff",
-                ])
-                .output()
-            {
-                if let Ok(out_str) = String::from_utf8(output.stdout) {
-                    for line in out_str.lines() {
-                        let lower = line.to_lowercase();
-                        Self::map_comm_to_client(&lower, &mut running);
-                    }
+        // 2. Query pgrep with strict pattern
+        if let Ok(output) = std::process::Command::new("pgrep")
+            .args(["-a", "freebuff|codebuff|grok|jcode|opencode|codex|claude|cursor|windsurf|zed|antigravity"])
+            .output()
+        {
+            if let Ok(out_str) = String::from_utf8(output.stdout) {
+                for line in out_str.lines() {
+                    let lower = line.to_lowercase();
+                    Self::map_comm_to_client(&lower, &mut running);
                 }
             }
         }
@@ -73,50 +67,103 @@ impl DiscoveryEngine {
         running
     }
 
+    pub fn is_client_installed(client_id: &str) -> bool {
+        let bins: &[&str] = match client_id {
+            "vscode" => &["code", "code-insiders", "codium"],
+            "cursor" => &["cursor"],
+            "claude-code" => &["claude"],
+            "claude-desktop" => &["claude-desktop"],
+            "windsurf" => &["windsurf"],
+            "zed" => &["zed", "zed-editor"],
+            "freebuff" => &["freebuff", "freebuff-desktop"],
+            "grok" => &["grok"],
+            "jcode" => &["jcode"],
+            "opencode" => &["opencode"],
+            "codex" => &["codex"],
+            "manicode" => &["manicode"],
+            _ => &[],
+        };
+
+        if let Ok(path_var) = std::env::var("PATH") {
+            for dir in std::env::split_paths(&path_var) {
+                for bin in bins {
+                    if dir.join(bin).is_file() {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
     fn map_comm_to_client(name: &str, set: &mut HashSet<String>) {
-        if name.contains("cursor") {
-            set.insert("cursor".to_string());
+        // Match specific clients first before any substrings!
+        if name.contains("freebuff") || name.contains("codebuff") {
+            set.insert("freebuff".to_string());
+            return;
+        }
+        if name.contains("opencode") {
+            set.insert("opencode".to_string());
+            return;
+        }
+        if name.contains("jcode") {
+            set.insert("jcode".to_string());
+            return;
         }
         if name.contains("claude") {
             set.insert("claude-code".to_string());
             set.insert("claude-desktop".to_string());
-        }
-        if name.contains("code") || name.contains("codium") {
-            set.insert("vscode".to_string());
-            set.insert("cline".to_string());
-        }
-        if name.contains("windsurf") {
-            set.insert("windsurf".to_string());
-        }
-        if name.contains("zed") {
-            set.insert("zed".to_string());
-        }
-        if name.contains("antigravity") {
-            set.insert("antigravity".to_string());
-        }
-        if name.contains("continue") {
-            set.insert("continue".to_string());
-        }
-        if name.contains("freebuff") {
-            set.insert("freebuff".to_string());
-        }
-        if name.contains("grok") {
-            set.insert("grok".to_string());
-        }
-        if name.contains("jcode") {
-            set.insert("jcode".to_string());
-        }
-        if name.contains("opencode") {
-            set.insert("opencode".to_string());
+            return;
         }
         if name.contains("codex") {
             set.insert("codex".to_string());
+            return;
+        }
+        if name.contains("grok") {
+            set.insert("grok".to_string());
+            return;
+        }
+        if name.contains("cursor") {
+            set.insert("cursor".to_string());
+            return;
+        }
+        if name.contains("windsurf") {
+            set.insert("windsurf".to_string());
+            return;
+        }
+        if name.contains("zed") {
+            set.insert("zed".to_string());
+            return;
+        }
+        if name.contains("antigravity") {
+            set.insert("antigravity".to_string());
+            return;
+        }
+        if name.contains("continue") {
+            set.insert("continue".to_string());
+            return;
         }
         if name.contains("roo") {
             set.insert("roo-code".to_string());
+            return;
         }
         if name.contains("manicode") {
             set.insert("manicode".to_string());
+            return;
+        }
+
+        // Strict check for real VS Code / Codium:
+        // Must NOT match codebuff, opencode, jcode, or other agents
+        let is_real_vscode = name == "code"
+            || name == "code-insiders"
+            || name == "codium"
+            || name.ends_with("/code")
+            || name.ends_with("/code-insiders")
+            || name.ends_with("/codium");
+
+        if is_real_vscode {
+            set.insert("vscode".to_string());
+            set.insert("cline".to_string());
         }
     }
 
@@ -126,8 +173,11 @@ impl DiscoveryEngine {
 
         for adapter in self.manager.adapters() {
             for loc in adapter.detect() {
-                let is_running = running_processes.contains(adapter.id())
-                    || (adapter.id() == "cline" && running_processes.contains("vscode"));
+                // A client can only be running if it exists on disk or its binary is on PATH
+                let is_installed = loc.exists || Self::is_client_installed(adapter.id());
+                let is_running = is_installed
+                    && (running_processes.contains(adapter.id())
+                        || (adapter.id() == "cline" && running_processes.contains("vscode")));
 
                 let server_count = if loc.exists {
                     adapter.read_servers(&loc).map(|s| s.len()).unwrap_or(0)
@@ -140,7 +190,7 @@ impl DiscoveryEngine {
                     display_name: loc.display_name.clone(),
                     config_path: loc.path.clone(),
                     is_running,
-                    is_installed: loc.exists,
+                    is_installed,
                     server_count,
                 });
             }
@@ -158,7 +208,6 @@ impl DiscoveryEngine {
     ) {
         let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
 
-        // Check cwd and immediate subdirectories
         let candidate_paths = [
             cwd.join(".mcp.json"),
             cwd.join(".cursor").join("mcp.json"),
@@ -175,7 +224,9 @@ impl DiscoveryEngine {
                     "claude-code"
                 };
 
-                let is_running = running_processes.contains(client_id);
+                let is_installed = Self::is_client_installed(client_id);
+                let is_running = is_installed && running_processes.contains(client_id);
+
                 results.push(DiscoveredHarness {
                     id: client_id.to_string(),
                     display_name: format!("Workspace ({})", path.display()),

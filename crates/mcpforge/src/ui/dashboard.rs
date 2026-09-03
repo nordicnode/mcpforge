@@ -274,9 +274,15 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             .add_modifier(Modifier::BOLD),
     )]));
 
+    let mut rendered_any = false;
     for client in &app.detected_clients {
         let is_installed = server.clients.iter().any(|c| c.config_path == client.path);
 
+        if !client.exists && !is_installed {
+            continue;
+        }
+
+        rendered_any = true;
         let (check_icon, check_style) = if is_installed {
             (
                 "✓",
@@ -309,6 +315,16 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             theme.muted,
         ));
         lines.push(Line::from(client_spans));
+    }
+
+    if !rendered_any {
+        lines.push(Line::from(vec![
+            Span::raw("  "),
+            Span::styled(
+                "None (server not installed in any detected client)",
+                theme.muted,
+            ),
+        ]));
     }
     lines.push(Line::raw(""));
 
