@@ -3,6 +3,7 @@ use mcp_core::types::ServerEntry;
 use std::collections::BTreeMap;
 
 use crate::antigravity::AntigravityAdapter;
+use crate::anythingllm::AnythingLlmAdapter;
 use crate::claude_code::ClaudeCodeAdapter;
 use crate::claude_desktop::ClaudeDesktopAdapter;
 use crate::cline::ClineAdapter;
@@ -11,9 +12,13 @@ use crate::continue_dev::ContinueAdapter;
 use crate::cursor::CursorAdapter;
 use crate::custom::CustomHarnessAdapter;
 use crate::freebuff::FreebuffAdapter;
+use crate::goose::GooseAdapter;
 use crate::grok::GrokAdapter;
 use crate::jcode::JcodeAdapter;
+use crate::jetbrains::JetBrainsAdapter;
+use crate::librechat::LibreChatAdapter;
 use crate::manicode::ManicodeAdapter;
+use crate::mcphub::McpHubAdapter;
 use crate::opencode::OpenCodeAdapter;
 use crate::roo_code::RooCodeAdapter;
 use crate::traits::{ClientAdapter, ConfigLocation};
@@ -50,6 +55,11 @@ impl AdapterManager {
             Box::new(CodexAdapter::new()),
             Box::new(RooCodeAdapter::new()),
             Box::new(ManicodeAdapter::new()),
+            Box::new(GooseAdapter::new()),
+            Box::new(LibreChatAdapter::new()),
+            Box::new(McpHubAdapter::new()),
+            Box::new(AnythingLlmAdapter::new()),
+            Box::new(JetBrainsAdapter::new()),
             Box::new(CustomHarnessAdapter::load()),
         ];
         Self { adapters }

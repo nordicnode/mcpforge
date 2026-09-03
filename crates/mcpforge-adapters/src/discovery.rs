@@ -53,7 +53,7 @@ impl DiscoveryEngine {
 
         // 2. Query pgrep with strict pattern
         if let Ok(output) = std::process::Command::new("pgrep")
-            .args(["-a", "freebuff|codebuff|grok|jcode|opencode|codex|claude|cursor|windsurf|zed|antigravity"])
+            .args(["-a", "freebuff|codebuff|grok|jcode|opencode|codex|claude|cursor|windsurf|zed|antigravity|goose|librechat|mcphub|anythingllm|idea|pycharm"])
             .output()
         {
             if let Ok(out_str) = String::from_utf8(output.stdout) {
@@ -81,6 +81,11 @@ impl DiscoveryEngine {
             "opencode" => &["opencode"],
             "codex" => &["codex"],
             "manicode" => &["manicode"],
+            "goose" => &["goose"],
+            "librechat" => &["librechat"],
+            "mcphub" => &["mcp-hub", "nvim"],
+            "anythingllm" => &["anythingllm", "anythingllm-desktop"],
+            "jetbrains" => &["idea", "pycharm", "webstorm", "clion", "rustrover"],
             _ => &[],
         };
 
@@ -149,6 +154,26 @@ impl DiscoveryEngine {
         }
         if name.contains("manicode") {
             set.insert("manicode".to_string());
+            return;
+        }
+        if name.contains("goose") {
+            set.insert("goose".to_string());
+            return;
+        }
+        if name.contains("librechat") {
+            set.insert("librechat".to_string());
+            return;
+        }
+        if name.contains("mcphub") || name.contains("mcp-hub") {
+            set.insert("mcphub".to_string());
+            return;
+        }
+        if name.contains("anythingllm") {
+            set.insert("anythingllm".to_string());
+            return;
+        }
+        if name.contains("idea") || name.contains("pycharm") || name.contains("webstorm") {
+            set.insert("jetbrains".to_string());
             return;
         }
 
