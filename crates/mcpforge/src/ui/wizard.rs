@@ -87,11 +87,20 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
         WizardStep::ConfigureServer => match wizard.source {
             WizardSource::FromRegistry => {
                 let entries = app.registry.entries();
-                let items: Vec<ListItem> = entries
+                let total = entries.len();
+                let visible_height = (inner.height as usize).saturating_sub(2).max(1);
+                let (start, end) = crate::ui::layout::calculate_scroll_window(
+                    total,
+                    wizard.registry_cursor,
+                    visible_height,
+                );
+
+                let items: Vec<ListItem> = entries[start..end]
                     .iter()
                     .enumerate()
-                    .map(|(i, entry)| {
-                        let is_selected = i == wizard.registry_cursor;
+                    .map(|(offset, entry)| {
+                        let real_idx = start + offset;
+                        let is_selected = real_idx == wizard.registry_cursor;
                         let prefix = if is_selected { " ▸ " } else { "   " };
                         let style = if is_selected {
                             theme.selected
@@ -113,9 +122,16 @@ pub fn render_wizard(f: &mut Frame, app: &App) {
                     })
                     .collect();
 
-                let list = List::new(items).block(
-                    Block::default().title(" Curated Catalog (j/k: browse, Enter: select) "),
+                let title = format!(
+                    " Curated Catalog ({}/{}) [j/k: browse, Enter: select] ",
+                    if total > 0 {
+                        wizard.registry_cursor + 1
+                    } else {
+                        0
+                    },
+                    total
                 );
+                let list = List::new(items).block(Block::default().title(title));
                 f.render_widget(list, inner);
             }
             WizardSource::Manual => {

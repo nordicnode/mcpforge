@@ -96,12 +96,20 @@ fn render_clients_split(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 }
 
 fn render_client_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
-    let items: Vec<ListItem> = app
-        .discovered_clients
+    let total = app.discovered_clients.len();
+    let visible_height = (area.height as usize).saturating_sub(2).max(1);
+    let (start, end) = crate::ui::layout::calculate_scroll_window(
+        total,
+        app.selected_client_index,
+        visible_height,
+    );
+
+    let items: Vec<ListItem> = app.discovered_clients[start..end]
         .iter()
         .enumerate()
-        .map(|(idx, client)| {
-            let is_selected = idx == app.selected_client_index;
+        .map(|(offset, client)| {
+            let real_idx = start + offset;
+            let is_selected = real_idx == app.selected_client_index;
 
             let (status_badge, badge_style) = if client.is_running && client.is_installed {
                 (
@@ -169,14 +177,21 @@ fn render_client_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         })
         .collect();
 
+    let title = if total > 0 {
+        format!(
+            " Clients & Harnesses ({}/{}) ",
+            app.selected_client_index + 1,
+            total
+        )
+    } else {
+        " Clients & Harnesses (0/0) ".to_string()
+    };
+
     let list = List::new(items).block(
         Block::default()
             .borders(Borders::ALL)
             .border_style(theme.border)
-            .title(format!(
-                " Clients & Harnesses ({}) ",
-                app.discovered_clients.len()
-            )),
+            .title(title),
     );
 
     f.render_widget(list, area);

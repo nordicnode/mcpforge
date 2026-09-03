@@ -28,11 +28,16 @@ pub fn render_dashboard(f: &mut Frame, app: &App) {
 
 fn render_server_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     let filtered = app.filtered_servers();
+    let total = filtered.len();
+    let visible_height = (area.height as usize).saturating_sub(2).max(1);
+    let (start, end) =
+        crate::ui::layout::calculate_scroll_window(total, app.selected_index, visible_height);
 
-    let items: Vec<ListItem> = filtered
+    let items: Vec<ListItem> = filtered[start..end]
         .iter()
         .enumerate()
-        .map(|(idx, server)| {
+        .map(|(offset, server)| {
+            let real_idx = start + offset;
             let status = app
                 .health_cache
                 .get(&server.id)
@@ -47,7 +52,7 @@ fn render_server_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
                 HealthStatus::Unknown => ("?", theme.muted),
             };
 
-            let is_selected = idx == app.selected_index;
+            let is_selected = real_idx == app.selected_index;
             let name_style = if is_selected {
                 theme.selected
             } else if !server.enabled {
@@ -70,8 +75,14 @@ fn render_server_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         })
         .collect();
 
+    let title = if total > 0 {
+        format!(" SERVERS ({}/{}) ", app.selected_index + 1, total)
+    } else {
+        " SERVERS (0/0) ".to_string()
+    };
+
     let list_block = Block::default()
-        .title(" SERVERS ")
+        .title(title)
         .title_style(theme.title)
         .borders(Borders::ALL)
         .border_style(theme.border);
