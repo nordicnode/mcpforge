@@ -81,7 +81,7 @@ pub fn render_header_tabs(f: &mut Frame, app: &App, area: Rect, theme: &Theme, a
                 .fg(Color::Rgb(139, 233, 253))
                 .add_modifier(Modifier::BOLD),
         ),
-        Span::styled("v0.1.0 ", theme.muted),
+        Span::styled(format!("v{} ", env!("CARGO_PKG_VERSION")), theme.muted),
         Span::raw("  "),
         Span::styled(format!(" 1: Servers ({}) ", total_servers), tab1_style),
         Span::raw(" "),

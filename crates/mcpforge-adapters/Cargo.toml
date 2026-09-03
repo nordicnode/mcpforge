@@ -9,7 +9,7 @@ homepage.workspace = true
 description = "Multi-client configuration adapters for Model Context Protocol (MCP)"
 
 [dependencies]
-mcp-core = { package = "mcpforge-core", path = "../mcp-core", version = "0.1.0" }
+mcp-core = { package = "mcpforge-core", path = "../mcp-core", version = "0.2.0" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

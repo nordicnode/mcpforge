@@ -818,10 +818,11 @@ fn render_footer(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     let right_line = Line::from(vec![Span::styled(
         format!(
-            "{} servers · {}/{} clients · v0.1.0 ",
+            "{} servers · {}/{} clients · v{} ",
             app.servers.len(),
             installed_count,
-            app.discovered_clients.len()
+            app.discovered_clients.len(),
+            env!("CARGO_PKG_VERSION"),
         ),
         theme.muted,
     )]);

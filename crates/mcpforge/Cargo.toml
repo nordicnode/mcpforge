@@ -31,9 +31,9 @@ name = "screenshots"
 path = "src/bin/screenshots.rs"
 
 [dependencies]
-mcp-core = { package = "mcpforge-core", path = "../mcp-core", version = "0.1.0" }
-mcpforge-adapters = { path = "../mcpforge-adapters", version = "0.1.0" }
-mcpforge-registry = { path = "../mcpforge-registry", version = "0.1.0" }
+mcp-core = { package = "mcpforge-core", path = "../mcp-core", version = "0.2.0" }
+mcpforge-adapters = { path = "../mcpforge-adapters", version = "0.2.0" }
+mcpforge-registry = { path = "../mcpforge-registry", version = "0.2.0" }
 tokio.workspace = true
 serde.workspace = true
 serde_json.workspace = true
