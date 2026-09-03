@@ -1,122 +1,263 @@
 # MCPForge
 
-> **A high-performance terminal UI and automation CLI for discovering, installing, configuring, and health-checking MCP servers across 16+ local AI clients and harnesses.**
+<p align="center">
+  <strong>The Universal Control Plane & Terminal Command Center for Model Context Protocol (MCP)</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Rust-2021_Edition-orange.svg?style=flat-square&logo=rust" alt="Rust 2021" />
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License MIT" />
+  <img src="https://img.shields.io/badge/Supported_Clients-26_Harnesses-purple.svg?style=flat-square" alt="26 Supported Clients" />
+  <img src="https://img.shields.io/badge/Curated_Catalog-110_MCP_Servers-green.svg?style=flat-square" alt="110 Curated Servers" />
+  <img src="https://img.shields.io/badge/Architecture-Modular_Workspace-blueviolet.svg?style=flat-square" alt="Modular Workspace" />
+</p>
+
+<p align="center">
+  <a href="#overview">Overview</a> •
+  <a href="#key-features">Key Features</a> •
+  <a href="#screenshots">Screenshots</a> •
+  <a href="#supported-clients">Supported Clients</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#license">License</a>
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/dashboard.png" alt="MCPForge Main Dashboard" width="95%" />
+</p>
 
 ---
 
-## What makes MCPForge different?
+## Overview
 
-MCPForge is built for **zero-friction automation**:
-1. **Automated Client & Process Discovery**: Scans running OS processes (`/proc` and `pgrep`) and standard configuration paths to locate all installed and active AI clients on the machine.
-2. **50+ Curated Server Catalog**: Built-in, offline-ready registry covering filesystems, databases (Postgres, MySQL, SQLite, Mongo, Redis, Supabase, Qdrant, Neo4j), web search (Brave, Tavily, Perplexity, Fetch, Puppeteer, Playwright), cloud devops (Docker, Kubernetes, AWS, Cloudflare, Sentry, Datadog), productivity (Slack, Discord, Linear, Jira, Notion, Obsidian, Google Drive, Todoist), and reasoning agents.
-3. **Automated Credential & Secret Resolution**: Automatically extracts tokens and credentials from local developer tooling (`gh auth token`), `.env` files, and encrypted secret stores.
-4. **One-Command Setup & Verification**: `mcpforge setup <server>` checks execution runtimes, resolves tokens, writes configurations across all detected clients, and immediately tests live health via the MCP JSON-RPC protocol.
-5. **Curated Multi-Server Packs**: Install complete developer suites (`dev-core`, `data`, `web-research`, `cloud-dev`, `productivity`, `ai-agent`, `full-stack`, `enterprise`) in one shot.
-6. **Cross-Client Auto-Sync (`mcpforge sync --auto`)**: Aggregates all servers configured across any client and synchronizes them to every installed client with a single keystroke (`[u]` in TUI).
-7. **Zero-Diff Safety**: Creates timestamped `.bak` backups before modifying files and preserves formatting, comments, and unknown keys with atomic writes.
+As the Model Context Protocol ecosystem has exploded, every AI client, autonomous agent harness, and code editor has introduced its own configuration format and path. Your tools end up fragmented across:
 
----
+- `~/.agents/mcp.json` (Freebuff Desktop & CLI)
+- `~/.claude.json` (Claude Code)
+- `~/.deepseek/config.json` (DeepSeek Harness)
+- `~/.config/goose/config.yaml` (Goose - YAML)
+- `~/.hermes/config.yaml` (Hermes Agent - YAML)
+- `~/.codex/config.toml` (Codex - TOML)
+- `~/.grok/config.toml` (Grok Build - TOML)
+- `~/.config/opencode/opencode.jsonc` (OpenCode - JSONC)
+- Plus VS Code, Cursor, Windsurf, Zed, JetBrains, Continue.dev, Cline, and 14 others.
 
-## Supported AI Clients & Harnesses (16+)
-
-| Client / Harness | Default Config Paths | Transport Support | Live Process Detection |
-|---|---|---|---|
-| **Freebuff** | `~/.config/freebuff-desktop/mcp.json`, `~/.freebuff/mcp.json`, `.freebuff/mcp.json` | stdio, Streamable HTTP | ✓ |
-| **Grok Build / Grok CLI** | `~/.grok/config.toml`, `.grok/config.toml` | stdio, Streamable HTTP | ✓ |
-| **J-Code** | `~/.jcode/servers.json`, `~/.config/jcode/servers.json` | stdio, Streamable HTTP | ✓ |
-| **OpenCode** | `~/.config/opencode/mcp.json`, `~/.opencode/mcp.json`, `.opencode/mcp.json` | stdio, Streamable HTTP | ✓ |
-| **Codex** | `~/.codex/config.json`, `~/.config/codex/mcp.json`, `.codex/mcp.json` | stdio, Streamable HTTP | ✓ |
-| **Roo Code** | `cline_mcp_settings.json` (VS Code & Cursor), `.roo/mcp.json` | stdio, Streamable HTTP | ✓ |
-| **Manicode** | `~/.config/manicode/mcp.json`, `.manicode/mcp.json` | stdio, Streamable HTTP | ✓ |
-| **Antigravity / Gemini** | `~/.gemini/config/mcp_config.json` | stdio, Streamable HTTP | ✓ |
-| **Cline** | `saoudrizwan.claude-dev/settings/cline_mcp_settings.json` | stdio, Streamable HTTP | ✓ |
-| **Claude Desktop** | `~/.config/Claude/claude_desktop_config.json` (Linux/Mac/Win) | stdio | ✓ |
-| **Claude Code** | `~/.claude.json`, `.mcp.json` | stdio, Streamable HTTP | ✓ |
-| **Cursor** | `~/.cursor/mcp.json`, `.cursor/mcp.json` | stdio, Streamable HTTP, SSE | ✓ |
-| **VS Code / Copilot** | `~/.vscode/mcp.json`, `.vscode/mcp.json` | stdio, Streamable HTTP | ✓ |
-| **Windsurf** | `~/.codeium/windsurf/mcp_config.json` | stdio | ✓ |
-| **Continue.dev** | `~/.continue/config.json` | stdio | ✓ |
-| **Zed** | `~/.config/zed/settings.json` | stdio | ✓ |
-| **Custom Harnesses** | `mcpforge.toml` | all | User-defined |
+**MCPForge** eliminates this fragmentation. Written in modern, memory-safe Rust with a high-performance [Ratatui](https://ratatui.rs) terminal interface, MCPForge acts as a single, centralized command center where you can inspect, provision, synchronize, health-check, and remove MCP servers across all your tools simultaneously.
 
 ---
 
-## Automated CLI Commands
+## Key Features
+
+- **Keyboard-Driven Terminal UI**: High-speed, zero-flicker TUI with instant filtering, intuitive split views, and vim/arrow navigation.
+- **26 First-Class Client Adapters**: Native read and write support for autonomous agents, terminal CLIs, full IDEs, and chat desktop clients.
+- **110+ Curated MCP Servers**: Instant one-click provisioning across AI agents, analytical databases, developer tools, cloud infrastructure, git workflows, search engines, and enterprise productivity platforms.
+- **Adapter-Accurate Diff Previews**: Every configuration modification is simulated using the target client's actual format engine before touching disk, guaranteeing that existing configurations are never overwritten or corrupted.
+- **Atomic Safety & Backups**: Automatic `.bak` sidecar snapshots are created before any file is updated, with atomic file swap semantics.
+- **Live Telemetry & Diagnostics**: Background ping engine queries stdio subprocesses and HTTP/SSE endpoints with sub-millisecond precision, reporting latency, active tool counts, and server versions.
+- **Interactive Server Removal**: Safely purge servers across all clients at once or interactively pick and choose targets.
+- **Portable Profiles & Packs**: Export your entire multi-tool MCP environment into reproducible `mcpforge-pack.json` bundles and import them on new machines with automated secret resolution.
+
+---
+
+## Screenshots
+
+### 1. Unified Dashboard & Runtime Telemetry
+Inspect configured servers, execution arguments, environment variables, client installation matrices, and live sub-millisecond diagnostics.
+
+<p align="center">
+  <img src="assets/screenshots/dashboard.png" alt="MCPForge Dashboard" width="95%" />
+</p>
+
+---
+
+### 2. Supported Clients & Agent Harness Matrix
+View all 26 supported AI harnesses, categorized by lifecycle state (`ACTIVE`, `RUNNING`, `READY`, `AVAILABLE`), with binary detection, disk paths, and configured servers.
+
+<p align="center">
+  <img src="assets/screenshots/clients.png" alt="Clients & Harnesses Matrix" width="95%" />
+</p>
+
+---
+
+### 3. Curated 110-Server Catalog with Environment Checks
+Filter pre-tested MCP servers by category (`Agents`, `Dev Tools`, `Data & DBs`, `Web`, `Git`, `Cloud`, `Productivity`) with real-time environment variable validation.
+
+<p align="center">
+  <img src="assets/screenshots/catalog.png" alt="Catalog with Category Filtering" width="95%" />
+</p>
+
+---
+
+### 4. Adapter-Accurate Unified Diff Preview
+Preview the exact unified diff generated for each client adapter before applying, guaranteeing zero accidental deletions or syntax corruption.
+
+<p align="center">
+  <img src="assets/screenshots/diff_preview.png" alt="Unified Diff Preview" width="95%" />
+</p>
+
+---
+
+### 5. Interactive Removal Modal
+Safely decommission servers from all clients at once, or use the interactive checklist to remove from specific clients with automatic `.bak` backups.
+
+<p align="center">
+  <img src="assets/screenshots/removal_modal.png" alt="Interactive Server Removal Modal" width="95%" />
+</p>
+
+---
+
+## Supported Clients
+
+MCPForge provides native, format-preserving adapters for **26 distinct AI clients and harnesses**:
+
+| Category | Client / Harness | Config Path | Format | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **Agent** | **Freebuff Desktop & CLI** | `~/.agents/mcp.json` | JSON | Supported |
+| **Agent** | **DeepSeek Harness** | `~/.deepseek/config.json` | JSON | Supported |
+| **Agent** | **Goose** | `~/.config/goose/config.yaml` | YAML | Supported |
+| **Agent** | **Hermes Agent** | `~/.hermes/config.yaml` | YAML | Supported |
+| **Agent** | **OpenClaw** | `~/.openclaw/openclaw.json` | JSON | Supported |
+| **Agent** | **Prime Agent** | `~/.prime/agent/mcp.json` | JSON | Supported |
+| **Agent** | **Letta Agent** | `~/.letta/mcp.json` | JSON | Supported |
+| **CLI** | **Claude Code** | `~/.claude.json` | JSON | Supported |
+| **CLI** | **Codex** | `~/.codex/config.toml` | TOML | Supported |
+| **CLI** | **Grok Build** | `~/.grok/config.toml` | TOML | Supported |
+| **CLI** | **OpenCode** | `~/.config/opencode/opencode.jsonc` | JSONC | Supported |
+| **CLI** | **Antigravity / Gemini** | `~/.gemini/config/mcp_config.json` | JSON | Supported |
+| **CLI** | **J-Code** | `~/.jcode/servers.json` | JSON | Supported |
+| **CLI** | **Manicode** | `~/.config/manicode/mcp.json` | JSON | Supported |
+| **IDE** | **Cursor** | `~/.cursor/mcp.json` | JSON | Supported |
+| **IDE** | **VS Code** | `~/.vscode/mcp.json` | JSON | Supported |
+| **IDE** | **Windsurf** | `~/.codeium/windsurf/mcp_config.json` | JSON | Supported |
+| **IDE** | **Zed** | `~/.config/zed/settings.json` | JSON | Supported |
+| **IDE** | **JetBrains IDEs** | `~/.config/JetBrains/mcp.json` | JSON | Supported |
+| **IDE** | **Neovim (MCPHub)** | `~/.config/mcphub/servers.json` | JSON | Supported |
+| **IDE** | **Cline** | `~/.config/Code/.../cline_mcp_settings.json` | JSON | Supported |
+| **IDE** | **Roo Code** | `~/.config/Code/.../cline_mcp_settings.json` | JSON | Supported |
+| **IDE** | **Continue.dev** | `~/.continue/config.json` | JSON | Supported |
+| **Chat** | **Claude Desktop** | `~/.config/Claude/claude_desktop_config.json` | JSON | Supported |
+| **Chat** | **LibreChat** | `~/.librechat/librechat.yaml` | YAML | Supported |
+| **Chat** | **AnythingLLM** | `~/.config/anythingllm-desktop/...` | JSON | Supported |
+
+---
+
+## Installation
+
+### From Source (Recommended)
+
+Ensure you have Rust 1.80+ and `cargo` installed:
 
 ```bash
-# 1. Audit and discover all AI clients & running processes
+git clone https://github.com/nordicnode/mcpforge.git
+cd mcpforge
+cargo build --release
+sudo cp target/release/mcpforge /usr/local/bin/
+```
+
+### Quick Cargo Install
+
+```bash
+cargo install --git https://github.com/nordicnode/mcpforge.git
+```
+
+---
+
+## Usage
+
+### Interactive TUI
+
+Launch the full interactive command center:
+
+```bash
+mcpforge
+```
+
+#### Keybindings
+
+| Key | Context | Action |
+| :--- | :--- | :--- |
+| `Tab` / `1` / `2` | Global | Switch between `[1] Servers` and `[2] Clients` views |
+| `j` / `k` or `Down` / `Up` | Navigation | Move cursor through server or client lists |
+| `Space` | Servers View | Toggle server enabled / disabled |
+| `a` | Global | Open Add Server Wizard (4-step provisioning) |
+| `d` / `Delete` / `x` | Global | Open Interactive Server Removal Modal |
+| `u` | Global | Sync all servers across all detected clients |
+| `r` | Global | Run instant diagnostic health checks & ping latencies |
+| `/` | Dashboard | Fuzzy search configured servers and tags |
+| `?` | Global | Open full interactive keyboard guide |
+| `q` / `Esc` | Global | Quit application |
+
+---
+
+### Command Line Interface
+
+MCPForge provides a scriptable CLI for automation, CI/CD pipelines, and dotfile management:
+
+```bash
+# Discover all installed AI harnesses and client configuration files
 mcpforge discover
 
-# 2. Automated one-command setup: auto-resolves tokens (e.g. from `gh auth token` or `.env`),
-#    installs to all detected clients, and runs immediate verification
-mcpforge setup github
-mcpforge setup sequential-thinking --to freebuff
-mcpforge setup postgres
-
-# 3. View and install curated server packs
-mcpforge pack list
-mcpforge pack install dev-core       # filesystem, git, memory, fetch, sequential-thinking
-mcpforge pack install data           # postgres, mysql, sqlite, mongodb, redis, memory
-mcpforge pack install web-research   # brave-search, tavily, fetch, puppeteer, playwright
-mcpforge pack install cloud-dev      # docker, kubernetes, aws, cloudflare, sentry, datadog
-mcpforge pack install productivity   # linear, notion, slack, discord, google-drive, todoist
-mcpforge pack install ai-agent       # memory, sequential-thinking, context7, time, fetch, filesystem
-mcpforge pack install full-stack     # filesystem, git, github, postgres, redis, docker, fetch
-mcpforge pack install enterprise     # github, gitlab, jira, slack, sentry, kubernetes
-
-# 4. List all configured servers across all clients
+# List all configured MCP servers and client associations
 mcpforge list
 
-# 5. Automatically sync all configured servers across all detected clients
-mcpforge sync --auto
+# Run diagnostic health checks and measure latency for all servers
+mcpforge doctor
 
-# 6. Run diagnostic health checks with automated repair
-mcpforge doctor --fix
+# Add a server from the curated catalog to all installed clients
+mcpforge setup postgres
 
-# 7. Export/Import configurations (secrets masked by default)
-mcpforge export --output mcp-backup.json
-mcpforge import mcp-backup.json
+# Add a server to specific clients only
+mcpforge setup github --to freebuff,deepseek,claude-code
+
+# Remove a server across all clients
+mcpforge remove brave-search --all
+
+# Export multi-client setup to a portable JSON pack
+mcpforge pack export --output my-team-mcp.json
+
+# Import and provision an MCP pack onto a new system
+mcpforge pack import my-team-mcp.json --apply
 ```
 
 ---
 
-## Interactive Terminal UI (TUI)
+## Architecture
 
-Launch the dashboard:
+MCPForge is built as a modular Cargo workspace designed for speed, safety, and extensibility:
 
-```bash
-cargo run -p mcpforge
 ```
-
-### Keybindings
-- `j` / `Down`: Move cursor down
-- `k` / `Up`: Move cursor up
-- `u`: **Auto-Sync** all servers across all detected clients in one keystroke
-- `r`: Run diagnostic health check on selected server
-- `a`: Open Add Server Wizard (Registry / JSON paste / Manual) with diff preview
-- `d`: Delete selected server
-- `Space`: Toggle server enable / disable
-- `/`: Filter servers
-- `?`: Help overlay
-- `q`: Quit
+mcptui/
+├── crates/
+│   ├── mcp-core/              # MCP protocol primitives, JSON-RPC 2.0, Transports (Stdio, HTTP, SSE)
+│   ├── mcpforge-adapters/     # 26 client adapters, format AST engines, atomic backup system
+│   ├── mcpforge-registry/     # Embedded registry with 110+ curated server catalog entries
+│   └── mcpforge/              # Ratatui TUI application, CLI dispatch, process watcher
+├── catalog/
+│   └── default_registry.json  # Curated catalog definitions and environment mappings
+├── assets/
+│   └── screenshots/           # High-resolution retina terminal captures
+└── scripts/
+    └── render_screenshots.py  # Headless PIL screenshot generation engine
+```
 
 ---
 
-## Testing & Quality Gates
+## Contributing
 
-```bash
-# Workspace unit and integration tests
-cargo test --workspace
+Contributions, bug reports, and new client adapter submissions are welcome!
 
-# Strict clippy linting
-cargo clippy --workspace --all-targets -- -D warnings
-
-# Formatting check
-cargo fmt --all -- --check
-```
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/my-new-adapter`)
+3. Commit your changes (`git commit -m 'feat(adapter): add support for MyClient'`)
+4. Verify tests and linting:
+   ```bash
+   cargo fmt --all && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace
+   ```
+5. Push to your branch and open a Pull Request
 
 ---
 
 ## License
 
-MIT
+Distributed under the MIT License. See `LICENSE` for details.

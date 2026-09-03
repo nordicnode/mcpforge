@@ -5,9 +5,17 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
+[lib]
+name = "mcpforge"
+path = "src/lib.rs"
+
 [[bin]]
 name = "mcpforge"
 path = "src/main.rs"
+
+[[bin]]
+name = "screenshots"
+path = "src/bin/screenshots.rs"
 
 [dependencies]
 mcp-core = { path = "../mcp-core" }
