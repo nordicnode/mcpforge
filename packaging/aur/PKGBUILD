@@ -1,6 +1,6 @@
 # Maintainer: NordicNode <support@nordicnode.com>
 pkgname=mcpforge-bin
-pkgver=0.2.0
+pkgver=0.2.1
 pkgrel=1
 pkgdesc="The fast, zero-runtime TUI that discovers every MCP client on your machine and syncs them all"
 arch=('x86_64' 'aarch64')
