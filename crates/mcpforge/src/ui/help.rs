@@ -1,5 +1,5 @@
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Color, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Clear, Paragraph, Wrap};
 use ratatui::Frame;
@@ -8,65 +8,88 @@ use crate::ui::theme::Theme;
 
 pub fn render_help(f: &mut Frame) {
     let theme = Theme::default();
-    let area = centered_rect(68, 80, f.area());
+    let area = centered_rect(72, 85, f.area());
     f.render_widget(Clear, area);
 
     let block = Block::default()
-        .title(" HELP & KEYBINDINGS ")
+        .title(" 💡 MCPFORGE HELP & INTERACTIVE GUIDE ")
         .title_style(theme.title)
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Cyan));
+        .border_type(theme.border_type)
+        .border_style(theme.border_focus);
 
     let inner = block.inner(area);
     f.render_widget(block, area);
 
     let shortcuts = [
-        ("Dashboard Navigation", ""),
-        ("  j / Down", "Move cursor down"),
-        ("  k / Up", "Move cursor up"),
-        ("  r", "Run health checks on current servers"),
-        ("  / ", "Search and filter servers"),
+        ("⚡ Dashboard Navigation", ""),
+        ("  j / Down", "Move selection cursor down"),
+        ("  k / Up", "Move selection cursor up"),
         ("  Space", "Toggle server enabled / disabled"),
-        ("  d", "Delete selected server from clients"),
+        ("  r", "Run instant diagnostic health checks on servers"),
+        ("  / ", "Fuzzy search and filter configured servers"),
+        ("  u", "Auto-sync all servers across detected clients"),
+        ("  d", "Delete selected server from client configurations"),
         ("  a", "Open Add Server Wizard"),
-        ("  ?", "Toggle this help screen"),
+        ("  ?", "Toggle this interactive help screen"),
         ("  q / Esc", "Quit MCPForge"),
         ("", ""),
-        ("Clients & Harnesses Tab", ""),
-        ("  Tab / 1 / 2", "Switch between Servers and Clients views"),
-        ("  u", "Sync all servers into selected client"),
-        ("  r", "Rescan running OS processes"),
+        ("🤖 Clients & Harnesses View", ""),
+        (
+            "  Tab / 1 / 2",
+            "Toggle between [1] Servers and [2] Clients views",
+        ),
+        ("  j / k", "Navigate through detected AI client harnesses"),
+        ("  u", "Sync all servers directly into selected client"),
+        ("  r", "Rescan OS process table for live AI clients"),
         ("", ""),
-        ("Client Status Lifecycle", ""),
-        ("  ● ACTIVE", "Process running + config active on disk"),
-        ("  ○ READY", "Configured on disk (idle). Loaded on launch"),
-        ("  ● RUNNING", "Process running, but no config file yet"),
+        ("🚦 Client Lifecycle & Status Legend", ""),
+        (
+            "  ● ACTIVE",
+            "Application process running + config file active on disk",
+        ),
+        (
+            "  ○ READY",
+            "Configured on disk (idle). Loaded on next client launch",
+        ),
+        (
+            "  ● RUNNING",
+            "Process running, but needs config file. Press [u] to setup",
+        ),
         (
             "  · AVAILABLE",
-            "Adapter supported; not installed/configured",
+            "Supported adapter. Not yet installed or configured",
         ),
         ("", ""),
-        ("Add Wizard", ""),
-        ("  Up / Down", "Navigate options and catalog entries"),
-        ("  Space", "Toggle target client selection"),
-        ("  Enter", "Proceed to next step / Apply changes"),
-        ("  Esc", "Cancel wizard and return to dashboard"),
+        ("🚀 Add Server Wizard", ""),
+        ("  j / k / Up / Down", "Navigate catalog entries or options"),
+        ("  Space", "Toggle target client selection in Step 3"),
+        ("  a / n", "Select all clients (a) / deselect all (n)"),
+        (
+            "  Enter",
+            "Proceed to next step / Apply atomic write & backups",
+        ),
+        ("  Esc", "Return to previous step / Cancel wizard"),
+        ("", ""),
+        ("Press [Esc], [?], or [q] to close this help window.", ""),
     ];
 
     let lines: Vec<Line> = shortcuts
         .iter()
         .map(|(key, desc)| {
             if desc.is_empty() {
-                Line::styled(
-                    *key,
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
-                )
+                if key.starts_with("Press") {
+                    Line::styled(*key, theme.key_shortcut)
+                } else {
+                    Line::styled(*key, theme.header)
+                }
             } else {
                 Line::from(vec![
-                    Span::styled(format!("{:<14}", key), Style::default().fg(Color::Cyan)),
-                    Span::raw(*desc),
+                    Span::styled(
+                        format!("{:<20}", key),
+                        Style::default().fg(Color::Rgb(139, 233, 253)),
+                    ),
+                    Span::styled(*desc, Style::default().fg(Color::White)),
                 ])
             }
         })

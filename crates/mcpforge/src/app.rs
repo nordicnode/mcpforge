@@ -38,6 +38,7 @@ pub struct WizardState {
     pub args: String,
     pub pasted_json: String,
     pub target_locations: Vec<(ConfigLocation, bool)>,
+    pub target_cursor: usize,
     pub diff_preview: String,
     pub error_message: Option<String>,
 }
@@ -218,6 +219,7 @@ impl App {
             args: String::new(),
             pasted_json: String::new(),
             target_locations: locations,
+            target_cursor: 0,
             diff_preview: String::new(),
             error_message: None,
         });

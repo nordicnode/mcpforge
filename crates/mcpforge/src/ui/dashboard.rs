@@ -53,6 +53,8 @@ fn render_server_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             };
 
             let is_selected = real_idx == app.selected_index;
+            let cursor = if is_selected { "▶ " } else { "  " };
+
             let name_style = if is_selected {
                 theme.selected
             } else if !server.enabled {
@@ -61,14 +63,25 @@ fn render_server_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
                 Style::default().fg(Color::White)
             };
 
+            let client_count = server.clients.len();
             let line = Line::from(vec![
-                Span::styled(format!(" {} ", icon), icon_style),
+                Span::styled(
+                    cursor,
+                    if is_selected {
+                        theme.title
+                    } else {
+                        theme.muted
+                    },
+                ),
+                Span::styled(format!("{} ", icon), icon_style),
                 Span::styled(&server.id, name_style),
                 Span::raw(" "),
                 Span::styled(
-                    format!("({})", server.transport.transport_type_str()),
-                    theme.muted,
+                    format!("[{}]", server.transport.transport_type_str()),
+                    Style::default().fg(Color::Rgb(139, 233, 253)),
                 ),
+                Span::raw(" "),
+                Span::styled(format!("({} clients)", client_count), theme.muted),
             ]);
 
             ListItem::new(line)
@@ -76,15 +89,20 @@ fn render_server_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         .collect();
 
     let title = if total > 0 {
-        format!(" SERVERS ({}/{}) ", app.selected_index + 1, total)
+        format!(
+            " 📦 CONFIGURED SERVERS ({}/{}) ",
+            app.selected_index + 1,
+            total
+        )
     } else {
-        " SERVERS (0/0) ".to_string()
+        " 📦 CONFIGURED SERVERS (0/0) ".to_string()
     };
 
     let list_block = Block::default()
         .title(title)
         .title_style(theme.title)
         .borders(Borders::ALL)
+        .border_type(theme.border_type)
         .border_style(theme.border);
 
     let list = List::new(items)
@@ -96,15 +114,16 @@ fn render_server_list(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
 fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     let block = Block::default()
-        .title(" DETAILS & CLIENT STATUS ")
+        .title(" 🔍 SERVER INSPECTOR & CLIENT STATUS ")
         .title_style(theme.title)
         .borders(Borders::ALL)
+        .border_type(theme.border_type)
         .border_style(theme.border);
 
     let server = match app.selected_server() {
         Some(s) => s,
         None => {
-            let empty = Paragraph::new("No servers configured or none match search filter.\nPress [a] to add an MCP server.")
+            let empty = Paragraph::new("\n  No servers configured or none match search filter.\n\n  • Press [a] to launch the Add Server Wizard.\n  • Press [Tab] to view discovered Clients & Harnesses.")
                 .block(block)
                 .style(theme.muted);
             f.render_widget(empty, area);
@@ -114,44 +133,59 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     let mut lines = Vec::new();
 
-    // 1. Title & ID
+    // 1. Overview Card
+    let (status_badge, status_style) = if server.enabled {
+        ("ENABLED", theme.status_healthy)
+    } else {
+        ("DISABLED", theme.status_disabled)
+    };
+
     lines.push(Line::from(vec![
-        Span::styled(
-            "Server: ",
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        ),
+        Span::styled("● ", status_style),
         Span::styled(
             &server.id,
             Style::default()
                 .fg(Color::White)
                 .add_modifier(Modifier::BOLD),
         ),
+        Span::raw("  "),
+        Span::styled(format!("[{}]", status_badge), status_style),
+        Span::raw("  "),
+        Span::styled(
+            format!("Transport: {}", server.transport.transport_type_str()),
+            Style::default().fg(Color::Rgb(189, 147, 249)),
+        ),
     ]));
     lines.push(Line::raw(""));
 
-    // 2. Transport Details
+    // 2. Command & Execution Configuration
+    lines.push(Line::from(vec![Span::styled(
+        "⚙️  EXECUTION CONFIGURATION",
+        theme.header,
+    )]));
+
     match &server.transport {
         Transport::Stdio { command, args, env } => {
             lines.push(Line::from(vec![
-                Span::styled("Transport: ", Style::default().fg(Color::Cyan)),
-                Span::raw("stdio"),
-            ]));
-            lines.push(Line::from(vec![
-                Span::styled("  Command: ", Style::default().fg(Color::LightBlue)),
+                Span::styled(
+                    "  Command: ",
+                    Style::default().fg(Color::Rgb(139, 233, 253)),
+                ),
                 Span::styled(command, Style::default().fg(Color::White)),
             ]));
             if !args.is_empty() {
                 lines.push(Line::from(vec![
-                    Span::styled("  Args:    ", Style::default().fg(Color::LightBlue)),
-                    Span::raw(args.join(" ")),
+                    Span::styled(
+                        "  Args:    ",
+                        Style::default().fg(Color::Rgb(139, 233, 253)),
+                    ),
+                    Span::styled(args.join(" "), Style::default().fg(Color::White)),
                 ]));
             }
             if !env.is_empty() {
                 lines.push(Line::from(vec![Span::styled(
-                    "  Env:     ",
-                    Style::default().fg(Color::LightBlue),
+                    "  Env Vars:",
+                    Style::default().fg(Color::Rgb(139, 233, 253)),
                 )]));
                 for (k, v) in env {
                     let display_v = if is_secret_key(k) {
@@ -161,8 +195,8 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
                     };
                     lines.push(Line::from(vec![
                         Span::raw("    • "),
-                        Span::styled(k, Style::default().fg(Color::LightCyan)),
-                        Span::raw("="),
+                        Span::styled(k, Style::default().fg(Color::Rgb(241, 250, 140))),
+                        Span::raw(" = "),
                         Span::styled(display_v, Style::default().fg(Color::DarkGray)),
                     ]));
                 }
@@ -170,17 +204,16 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         }
         Transport::StreamableHttp { url, headers } => {
             lines.push(Line::from(vec![
-                Span::styled("Transport: ", Style::default().fg(Color::Cyan)),
-                Span::raw("Streamable HTTP"),
-            ]));
-            lines.push(Line::from(vec![
-                Span::styled("  URL:     ", Style::default().fg(Color::LightBlue)),
+                Span::styled(
+                    "  Endpoint URL: ",
+                    Style::default().fg(Color::Rgb(139, 233, 253)),
+                ),
                 Span::styled(url, Style::default().fg(Color::White)),
             ]));
             if !headers.is_empty() {
                 lines.push(Line::from(vec![Span::styled(
-                    "  Headers: ",
-                    Style::default().fg(Color::LightBlue),
+                    "  Headers:      ",
+                    Style::default().fg(Color::Rgb(139, 233, 253)),
                 )]));
                 for (k, v) in headers {
                     let display_v = if is_secret_key(k) {
@@ -190,7 +223,7 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
                     };
                     lines.push(Line::from(vec![
                         Span::raw("    • "),
-                        Span::styled(k, Style::default().fg(Color::LightCyan)),
+                        Span::styled(k, Style::default().fg(Color::Rgb(241, 250, 140))),
                         Span::raw(": "),
                         Span::styled(display_v, Style::default().fg(Color::DarkGray)),
                     ]));
@@ -199,15 +232,13 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         }
         Transport::Sse { url } => {
             lines.push(Line::from(vec![
-                Span::styled("Transport: ", Style::default().fg(Color::Cyan)),
                 Span::styled(
-                    "SSE (Legacy - Deprecated)",
-                    Style::default().fg(Color::Yellow),
+                    "  Endpoint URL: ",
+                    Style::default().fg(Color::Rgb(139, 233, 253)),
                 ),
-            ]));
-            lines.push(Line::from(vec![
-                Span::styled("  URL:     ", Style::default().fg(Color::LightBlue)),
                 Span::styled(url, Style::default().fg(Color::White)),
+                Span::raw(" "),
+                Span::styled("(Legacy SSE)", theme.status_degraded),
             ]));
         }
     }
@@ -215,10 +246,8 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     // 3. Client Installation Matrix
     lines.push(Line::from(vec![Span::styled(
-        "Installed In: ",
-        Style::default()
-            .fg(Color::Yellow)
-            .add_modifier(Modifier::BOLD),
+        "🎯  INSTALLED IN CLIENTS & HARNESSES",
+        theme.header,
     )]));
 
     let mut rendered_any = false;
@@ -231,14 +260,9 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
         rendered_any = true;
         let (check_icon, check_style) = if is_installed {
-            (
-                "✓",
-                Style::default()
-                    .fg(Color::Green)
-                    .add_modifier(Modifier::BOLD),
-            )
+            ("✓", theme.status_healthy)
         } else {
-            ("✗", Style::default().fg(Color::DarkGray))
+            ("✗", theme.muted)
         };
 
         let is_running = app.running_processes.contains(&client.client_id);
@@ -249,16 +273,11 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         ];
 
         if is_running {
-            client_spans.push(Span::styled(
-                " [RUNNING]",
-                Style::default()
-                    .fg(Color::Green)
-                    .add_modifier(Modifier::BOLD),
-            ));
+            client_spans.push(Span::styled(" [ACTIVE]", theme.pill_active));
         }
 
         client_spans.push(Span::styled(
-            format!(" ({})", client.path.display()),
+            format!(" · {}", client.path.display()),
             theme.muted,
         ));
         lines.push(Line::from(client_spans));
@@ -268,19 +287,17 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         lines.push(Line::from(vec![
             Span::raw("  "),
             Span::styled(
-                "None (server not installed in any detected client)",
+                "None (server not yet installed in any client. Press [u] to sync).",
                 theme.muted,
             ),
         ]));
     }
     lines.push(Line::raw(""));
 
-    // 4. Health Status
+    // 4. Runtime Health Check & Telemetry
     lines.push(Line::from(vec![Span::styled(
-        "Health Check: ",
-        Style::default()
-            .fg(Color::Yellow)
-            .add_modifier(Modifier::BOLD),
+        "🩺  RUNTIME HEALTH & TELEMETRY",
+        theme.header,
     )]));
 
     let health = app
@@ -296,9 +313,9 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             server_name,
             server_version,
         } => (
-            "✓",
+            "●",
             format!(
-                "Healthy · {} v{} · {} tools · {}ms",
+                "Connected & Operational · {} v{} · {} tool(s) exposed · {}ms latency",
                 server_name, server_version, tool_count, latency_ms
             ),
             theme.status_healthy,
@@ -312,10 +329,14 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             )
         }
         HealthStatus::Broken { error } => ("✖", format!("Error: {}", error), theme.status_broken),
-        HealthStatus::Disabled => ("○", "Disabled".to_string(), theme.status_disabled),
+        HealthStatus::Disabled => (
+            "○",
+            "Server currently disabled by user toggle".to_string(),
+            theme.status_disabled,
+        ),
         HealthStatus::Unknown => (
             "?",
-            "Not checked yet. Press [r] to run health check.".to_string(),
+            "Not checked yet. Press [r] to run instant health check.".to_string(),
             theme.muted,
         ),
     };
@@ -329,7 +350,7 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     if let Some(ref notes) = server.notes {
         lines.push(Line::raw(""));
         lines.push(Line::from(vec![
-            Span::styled("Notes: ", Style::default().fg(Color::LightMagenta)),
+            Span::styled("Notes: ", Style::default().fg(Color::Rgb(189, 147, 249))),
             Span::raw(notes),
         ]));
     }
@@ -342,15 +363,56 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 }
 
 fn render_footer(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
-    let text = if app.is_searching {
-        format!(
-            "Search: {}_ (Enter to apply, Esc to cancel)",
-            app.search_query
-        )
+    let line = if app.is_searching {
+        Line::from(vec![
+            Span::styled(" SEARCH: ", theme.header),
+            Span::styled(
+                &app.search_query,
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled("█", Style::default().fg(Color::Cyan)),
+            Span::styled(" (Press Enter to apply, Esc to clear)", theme.muted),
+        ])
+    } else if let Some(ref msg) = app.status_message {
+        Line::from(vec![
+            Span::styled(" STATUS: ", theme.key_shortcut),
+            Span::styled(
+                msg,
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled("  │  ", theme.muted),
+            Span::styled(
+                "[Tab] Views  [a] Add  [u] Sync  [r] Check Health  [?] Help  [q] Quit",
+                theme.key_hint,
+            ),
+        ])
     } else {
-        "[Tab / 2] Clients View  [a]dd  [u] auto-sync  [d]elete  [r] health  [/]search  [?]help  [q]uit".to_string()
+        Line::from(vec![
+            Span::styled("[Tab]", theme.key_shortcut),
+            Span::raw(" Views  "),
+            Span::styled("[a]", theme.key_shortcut),
+            Span::raw(" Add Server  "),
+            Span::styled("[u]", theme.key_shortcut),
+            Span::raw(" Auto-Sync  "),
+            Span::styled("[Space]", theme.key_shortcut),
+            Span::raw(" Toggle  "),
+            Span::styled("[d]", theme.key_shortcut),
+            Span::raw(" Delete  "),
+            Span::styled("[r]", theme.key_shortcut),
+            Span::raw(" Health  "),
+            Span::styled("[/]", theme.key_shortcut),
+            Span::raw(" Search  "),
+            Span::styled("[?]", theme.key_shortcut),
+            Span::raw(" Help  "),
+            Span::styled("[q]", theme.key_shortcut),
+            Span::raw(" Quit"),
+        ])
     };
 
-    let p = Paragraph::new(text).style(theme.key_hint);
+    let p = Paragraph::new(line);
     f.render_widget(p, area);
 }

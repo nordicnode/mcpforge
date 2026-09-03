@@ -694,11 +694,32 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                 },
 
                                 WizardStep::SelectTargets => match key.code {
+                                    KeyCode::Up | KeyCode::Char('k') => {
+                                        if wizard.target_cursor > 0 {
+                                            wizard.target_cursor -= 1;
+                                        }
+                                    }
+                                    KeyCode::Down | KeyCode::Char('j') => {
+                                        if wizard.target_cursor + 1 < wizard.target_locations.len()
+                                        {
+                                            wizard.target_cursor += 1;
+                                        }
+                                    }
                                     KeyCode::Char(' ') => {
                                         if let Some((_, selected)) =
-                                            wizard.target_locations.first_mut()
+                                            wizard.target_locations.get_mut(wizard.target_cursor)
                                         {
                                             *selected = !*selected;
+                                        }
+                                    }
+                                    KeyCode::Char('a') => {
+                                        for (_, selected) in &mut wizard.target_locations {
+                                            *selected = true;
+                                        }
+                                    }
+                                    KeyCode::Char('n') => {
+                                        for (_, selected) in &mut wizard.target_locations {
+                                            *selected = false;
                                         }
                                     }
                                     KeyCode::Enter => {
