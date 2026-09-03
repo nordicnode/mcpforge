@@ -5,6 +5,7 @@
 </p>
 
 <p align="center">
+  <img src="https://github.com/nordicnode/mcpforge/actions/workflows/ci.yml/badge.svg" alt="CI" />
   <img src="https://img.shields.io/badge/Rust-2021_Edition-orange.svg?style=flat-square&logo=rust" alt="Rust 2021" />
   <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License MIT" />
   <img src="https://img.shields.io/badge/Supported_Clients-26_Harnesses-purple.svg?style=flat-square" alt="26 Supported Clients" />

@@ -1,3 +1,54 @@
+# Rust build artifacts
 /target
+Cargo.lock
+
+# Backup files
 *.bak
+*.bak.*
+
+# Environment and secrets
+.env
+.env.*
+*.key
+*.pem
+*.token
+
+# Local client test directories and mock configs
+.agents/
+.deepseek/
+.freebuff/
+.goose/
+.hermes/
+.letta/
+.openclaw/
+.prime/
+.claude/
+.gemini/
+.vscode/
+.cursor/
+.continue/
+.jcode/
+.grok/
+.codex/
+.opencode/
+
+# Root test configs
+*.json
+*.yaml
+*.yml
+*.toml
+!Cargo.toml
+!crates/**/Cargo.toml
+!catalog/default_registry.json
+!.github/**
+
+# Screenshots temp data
+screenshot_*.json
+
+# OS and IDE files
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
