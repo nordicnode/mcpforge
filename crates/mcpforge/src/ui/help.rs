@@ -8,7 +8,7 @@ use crate::ui::theme::Theme;
 
 pub fn render_help(f: &mut Frame) {
     let theme = Theme::default();
-    let area = centered_rect(65, 70, f.area());
+    let area = centered_rect(68, 80, f.area());
     f.render_widget(Clear, area);
 
     let block = Block::default()
@@ -31,6 +31,20 @@ pub fn render_help(f: &mut Frame) {
         ("  a", "Open Add Server Wizard"),
         ("  ?", "Toggle this help screen"),
         ("  q / Esc", "Quit MCPForge"),
+        ("", ""),
+        ("Clients & Harnesses Tab", ""),
+        ("  Tab / 1 / 2", "Switch between Servers and Clients views"),
+        ("  u", "Sync all servers into selected client"),
+        ("  r", "Rescan running OS processes"),
+        ("", ""),
+        ("Client Status Lifecycle", ""),
+        ("  ● ACTIVE", "Process running + config active on disk"),
+        ("  ○ READY", "Configured on disk (idle). Loaded on launch"),
+        ("  ● RUNNING", "Process running, but no config file yet"),
+        (
+            "  · AVAILABLE",
+            "Adapter supported; not installed/configured",
+        ),
         ("", ""),
         ("Add Wizard", ""),
         ("  Up / Down", "Navigate options and catalog entries"),

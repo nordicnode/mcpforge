@@ -18,7 +18,7 @@ pub fn render_clients_view(f: &mut Frame, app: &App) {
         .constraints([
             Constraint::Length(3), // Header & Tab bar
             Constraint::Min(10),   // Content split
-            Constraint::Length(1), // Footer
+            Constraint::Length(2), // Footer (Legend + Key hints)
         ])
         .split(f.area());
 
@@ -229,41 +229,66 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     ]));
     lines.push(Line::raw(""));
 
-    // Status Row
-    let (status_text, status_style) = if client.is_running && client.is_installed {
+    // Status Row with Explicit Breakdown
+    let (status_badge, status_title, status_style, meaning_text, next_action) = if client.is_running
+        && client.is_installed
+    {
         (
-            "ACTIVE (Process is currently running and configuration is installed)",
-            Style::default()
-                .fg(Color::Green)
-                .add_modifier(Modifier::BOLD),
-        )
+                "● ACTIVE",
+                "Live Process Running & Configuration Active",
+                Style::default().fg(Color::Green).add_modifier(Modifier::BOLD),
+                "The client application is actively running on this OS and reading this configuration. Servers synced here can be used in your live session.",
+                "Press [u] to sync all servers to this client's active session.",
+            )
     } else if client.is_running {
         (
-            "RUNNING (Process is currently active on system; unconfigured)",
-            Style::default()
-                .fg(Color::Cyan)
-                .add_modifier(Modifier::BOLD),
-        )
+                "● RUNNING (UNCONFIGURED)",
+                "Live Process Detected, but No MCP Config File Yet",
+                Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                "The application is actively running on your machine, but hasn't had an MCP configuration file created yet.",
+                "Press [u] to initialize the config and sync your MCP servers into it immediately.",
+            )
     } else if client.is_installed {
         (
-            "INSTALLED (Configuration file exists on disk; idle)",
-            Style::default().fg(Color::LightBlue),
-        )
+                "○ READY (CONFIGURED)",
+                "MCP Configuration Exists on Disk (Process Idle)",
+                Style::default().fg(Color::LightBlue).add_modifier(Modifier::BOLD),
+                "The application has an MCP configuration file on disk, but is not currently running. Servers will be loaded automatically on next launch.",
+                "Press [u] to update or sync servers ahead of your next session.",
+            )
     } else {
         (
-            "AVAILABLE (Client adapter ready; not configured)",
-            Style::default().fg(Color::DarkGray),
-        )
+                "· AVAILABLE",
+                "Adapter Supported by MCPForge (Unconfigured)",
+                Style::default().fg(Color::DarkGray),
+                "MCPForge has built-in support for this AI harness, but neither an active process nor an MCP configuration file was detected on this system.",
+                "Press [u] or select this client in the Add Wizard to provision its configuration file.",
+            )
     };
 
     lines.push(Line::from(vec![
-        Span::styled("Status: ", Style::default().fg(Color::Yellow)),
-        Span::styled(status_text, status_style),
+        Span::styled(
+            "Status:   ",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(format!("[{}] ", status_badge), status_style),
+        Span::styled(status_title, Style::default().fg(Color::White)),
     ]));
+    lines.push(Line::from(vec![
+        Span::styled("Meaning:  ", Style::default().fg(Color::Yellow)),
+        Span::styled(meaning_text, Style::default().fg(Color::White)),
+    ]));
+    lines.push(Line::from(vec![
+        Span::styled("Action:   ", Style::default().fg(Color::Yellow)),
+        Span::styled(next_action, Style::default().fg(Color::LightCyan)),
+    ]));
+    lines.push(Line::raw(""));
 
     // Configuration Path
     lines.push(Line::from(vec![
-        Span::styled("Config Path: ", Style::default().fg(Color::Yellow)),
+        Span::styled("Config:   ", Style::default().fg(Color::Yellow)),
         Span::styled(
             client.config_path.display().to_string(),
             Style::default().fg(Color::White),
@@ -272,9 +297,12 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     let on_path = DiscoveryEngine::is_client_installed(&client.id);
     lines.push(Line::from(vec![
-        Span::styled("Binary on PATH: ", Style::default().fg(Color::Yellow)),
+        Span::styled("Binary:   ", Style::default().fg(Color::Yellow)),
         if on_path {
-            Span::styled("✓ Detected on $PATH", Style::default().fg(Color::Green))
+            Span::styled(
+                "✓ Executable detected on $PATH",
+                Style::default().fg(Color::Green),
+            )
         } else {
             Span::styled("✗ Not found on $PATH", Style::default().fg(Color::DarkGray))
         },
@@ -283,7 +311,11 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 
     // Configured Servers Header
     lines.push(Line::from(vec![Span::styled(
-        format!("Configured Servers ({}):", client.server_count),
+        format!(
+            "Configured Servers in this Client ({}/{}):",
+            client.server_count,
+            app.servers.len()
+        ),
         Style::default()
             .fg(Color::Yellow)
             .add_modifier(Modifier::BOLD),
@@ -327,15 +359,6 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         }
     }
 
-    lines.push(Line::raw(""));
-    lines.push(Line::from(vec![
-        Span::styled("Quick Actions: ", Style::default().fg(Color::Yellow)),
-        Span::styled(
-            "[u] Sync all servers here   [r] Rescan processes   [Tab] Switch view",
-            theme.muted,
-        ),
-    ]));
-
     let p = Paragraph::new(lines)
         .block(block)
         .wrap(Wrap { trim: false });
@@ -343,7 +366,41 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
 }
 
 fn render_clients_footer(f: &mut Frame, area: Rect, theme: &Theme) {
-    let text = "[Tab / 1] Servers View   [j/k] Navigate   [u] Sync to Client   [r] Rescan   [?] Help   [q] Quit";
-    let p = Paragraph::new(text).style(theme.key_hint);
+    let legend = Line::from(vec![
+        Span::styled(
+            "Legend: ",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            "[● ACTIVE] ",
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("Running + Configured  ", Style::default().fg(Color::White)),
+        Span::styled(
+            "[○ READY] ",
+            Style::default()
+                .fg(Color::LightBlue)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("Configured (Idle)  ", Style::default().fg(Color::White)),
+        Span::styled("[· AVAIL] ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            "Supported Adapter (Unconfigured)",
+            Style::default().fg(Color::DarkGray),
+        ),
+    ]);
+
+    let key_hints = Line::from(vec![
+        Span::styled(
+            "[Tab/1] Servers View   [j/k] Navigate   [u] Sync to Client   [r] Rescan   [?] Help   [q] Quit",
+            theme.key_hint,
+        ),
+    ]);
+
+    let p = Paragraph::new(vec![legend, key_hints]);
     f.render_widget(p, area);
 }
