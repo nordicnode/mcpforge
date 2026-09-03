@@ -1,0 +1,26 @@
+name: Catalog Provenance & Link Audit
+
+on:
+  schedule:
+    # Run every Monday at 00:00 UTC
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+  push:
+    branches: [ master, main ]
+    paths:
+      - 'catalog/**'
+      - 'crates/mcpforge-registry/**'
+
+jobs:
+  audit-catalog:
+    name: Verify Catalog Source URLs & Metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run Catalog Link & Provenance Audit
+        run: cargo run -p mcpforge-registry --bin catalog-audit

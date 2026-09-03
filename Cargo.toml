@@ -12,6 +12,11 @@ version = "0.1.0"
 edition = "2021"
 authors = ["MCPForge Contributors"]
 license = "MIT"
+repository = "https://github.com/nordicnode/mcpforge"
+homepage = "https://github.com/nordicnode/mcpforge"
+readme = "README.md"
+keywords = ["mcp", "tui", "ratatui", "ai-agents", "developer-tools"]
+categories = ["command-line-utilities", "development-tools"]
 
 [workspace.dependencies]
 tokio = { version = "1.43", features = ["full"] }

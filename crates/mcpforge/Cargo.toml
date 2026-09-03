@@ -4,7 +4,19 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "../../README.md"
+description = "The fast, zero-runtime TUI that discovers every MCP client on your machine and syncs them all"
 default-run = "mcpforge"
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }.{ archive-format }"
+bin-dir = "{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"
 
 [lib]
 name = "mcpforge"
@@ -19,9 +31,9 @@ name = "screenshots"
 path = "src/bin/screenshots.rs"
 
 [dependencies]
-mcp-core = { path = "../mcp-core" }
-mcpforge-adapters = { path = "../mcpforge-adapters" }
-mcpforge-registry = { path = "../mcpforge-registry" }
+mcp-core = { package = "mcpforge-core", path = "../mcp-core", version = "0.1.0" }
+mcpforge-adapters = { path = "../mcpforge-adapters", version = "0.1.0" }
+mcpforge-registry = { path = "../mcpforge-registry", version = "0.1.0" }
 tokio.workspace = true
 serde.workspace = true
 serde_json.workspace = true

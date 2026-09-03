@@ -4,9 +4,12 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Multi-client configuration adapters for Model Context Protocol (MCP)"
 
 [dependencies]
-mcp-core = { path = "../mcp-core" }
+mcp-core = { package = "mcpforge-core", path = "../mcp-core", version = "0.1.0" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

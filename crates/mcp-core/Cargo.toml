@@ -1,9 +1,12 @@
 [package]
-name = "mcp-core"
+name = "mcpforge-core"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Core protocol types and stdio/http transports for Model Context Protocol (MCP)"
 
 [dependencies]
 tokio.workspace = true

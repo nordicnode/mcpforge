@@ -51,20 +51,20 @@ As the Model Context Protocol ecosystem has grown, every AI client, autonomous a
 
 ## Why MCPForge?
 
-| Capability | **MCPForge** | mcpm.sh / mcpman | mcps / APM |
-| :--- | :---: | :---: | :---: |
-| **Interface** | **Interactive TUI + Scriptable CLI** | Pure CLI | Pure CLI |
-| **Runtime** | **Single native binary (Rust, zero Node.js)** | Node.js / npm | Python or Node.js |
-| **Client Process Discovery** | **Live OS process watcher + scanner** | Manual | None |
-| **Client Ecosystem** | **26 Clients (JSON, JSONC, YAML, TOML)** | 1–3 Clients | 1–4 Clients |
-| **Format Preservation** | **Non-destructive AST round-tripping** | Overwrites or clobbers | Clobbers root keys |
-| **Comment Resilience** | **Zero-loss JSONC comment tolerance** | Strips or crashes | Strips or crashes |
-| **Diff Preview** | **Unified color diff before disk write** | None | None |
-| **Configuration Rollback** | **Instant 1-command snapshot restore** | None | None |
-| **Targeted Testing** | **Live handshake sandbox (`mcpforge test`)** | None | None |
-| **Schema Drift Audit** | **`mcpforge verify` built-in** | None | None |
-| **Catalog Provenance** | **110 audited servers with source URL & audit dates** | Unverified / Partial | Unverified |
-| **Self-Healing Doctor** | **Sub-millisecond ping + safe auto-fix** | Basic ping | None |
+| Capability | **MCPForge** | **mcpm** (mcpm.sh) | **mcpman** | **Microsoft APM** | **mcps** |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Interface** | **Interactive TUI + Scriptable CLI** | Pure CLI | Pure CLI | Pure CLI | Pure CLI |
+| **Runtime** | **Single native binary (Rust, zero Node.js)** | Node.js / npm | Node.js / npm | Python 3 | Node.js / npm |
+| **Supported Clients** | **26 Clients (JSON, JSONC, YAML, TOML)** | 2 Clients | 3 Clients | 1 Client | 2 Clients |
+| **Client Process Discovery** | **Live OS process watcher + scanner** | None (manual) | None | None | None |
+| **Format Preservation** | **Non-destructive AST round-tripping** | Clobbers root keys | Overwrites config | Specific format only | Drops unmanaged keys |
+| **Comment Resilience** | **Zero-loss JSONC comment tolerance** | Crashes / strips | Strips comments | N/A | Strips comments |
+| **Diff Preview** | **Unified color diff before disk write** | None | None | None | None |
+| **Configuration Rollback** | **Instant 1-command snapshot restore** | None | None | None | None |
+| **Targeted Testing** | **Live handshake sandbox (`mcpforge test`)** | None | None | None | None |
+| **Schema Drift Audit** | **`mcpforge verify` built-in** | None | None | None | None |
+| **Catalog Provenance** | **110 audited servers with upstream audit dates** | Unverified list | Unverified list | Microsoft-only subset | Unverified registry |
+| **Self-Healing Doctor** | **Sub-millisecond ping + safe auto-fix** | None | Basic ping | None | None |
 
 ---
 
@@ -180,6 +180,26 @@ curl -fsSL https://github.com/nordicnode/mcpforge/releases/latest/download/mcpfo
 sudo mv mcpforge /usr/local/bin/
 ```
 
+### Package Managers
+
+#### cargo-binstall (Instant pre-compiled binary install)
+```bash
+cargo binstall mcpforge
+```
+
+#### Homebrew (macOS & Linux)
+```bash
+brew tap nordicnode/tap https://github.com/nordicnode/mcpforge
+brew install mcpforge
+```
+
+#### Arch Linux & CachyOS (AUR)
+```bash
+paru -S mcpforge-bin
+# or
+yay -S mcpforge-bin
+```
+
 ### Build from Source
 
 Ensure you have Rust 1.80+ and `cargo` installed:
@@ -191,9 +211,11 @@ cargo build --release
 sudo cp target/release/mcpforge /usr/local/bin/
 ```
 
-### Quick Cargo Install
+### Cargo Install
 
 ```bash
+cargo install mcpforge
+# or from git:
 cargo install --git https://github.com/nordicnode/mcpforge.git
 ```
 

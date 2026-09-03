@@ -1,0 +1,16 @@
+# Maintainer: NordicNode <support@nordicnode.com>
+pkgname=mcpforge-bin
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="The fast, zero-runtime TUI that discovers every MCP client on your machine and syncs them all"
+arch=('x86_64' 'aarch64')
+url="https://github.com/nordicnode/mcpforge"
+license=('MIT')
+provides=('mcpforge')
+conflicts=('mcpforge')
+source_x86_64=("${pkgname}-${pkgver}.tar.gz::https://github.com/nordicnode/mcpforge/releases/download/v${pkgver}/mcpforge-x86_64-unknown-linux-gnu.tar.gz")
+sha256sums_x86_64=('SKIP')
+
+package() {
+    install -Dm755 "${srcdir}/mcpforge" "${pkgdir}/usr/bin/mcpforge"
+}
