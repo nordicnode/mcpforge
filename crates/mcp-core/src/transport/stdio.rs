@@ -14,11 +14,14 @@ use crate::protocol::{
     LATEST_PROTOCOL_VERSION,
 };
 use crate::types::HealthStatus;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 pub struct StdioClient {
     child: Child,
     stdin: ChildStdin,
     reader: tokio::io::Lines<BufReader<ChildStdout>>,
+    stderr_lines: Arc<Mutex<Vec<String>>>,
     next_id: u64,
 }
 
@@ -30,7 +33,42 @@ impl StdioClient {
     ) -> Result<Self> {
         let mut cmd = Command::new(command);
         cmd.args(args);
-        cmd.envs(env);
+
+        // 1. Build sanitized environment: populate missing values from host, and strip empty strings
+        let mut effective_env = BTreeMap::new();
+        for (k, v) in env {
+            if v.trim().is_empty() {
+                if let Ok(host_val) = std::env::var(k) {
+                    if !host_val.trim().is_empty() {
+                        effective_env.insert(k.clone(), host_val);
+                    }
+                }
+            } else {
+                effective_env.insert(k.clone(), v.clone());
+            }
+        }
+
+        // 2. Augment PATH with common user binaries if missing
+        let current_path = std::env::var("PATH").unwrap_or_default();
+        let mut paths: Vec<std::path::PathBuf> = std::env::split_paths(&current_path).collect();
+        if let Some(home) = dirs::home_dir() {
+            let candidates = [
+                home.join(".local/bin"),
+                home.join(".cargo/bin"),
+                std::path::PathBuf::from("/usr/local/bin"),
+                std::path::PathBuf::from("/opt/homebrew/bin"),
+            ];
+            for c in candidates {
+                if c.is_dir() && !paths.contains(&c) {
+                    paths.push(c);
+                }
+            }
+        }
+        if let Ok(new_path) = std::env::join_paths(paths) {
+            effective_env.insert("PATH".to_string(), new_path.to_string_lossy().to_string());
+        }
+
+        cmd.envs(&effective_env);
         cmd.stdin(Stdio::piped());
         cmd.stdout(Stdio::piped());
         cmd.stderr(Stdio::piped());
@@ -49,10 +87,25 @@ impl StdioClient {
             .ok_or_else(|| anyhow!("Failed to open child stdout"))?;
         let reader = BufReader::new(stdout).lines();
 
+        let stderr_lines = Arc::new(Mutex::new(Vec::new()));
+        if let Some(stderr) = child.stderr.take() {
+            let lines_clone = stderr_lines.clone();
+            tokio::spawn(async move {
+                let mut err_reader = BufReader::new(stderr).lines();
+                while let Ok(Some(line)) = err_reader.next_line().await {
+                    let mut guard = lines_clone.lock().await;
+                    if guard.len() < 50 {
+                        guard.push(line);
+                    }
+                }
+            });
+        }
+
         Ok(Self {
             child,
             stdin,
             reader,
+            stderr_lines,
             next_id: 1,
         })
     }
@@ -87,10 +140,19 @@ impl StdioClient {
             }
         }
 
-        Err(anyhow!(
-            "Process stream closed before receiving response for id {}",
-            id
-        ))
+        // Wait briefly for trailing stderr lines to flush
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        let stderr_guard = self.stderr_lines.lock().await;
+        let stderr_msg = stderr_guard.join("\n").trim().to_string();
+
+        if !stderr_msg.is_empty() {
+            Err(anyhow!("Server process error:\n{}", stderr_msg))
+        } else {
+            Err(anyhow!(
+                "Process stream closed before receiving response for id {}",
+                id
+            ))
+        }
     }
 
     pub async fn send_notification(&mut self, method: &str, params: Option<Value>) -> Result<()> {

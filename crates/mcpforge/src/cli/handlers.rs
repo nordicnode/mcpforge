@@ -913,7 +913,8 @@ fn resolve_server_or_catalog(
     resolver: &EnvResolver,
 ) -> Result<ServerEntry> {
     let servers = manager.read_all_servers()?;
-    if let Some(s) = servers.into_iter().find(|s| s.id == id) {
+    if let Some(mut s) = servers.into_iter().find(|s| s.id == id) {
+        resolver.enrich_server_entry(&mut s, registry);
         return Ok(s);
     }
     if let Some(cat) = registry.find_by_id(id) {

@@ -39,6 +39,45 @@ impl EnvResolver {
         (resolved, missing)
     }
 
+    pub fn enrich_server_entry(
+        &self,
+        server: &mut mcp_core::types::ServerEntry,
+        registry: &mcpforge_registry::Registry,
+    ) {
+        let dot_env = Self::scan_dot_env();
+
+        if let mcp_core::types::Transport::Stdio { ref mut env, .. } = server.transport {
+            // 1. Check catalog required_env
+            if let Some(cat) = registry.find_by_id(&server.id) {
+                for req_key in &cat.required_env {
+                    let needs_resolution = match env.get(req_key) {
+                        Some(val) => val.trim().is_empty(),
+                        None => true,
+                    };
+                    if needs_resolution {
+                        if let Some(val) = self.resolve_single_key(req_key, &dot_env) {
+                            env.insert(req_key.clone(), val);
+                        }
+                    }
+                }
+            }
+
+            // 2. For any key in env that has an empty string, attempt resolution or strip
+            let keys: Vec<String> = env.keys().cloned().collect();
+            for k in keys {
+                if let Some(val) = env.get(&k) {
+                    if val.trim().is_empty() {
+                        if let Some(resolved_val) = self.resolve_single_key(&k, &dot_env) {
+                            env.insert(k, resolved_val);
+                        } else {
+                            env.remove(&k);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     fn resolve_single_key(&self, key: &str, dot_env: &BTreeMap<String, String>) -> Option<String> {
         // 1. Check direct process env
         if let Ok(val) = std::env::var(key) {

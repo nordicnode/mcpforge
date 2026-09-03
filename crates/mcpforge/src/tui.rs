@@ -141,7 +141,10 @@ async fn main_loop<B: ratatui::backend::Backend>(
                             }
                         }
                         KeyCode::Char('t') => {
-                            if let Some(server) = app.selected_server().cloned() {
+                            if let Some(mut server) = app.selected_server().cloned() {
+                                let resolver = crate::resolver::EnvResolver::new();
+                                resolver.enrich_server_entry(&mut server, &app.registry);
+
                                 app.tool_explorer_state = Some(crate::app::ToolExplorerState {
                                     server_id: server.id.clone(),
                                     tools: Vec::new(),
@@ -173,7 +176,10 @@ async fn main_loop<B: ratatui::backend::Backend>(
                             }
                         }
                         KeyCode::Char('T') => {
-                            if let Some(server) = app.selected_server().cloned() {
+                            if let Some(mut server) = app.selected_server().cloned() {
+                                let resolver = crate::resolver::EnvResolver::new();
+                                resolver.enrich_server_entry(&mut server, &app.registry);
+
                                 app.status_message = Some(format!(
                                     "Handshake test: Spawning & negotiating with '{}'...",
                                     server.id
@@ -540,8 +546,12 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                         }
                                         terminal.draw(|f| ui::render_ui(f, app))?;
 
+                                        let mut enriched = server.clone();
+                                        let resolver = crate::resolver::EnvResolver::new();
+                                        resolver.enrich_server_entry(&mut enriched, &app.registry);
+
                                         let call_res = mcp_core::client::call_server_tool(
-                                            &server,
+                                            &enriched,
                                             &tool_name,
                                             parsed_args,
                                             15,
