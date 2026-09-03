@@ -149,6 +149,8 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                     is_loading: true,
                                     execution_result: None,
                                     error_message: None,
+                                    params_input: "{}".to_string(),
+                                    is_editing_params: false,
                                 });
                                 app.current_view = CurrentView::ToolExplorer;
                                 terminal.draw(|f| ui::render_ui(f, app))?;
@@ -159,6 +161,7 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                             state.is_loading = false;
                                             state.tools = tools;
                                         }
+                                        app.update_params_for_selected_tool();
                                     }
                                     Err(e) => {
                                         if let Some(ref mut state) = app.tool_explorer_state {
@@ -453,6 +456,40 @@ async fn main_loop<B: ratatui::backend::Backend>(
                         _ => {}
                     },
                     CurrentView::ToolExplorer => {
+                        let is_editing = app
+                            .tool_explorer_state
+                            .as_ref()
+                            .is_some_and(|s| s.is_editing_params);
+
+                        if is_editing {
+                            match key.code {
+                                KeyCode::Esc => {
+                                    if let Some(ref mut s) = app.tool_explorer_state {
+                                        s.is_editing_params = false;
+                                    }
+                                }
+                                KeyCode::Backspace => {
+                                    if let Some(ref mut s) = app.tool_explorer_state {
+                                        s.params_input.pop();
+                                    }
+                                }
+                                KeyCode::Char(c) => {
+                                    if let Some(ref mut s) = app.tool_explorer_state {
+                                        s.params_input.push(c);
+                                    }
+                                }
+                                KeyCode::Enter => {
+                                    if let Some(ref mut s) = app.tool_explorer_state {
+                                        s.is_editing_params = false;
+                                    }
+                                }
+                                _ => {}
+                            }
+                            if key.code != KeyCode::Enter {
+                                continue;
+                            }
+                        }
+
                         match key.code {
                             KeyCode::Esc | KeyCode::Char('q') => {
                                 app.current_view = CurrentView::Dashboard;
@@ -464,17 +501,42 @@ async fn main_loop<B: ratatui::backend::Backend>(
                             KeyCode::Char('k') | KeyCode::Up => {
                                 app.select_prev_tool();
                             }
+                            KeyCode::Char('e') => {
+                                if let Some(ref mut s) = app.tool_explorer_state {
+                                    s.is_editing_params = true;
+                                }
+                            }
+                            KeyCode::Char('r') => {
+                                app.update_params_for_selected_tool();
+                            }
                             KeyCode::Enter => {
                                 if let (Some(server), Some(ref state)) =
                                     (app.selected_server().cloned(), &app.tool_explorer_state)
                                 {
                                     if let Some(tool) = state.tools.get(state.selected_index) {
                                         let tool_name = tool.name.clone();
+                                        let raw_params = state.params_input.clone();
+
+                                        let parsed_args: serde_json::Value =
+                                            match serde_json::from_str(&raw_params) {
+                                                Ok(val) => val,
+                                                Err(err) => {
+                                                    if let Some(ref mut s) =
+                                                        app.tool_explorer_state
+                                                    {
+                                                        s.error_message = Some(format!(
+                                                            "Invalid JSON parameters: {}",
+                                                            err
+                                                        ));
+                                                        s.execution_result = None;
+                                                    }
+                                                    continue;
+                                                }
+                                            };
+
                                         if let Some(ref mut s) = app.tool_explorer_state {
-                                            s.execution_result = Some(
-                                            "Executing tool test with default parameters ({})..."
-                                                .to_string(),
-                                        );
+                                            s.execution_result =
+                                                Some(format!("Executing tool '{}'...", tool_name));
                                             s.error_message = None;
                                         }
                                         terminal.draw(|f| ui::render_ui(f, app))?;
@@ -482,7 +544,7 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                         let call_res = mcp_core::client::call_server_tool(
                                             &server,
                                             &tool_name,
-                                            serde_json::json!({}),
+                                            parsed_args,
                                             15,
                                         )
                                         .await;

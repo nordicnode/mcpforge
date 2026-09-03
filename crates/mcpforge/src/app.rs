@@ -83,6 +83,8 @@ pub struct ToolExplorerState {
     pub is_loading: bool,
     pub execution_result: Option<String>,
     pub error_message: Option<String>,
+    pub params_input: String,
+    pub is_editing_params: bool,
 }
 
 pub struct App {
@@ -141,8 +143,10 @@ impl App {
                 s.selected_index += 1;
                 s.execution_result = None;
                 s.error_message = None;
+                s.is_editing_params = false;
             }
         }
+        self.update_params_for_selected_tool();
     }
 
     pub fn select_prev_tool(&mut self) {
@@ -151,6 +155,18 @@ impl App {
                 s.selected_index -= 1;
                 s.execution_result = None;
                 s.error_message = None;
+                s.is_editing_params = false;
+            }
+        }
+        self.update_params_for_selected_tool();
+    }
+
+    pub fn update_params_for_selected_tool(&mut self) {
+        if let Some(ref mut s) = self.tool_explorer_state {
+            if let Some(tool) = s.tools.get(s.selected_index) {
+                let def_val = generate_default_args(tool.input_schema.as_ref());
+                s.params_input =
+                    serde_json::to_string(&def_val).unwrap_or_else(|_| "{}".to_string());
             }
         }
     }
@@ -700,6 +716,91 @@ impl App {
     }
 }
 
+pub fn generate_default_args(schema: Option<&serde_json::Value>) -> serde_json::Value {
+    let schema = match schema {
+        Some(s) => s,
+        None => return serde_json::json!({}),
+    };
+
+    let props = match schema.get("properties").and_then(|p| p.as_object()) {
+        Some(p) => p,
+        None => return serde_json::json!({}),
+    };
+
+    let required: std::collections::HashSet<&str> = schema
+        .get("required")
+        .and_then(|r| r.as_array())
+        .map(|arr| arr.iter().filter_map(|v| v.as_str()).collect())
+        .unwrap_or_default();
+
+    let mut map = serde_json::Map::new();
+
+    for (name, spec) in props {
+        // Only generate for required fields or if few properties exist
+        if !required.is_empty() && !required.contains(name.as_str()) && props.len() > 3 {
+            continue;
+        }
+
+        if let Some(def) = spec.get("default") {
+            map.insert(name.clone(), def.clone());
+            continue;
+        }
+
+        if let Some(enums) = spec.get("enum").and_then(|e| e.as_array()) {
+            if let Some(first) = enums.first() {
+                map.insert(name.clone(), first.clone());
+                continue;
+            }
+        }
+
+        let type_str = if let Some(t) = spec.get("type").and_then(|t| t.as_str()) {
+            t
+        } else if let Some(arr) = spec.get("type").and_then(|t| t.as_array()) {
+            arr.first().and_then(|v| v.as_str()).unwrap_or("string")
+        } else {
+            "string"
+        };
+
+        let val = match type_str {
+            "string" => {
+                let lower = name.to_lowercase();
+                if lower.contains("path") || lower.contains("file") {
+                    serde_json::Value::String("/tmp/test.txt".to_string())
+                } else if lower.contains("url") || lower.contains("uri") {
+                    serde_json::Value::String("https://example.com".to_string())
+                } else if lower.contains("thought") {
+                    serde_json::Value::String("Initial reasoning step".to_string())
+                } else if lower.contains("query") || lower.contains("search") {
+                    serde_json::Value::String("test query".to_string())
+                } else if lower.contains("name") {
+                    serde_json::Value::String("test_item".to_string())
+                } else {
+                    serde_json::Value::String("test".to_string())
+                }
+            }
+            "integer" | "number" => {
+                let min = spec.get("minimum").and_then(|m| m.as_i64()).unwrap_or(1);
+                serde_json::Value::Number(serde_json::Number::from(min))
+            }
+            "boolean" => {
+                let lower = name.to_lowercase();
+                if lower.contains("needed") || lower.contains("enable") {
+                    serde_json::Value::Bool(false)
+                } else {
+                    serde_json::Value::Bool(true)
+                }
+            }
+            "array" => serde_json::Value::Array(Vec::new()),
+            "object" => serde_json::Value::Object(serde_json::Map::new()),
+            _ => serde_json::Value::String("test".to_string()),
+        };
+
+        map.insert(name.clone(), val);
+    }
+
+    serde_json::Value::Object(map)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -723,5 +824,25 @@ mod tests {
             assert!(!w.diff_preview.contains("-      \"command\": \"npx\","));
             assert!(!w.diff_preview.contains("-      \"args\": ["));
         }
+    }
+
+    #[test]
+    fn test_generate_default_args_for_sequentialthinking() {
+        let schema = serde_json::json!({
+            "type": "object",
+            "properties": {
+                "thought": { "type": "string", "description": "Your current thinking step" },
+                "nextThoughtNeeded": { "type": ["boolean", "string"] },
+                "thoughtNumber": { "type": "integer", "minimum": 1 },
+                "totalThoughts": { "type": "integer", "minimum": 1 }
+            },
+            "required": ["thought", "nextThoughtNeeded", "thoughtNumber", "totalThoughts"]
+        });
+
+        let args = generate_default_args(Some(&schema));
+        assert!(args.get("thought").unwrap().is_string());
+        assert!(args.get("nextThoughtNeeded").unwrap().is_boolean());
+        assert_eq!(args.get("thoughtNumber").unwrap().as_i64(), Some(1));
+        assert_eq!(args.get("totalThoughts").unwrap().as_i64(), Some(1));
     }
 }

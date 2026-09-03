@@ -11,7 +11,7 @@ use ratatui::{
 
 pub fn render_tools_modal(f: &mut Frame, app: &App) {
     let theme = Theme::default();
-    let area = centered_rect(88, 84, f.area());
+    let area = centered_rect(90, 86, f.area());
     f.render_widget(Clear, area);
 
     let state = match app.tool_explorer_state {
@@ -29,7 +29,7 @@ pub fn render_tools_modal(f: &mut Frame, app: &App) {
 
     let inner = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(38), Constraint::Percentage(62)])
+        .constraints([Constraint::Percentage(36), Constraint::Percentage(64)])
         .margin(1)
         .split(area);
 
@@ -77,13 +77,17 @@ pub fn render_tools_modal(f: &mut Frame, app: &App) {
         .border_style(theme.border);
     f.render_widget(List::new(items).block(list_block), inner[0]);
 
-    // Right pane: Detail & Execution
+    // Right pane: Schema, Parameters, and Execution
     let right_splits = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Percentage(55), Constraint::Percentage(45)])
+        .constraints([
+            Constraint::Percentage(48), // Upper: Tool spec & schema
+            Constraint::Length(3),      // Middle: Parameters JSON input bar
+            Constraint::Min(5),         // Lower: Live execution output
+        ])
         .split(inner[1]);
 
-    // Upper right: Schema & Details
+    // 1. Tool Specification & Schema
     let details_content = if let Some(tool) = state.tools.get(state.selected_index) {
         let desc = tool
             .description
@@ -183,7 +187,45 @@ pub fn render_tools_modal(f: &mut Frame, app: &App) {
         right_splits[0],
     );
 
-    // Lower right: Interactive Execution Results Panel
+    // 2. Interactive Parameters Input Bar
+    let (param_title, param_border_style, param_text) = if state.is_editing_params {
+        (
+            " [EDITING PARAMETERS: Type JSON · Enter to Run · Esc to Cancel] ",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+            format!("{}█", state.params_input),
+        )
+    } else {
+        (
+            " Test Parameters (JSON) · [e] Edit · [r] Reset Schema Defaults ",
+            theme.border,
+            state.params_input.clone(),
+        )
+    };
+
+    let param_block = Block::default()
+        .title(Span::styled(
+            param_title,
+            if state.is_editing_params {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                theme.key_shortcut
+            },
+        ))
+        .borders(Borders::ALL)
+        .border_type(theme.border_type)
+        .border_style(param_border_style);
+    f.render_widget(
+        Paragraph::new(param_text)
+            .block(param_block)
+            .style(Style::default().fg(Color::White)),
+        right_splits[1],
+    );
+
+    // 3. Lower right: Live Execution Output Panel
     let mut exec_lines = Vec::new();
     if let Some(ref res) = state.execution_result {
         exec_lines.push(Line::from(Span::styled(
@@ -203,24 +245,25 @@ pub fn render_tools_modal(f: &mut Frame, app: &App) {
         )));
     } else {
         exec_lines.push(Line::from(vec![
-            Span::styled("Playground Test: ", theme.key_shortcut),
+            Span::styled("Playground Ready: ", theme.key_shortcut),
             Span::styled(
-                "Press [Enter] to invoke this tool with default arguments.",
+                "Press [Enter] to invoke this tool with the parameters above.",
                 Style::default().fg(Color::Yellow),
             ),
         ]));
         exec_lines.push(Line::from(""));
         exec_lines.push(Line::from(vec![
-            Span::styled("CLI Command:     ", theme.key_shortcut),
+            Span::styled("CLI Command:      ", theme.key_shortcut),
             Span::styled(
                 format!(
-                    "mcpforge call {} {} '{{}}'",
+                    "mcpforge call {} {} '{}'",
                     state.server_id,
                     state
                         .tools
                         .get(state.selected_index)
                         .map(|t| t.name.as_str())
-                        .unwrap_or("<tool>")
+                        .unwrap_or("<tool>"),
+                    state.params_input
                 ),
                 theme.status_healthy,
             ),
@@ -228,7 +271,10 @@ pub fn render_tools_modal(f: &mut Frame, app: &App) {
     }
 
     let exec_block = Block::default()
-        .title(Span::styled(" Live Playground Output ", theme.header))
+        .title(Span::styled(
+            " Live Playground Output · [Enter] Test Call ",
+            theme.header,
+        ))
         .borders(Borders::ALL)
         .border_type(theme.border_type)
         .border_style(theme.border);
@@ -236,6 +282,6 @@ pub fn render_tools_modal(f: &mut Frame, app: &App) {
         Paragraph::new(exec_lines)
             .block(exec_block)
             .wrap(Wrap { trim: false }),
-        right_splits[1],
+        right_splits[2],
     );
 }
