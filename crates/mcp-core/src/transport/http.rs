@@ -142,3 +142,74 @@ pub async fn check_sse_health(url: &str, timeout_duration: Duration) -> HealthSt
         },
     }
 }
+
+pub async fn list_http_tools(
+    url: &str,
+    headers: &BTreeMap<String, String>,
+    timeout_duration: Duration,
+) -> anyhow::Result<Vec<crate::protocol::ToolDefinition>> {
+    let client = reqwest::Client::builder()
+        .timeout(timeout_duration)
+        .build()?;
+
+    let mut req_builder = client.post(url);
+    for (k, v) in headers {
+        req_builder = req_builder.header(k, v);
+    }
+
+    let req = JsonRpcRequest::new(1, "tools/list", Some(serde_json::json!({})));
+    let resp = req_builder
+        .json(&req)
+        .send()
+        .await
+        .context("Failed to query tools/list via HTTP")?;
+
+    let json_resp: JsonRpcResponse = resp.json().await?;
+    if let Some(err) = json_resp.error {
+        return Err(anyhow!("tools/list error {}: {}", err.code, err.message));
+    }
+    let res_val = json_resp
+        .result
+        .ok_or_else(|| anyhow!("Missing result in tools/list response"))?;
+    let tools_res: crate::protocol::ToolsListResult = serde_json::from_value(res_val)?;
+    Ok(tools_res.tools)
+}
+
+pub async fn call_http_tool(
+    url: &str,
+    headers: &BTreeMap<String, String>,
+    name: &str,
+    arguments: serde_json::Value,
+    timeout_duration: Duration,
+) -> anyhow::Result<crate::protocol::CallToolResult> {
+    let client = reqwest::Client::builder()
+        .timeout(timeout_duration)
+        .build()?;
+
+    let mut req_builder = client.post(url);
+    for (k, v) in headers {
+        req_builder = req_builder.header(k, v);
+    }
+
+    let params = serde_json::to_value(crate::protocol::CallToolParams {
+        name: name.to_string(),
+        arguments,
+    })?;
+
+    let req = JsonRpcRequest::new(1, "tools/call", Some(params));
+    let resp = req_builder
+        .json(&req)
+        .send()
+        .await
+        .context("Failed to send tools/call via HTTP")?;
+
+    let json_resp: JsonRpcResponse = resp.json().await?;
+    if let Some(err) = json_resp.error {
+        return Err(anyhow!("tools/call error {}: {}", err.code, err.message));
+    }
+    let res_val = json_resp
+        .result
+        .ok_or_else(|| anyhow!("Missing result in tools/call response"))?;
+    let tool_res: crate::protocol::CallToolResult = serde_json::from_value(res_val)?;
+    Ok(tool_res)
+}

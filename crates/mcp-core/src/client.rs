@@ -31,3 +31,61 @@ pub async fn check_server_health(entry: &ServerEntry, timeout_secs: u64) -> Heal
         },
     }
 }
+
+pub async fn list_server_tools(
+    entry: &ServerEntry,
+    timeout_secs: u64,
+) -> anyhow::Result<Vec<crate::protocol::ToolDefinition>> {
+    let dur = Duration::from_secs(timeout_secs);
+    match &entry.transport {
+        Transport::Stdio { command, args, env } => {
+            let mut client =
+                crate::transport::stdio::StdioClient::spawn(command, args, env).await?;
+            client.initialize().await?;
+            tokio::time::timeout(dur, client.list_tools())
+                .await
+                .map_err(|_| anyhow::anyhow!("Timeout listing tools after {}s", timeout_secs))?
+        }
+        #[cfg(feature = "http")]
+        Transport::StreamableHttp { url, headers } => {
+            crate::transport::http::list_http_tools(url, headers, dur).await
+        }
+        #[cfg(not(feature = "http"))]
+        Transport::StreamableHttp { .. } => {
+            Err(anyhow::anyhow!("HTTP transport not enabled in build"))
+        }
+        Transport::Sse { .. } => Err(anyhow::anyhow!(
+            "SSE transport does not support direct tools/list"
+        )),
+    }
+}
+
+pub async fn call_server_tool(
+    entry: &ServerEntry,
+    tool_name: &str,
+    arguments: serde_json::Value,
+    timeout_secs: u64,
+) -> anyhow::Result<crate::protocol::CallToolResult> {
+    let dur = Duration::from_secs(timeout_secs);
+    match &entry.transport {
+        Transport::Stdio { command, args, env } => {
+            let mut client =
+                crate::transport::stdio::StdioClient::spawn(command, args, env).await?;
+            client.initialize().await?;
+            tokio::time::timeout(dur, client.call_tool(tool_name, arguments))
+                .await
+                .map_err(|_| anyhow::anyhow!("Timeout calling tool after {}s", timeout_secs))?
+        }
+        #[cfg(feature = "http")]
+        Transport::StreamableHttp { url, headers } => {
+            crate::transport::http::call_http_tool(url, headers, tool_name, arguments, dur).await
+        }
+        #[cfg(not(feature = "http"))]
+        Transport::StreamableHttp { .. } => {
+            Err(anyhow::anyhow!("HTTP transport not enabled in build"))
+        }
+        Transport::Sse { .. } => Err(anyhow::anyhow!(
+            "SSE transport does not support direct tools/call"
+        )),
+    }
+}

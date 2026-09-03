@@ -32,6 +32,7 @@ chrono = { version = "0.4", features = ["serde"] }
 ratatui = "0.29"
 crossterm = { version = "0.28", features = ["event-stream"] }
 clap = { version = "4.5", features = ["derive"] }
+clap_complete = "4.5"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
 fuzzy-matcher = "0.3"
 similar = "2.7"

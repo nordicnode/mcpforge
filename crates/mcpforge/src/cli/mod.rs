@@ -190,6 +190,59 @@ pub enum Commands {
         #[command(subcommand)]
         command: BackupCommands,
     },
+
+    /// List all tools exposed by an MCP server with schemas and descriptions
+    Tools {
+        /// Server identifier from configured servers or curated registry
+        server: String,
+
+        /// Output results as JSON
+        #[arg(long)]
+        json: bool,
+
+        /// Timeout in seconds
+        #[arg(short, long, default_value_t = 10)]
+        timeout: u64,
+    },
+
+    /// Execute a tool call on a server with JSON parameters
+    Call {
+        /// Server identifier
+        server: String,
+
+        /// Tool name to invoke
+        tool: String,
+
+        /// Arguments as JSON string (e.g. '{"path": "/tmp"}')
+        #[arg(default_value = "{}")]
+        params: String,
+
+        /// Output raw JSON result
+        #[arg(long)]
+        json: bool,
+
+        /// Timeout in seconds
+        #[arg(short, long, default_value_t = 30)]
+        timeout: u64,
+    },
+
+    /// Generate shell autocompletion scripts for bash, zsh, fish, or powershell
+    Completions {
+        /// Shell to generate completions for
+        #[arg(value_enum)]
+        shell: clap_complete::Shell,
+    },
+
+    /// Run the configuration safeguard daemon to detect external edits and prevent corruption
+    Watch {
+        /// Automatically replicate newly added servers across active clients
+        #[arg(long)]
+        sync: bool,
+
+        /// Polling interval in seconds
+        #[arg(short, long, default_value_t = 2)]
+        interval: u64,
+    },
 }
 
 #[derive(Debug, Subcommand)]

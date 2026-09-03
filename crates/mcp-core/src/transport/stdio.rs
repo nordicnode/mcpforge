@@ -9,8 +9,9 @@ use tokio::time::timeout;
 use tracing::debug;
 
 use crate::protocol::{
-    ClientInfo, InitializeParams, InitializeResult, JsonRpcNotification, JsonRpcRequest,
-    JsonRpcResponse, ToolsListResult, LATEST_PROTOCOL_VERSION,
+    CallToolParams, CallToolResult, ClientInfo, InitializeParams, InitializeResult,
+    JsonRpcNotification, JsonRpcRequest, JsonRpcResponse, ToolDefinition, ToolsListResult,
+    LATEST_PROTOCOL_VERSION,
 };
 use crate::types::HealthStatus;
 
@@ -100,6 +101,62 @@ impl StdioClient {
         self.stdin.write_all(json_str.as_bytes()).await?;
         self.stdin.flush().await?;
         Ok(())
+    }
+
+    pub async fn initialize(&mut self) -> Result<InitializeResult> {
+        let init_params = serde_json::to_value(InitializeParams {
+            protocol_version: LATEST_PROTOCOL_VERSION.to_string(),
+            capabilities: serde_json::json!({}),
+            client_info: ClientInfo {
+                name: "mcpforge".to_string(),
+                version: env!("CARGO_PKG_VERSION").to_string(),
+            },
+        })?;
+
+        let init_resp = self.send_request("initialize", Some(init_params)).await?;
+        if let Some(err) = init_resp.error {
+            return Err(anyhow!("Initialize error {}: {}", err.code, err.message));
+        }
+
+        let init_val = init_resp
+            .result
+            .ok_or_else(|| anyhow!("Missing result in initialize response"))?;
+        let init_result: InitializeResult =
+            serde_json::from_value(init_val).context("Failed to parse InitializeResult")?;
+
+        self.send_notification("notifications/initialized", None)
+            .await?;
+        Ok(init_result)
+    }
+
+    pub async fn list_tools(&mut self) -> Result<Vec<ToolDefinition>> {
+        let tools_resp = self
+            .send_request("tools/list", Some(serde_json::json!({})))
+            .await?;
+        if let Some(err) = tools_resp.error {
+            return Err(anyhow!("tools/list error {}: {}", err.code, err.message));
+        }
+        let res_val = tools_resp
+            .result
+            .ok_or_else(|| anyhow!("Missing result in tools/list response"))?;
+        let tools_res: ToolsListResult = serde_json::from_value(res_val)?;
+        Ok(tools_res.tools)
+    }
+
+    pub async fn call_tool(&mut self, name: &str, arguments: Value) -> Result<CallToolResult> {
+        let params = serde_json::to_value(CallToolParams {
+            name: name.to_string(),
+            arguments,
+        })?;
+        let resp = self.send_request("tools/call", Some(params)).await?;
+        if let Some(err) = resp.error {
+            return Err(anyhow!("tools/call error {}: {}", err.code, err.message));
+        }
+        let res_val = resp
+            .result
+            .ok_or_else(|| anyhow!("Missing result in tools/call response"))?;
+        let tool_res: CallToolResult = serde_json::from_value(res_val)?;
+        Ok(tool_res)
     }
 
     pub async fn close(&mut self) {

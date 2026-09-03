@@ -4,7 +4,7 @@ use crate::provisioner::RuntimeCapabilities;
 use crate::resolver::EnvResolver;
 use crate::secrets::{is_secret_key, redact_secret};
 use anyhow::{Context, Result};
-use mcp_core::client::check_server_health;
+use mcp_core::client::{call_server_tool, check_server_health, list_server_tools};
 use mcp_core::types::{Scope, ServerEntry};
 use mcpforge_adapters::{AdapterManager, ConfigLocation, DiscoveryEngine, SchemaVerifier};
 use mcpforge_registry::{find_pack, Registry, SERVER_PACKS};
@@ -234,7 +234,14 @@ pub async fn execute(cmd: Commands) -> Result<()> {
                 println!("{}", report.to_json()?);
             } else {
                 let ok = report.print_table();
-                if !ok && !fix {
+                if fix {
+                    let healed = report.auto_heal(&manager, &servers)?;
+                    if healed > 0 {
+                        println!("✓ Self-healing complete: {} issue(s) resolved.\n", healed);
+                    } else {
+                        println!("No auto-fixable issues detected.\n");
+                    }
+                } else if !ok {
                     std::process::exit(1);
                 }
             }
@@ -717,7 +724,204 @@ pub async fn execute(cmd: Commands) -> Result<()> {
                 println!("✓ Restored successfully!\n");
             }
         },
+
+        Commands::Tools {
+            server,
+            json,
+            timeout,
+        } => {
+            let server_entry = resolve_server_or_catalog(&server, &manager, &registry, &resolver)?;
+            if !json {
+                println!(
+                    "Connecting to '{}' to query exposed tools...",
+                    server_entry.id
+                );
+            }
+            let tools = list_server_tools(&server_entry, timeout).await?;
+            if json {
+                println!("{}", serde_json::to_string_pretty(&tools)?);
+            } else {
+                println!("\n{:<25} {:<55}", "TOOL NAME", "DESCRIPTION");
+                println!("{}", "-".repeat(80));
+                for t in &tools {
+                    let desc = t.description.as_deref().unwrap_or("-");
+                    println!("{:<25} {:<55}", t.name, desc);
+                }
+                println!("{}", "-".repeat(80));
+                println!("Total tools exposed: {}\n", tools.len());
+            }
+        }
+
+        Commands::Call {
+            server,
+            tool,
+            params,
+            json,
+            timeout,
+        } => {
+            let server_entry = resolve_server_or_catalog(&server, &manager, &registry, &resolver)?;
+            let parsed_params: serde_json::Value = serde_json::from_str(&params)
+                .with_context(|| format!("Invalid JSON arguments: '{}'", params))?;
+
+            if !json {
+                println!("Executing tool '{}/{}'...", server_entry.id, tool);
+            }
+            let start = std::time::Instant::now();
+            let result = call_server_tool(&server_entry, &tool, parsed_params, timeout).await?;
+            let elapsed_ms = start.elapsed().as_millis();
+
+            if json {
+                println!("{}", serde_json::to_string_pretty(&result)?);
+            } else {
+                let status_str = if result.is_error { "ERROR" } else { "SUCCESS" };
+                println!(
+                    "\nTOOL EXECUTION RESULT ({} - {}ms)",
+                    status_str, elapsed_ms
+                );
+                println!("{}", "-".repeat(60));
+                for c in &result.content {
+                    if let Some(ref text) = c.text {
+                        println!("{}", text);
+                    } else if let Some(ref data) = c.data {
+                        println!("[Binary data: {} bytes]", data.len());
+                    }
+                }
+                println!();
+            }
+        }
+
+        Commands::Completions { shell } => {
+            use clap::CommandFactory;
+            let mut cmd = crate::cli::Cli::command();
+            clap_complete::generate(shell, &mut cmd, "mcpforge", &mut io::stdout());
+        }
+
+        Commands::Watch { sync, interval } => {
+            println!("\nMCPFORGE CONFIGURATION WATCHER DAEMON ACTIVE");
+            println!(
+                "Monitoring 26 client harnesses across system (polling every {}s)...",
+                interval
+            );
+            println!("Real-time syntax validation, automatic snapshotting, and corruption defense active.");
+            if sync {
+                println!("Auto-sync mode: ON (newly added servers will be mirrored across active clients).");
+            }
+            println!("Press Ctrl+C to stop.\n");
+
+            let mut mtimes: BTreeMap<std::path::PathBuf, std::time::SystemTime> = BTreeMap::new();
+            for loc in manager.detect_all() {
+                if let Ok(meta) = std::fs::metadata(&loc.path) {
+                    if let Ok(mtime) = meta.modified() {
+                        mtimes.insert(loc.path, mtime);
+                    }
+                }
+            }
+
+            loop {
+                tokio::time::sleep(std::time::Duration::from_secs(interval)).await;
+                for loc in manager.detect_all() {
+                    if let Ok(meta) = std::fs::metadata(&loc.path) {
+                        if let Ok(mtime) = meta.modified() {
+                            let was_changed =
+                                mtimes.get(&loc.path).is_some_and(|old| *old != mtime);
+                            if was_changed {
+                                mtimes.insert(loc.path.clone(), mtime);
+                                let now = chrono::Local::now().format("%H:%M:%S");
+                                println!(
+                                    "[{}] External modification detected: {}",
+                                    now, loc.display_name
+                                );
+
+                                // 1. Verify syntax
+                                if let Ok(content) = std::fs::read_to_string(&loc.path) {
+                                    let ext = loc
+                                        .path
+                                        .extension()
+                                        .and_then(|e| e.to_str())
+                                        .unwrap_or("json");
+                                    let is_valid = match ext {
+                                        "json" | "jsonc" => {
+                                            let clean =
+                                                mcpforge_adapters::common::strip_jsonc_comments(
+                                                    &content,
+                                                );
+                                            serde_json::from_str::<serde_json::Value>(&clean)
+                                                .is_ok()
+                                        }
+                                        "yaml" | "yml" => {
+                                            serde_yaml::from_str::<serde_yaml::Value>(&content)
+                                                .is_ok()
+                                        }
+                                        "toml" => toml::from_str::<toml::Value>(&content).is_ok(),
+                                        _ => true,
+                                    };
+
+                                    if !is_valid {
+                                        eprintln!("  ▲ [SYNTAX ERROR] Corrupted {} detected! Run 'mcpforge rollback --client {}' to restore.", ext.to_uppercase(), loc.client_id);
+                                    } else {
+                                        println!(
+                                            "  ● [SYNTAX VALID] Configuration passed AST checks."
+                                        );
+                                        if let Ok(Some(backup_path)) =
+                                            mcpforge_adapters::create_backup(
+                                                &loc.path,
+                                                &loc.client_id,
+                                            )
+                                        {
+                                            println!(
+                                                "  ✓ [SNAPSHOT] Automatically captured snapshot: {:?}",
+                                                backup_path.file_name().unwrap_or_default()
+                                            );
+                                        }
+
+                                        if sync {
+                                            if let Ok(servers) = manager.read_all_servers() {
+                                                let other_targets: Vec<_> = manager
+                                                    .detect_existing()
+                                                    .into_iter()
+                                                    .filter(|l| l.client_id != loc.client_id)
+                                                    .collect();
+                                                for s in &servers {
+                                                    let _ = manager.write_server_to_locations(
+                                                        s,
+                                                        &other_targets,
+                                                    );
+                                                }
+                                                println!(
+                                                    "  ↺ [SYNCED] Replicated across {} client(s).",
+                                                    other_targets.len()
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Ok(())
+}
+
+fn resolve_server_or_catalog(
+    id: &str,
+    manager: &AdapterManager,
+    registry: &Registry,
+    resolver: &EnvResolver,
+) -> Result<ServerEntry> {
+    let servers = manager.read_all_servers()?;
+    if let Some(s) = servers.into_iter().find(|s| s.id == id) {
+        return Ok(s);
+    }
+    if let Some(cat) = registry.find_by_id(id) {
+        let (env, _) = resolver.resolve_for_keys(&cat.required_env);
+        return Ok(cat.to_server_entry(env));
+    }
+    anyhow::bail!(
+        "Server '{}' not found in active configurations or catalog",
+        id
+    )
 }

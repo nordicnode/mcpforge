@@ -1,0 +1,241 @@
+use crate::app::App;
+use crate::ui::layout::centered_rect;
+use crate::ui::theme::Theme;
+use ratatui::{
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Modifier, Style},
+    text::{Line, Span},
+    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
+    Frame,
+};
+
+pub fn render_tools_modal(f: &mut Frame, app: &App) {
+    let theme = Theme::default();
+    let area = centered_rect(88, 84, f.area());
+    f.render_widget(Clear, area);
+
+    let state = match app.tool_explorer_state {
+        Some(ref s) => s,
+        None => return,
+    };
+
+    let title = format!(" TOOL EXPLORER & PLAYGROUND: {} ", state.server_id);
+    let outer_block = Block::default()
+        .title(Span::styled(title, theme.title))
+        .borders(Borders::ALL)
+        .border_type(theme.border_type)
+        .border_style(theme.border_focus);
+    f.render_widget(outer_block, area);
+
+    let inner = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(38), Constraint::Percentage(62)])
+        .margin(1)
+        .split(area);
+
+    // Left pane: Tool List
+    let items: Vec<ListItem> = if state.is_loading {
+        vec![ListItem::new(Line::from(vec![Span::styled(
+            "  Connecting & querying tools from server...",
+            Style::default().fg(Color::Yellow),
+        )]))]
+    } else if state.tools.is_empty() {
+        vec![ListItem::new(Line::from(vec![Span::styled(
+            "  No tools exposed by this server.",
+            theme.muted,
+        )]))]
+    } else {
+        state
+            .tools
+            .iter()
+            .enumerate()
+            .map(|(i, tool)| {
+                let is_sel = i == state.selected_index;
+                let prefix = if is_sel { "▶ " } else { "  " };
+                let style = if is_sel {
+                    theme.selected
+                } else {
+                    Style::default().fg(Color::White)
+                };
+
+                let line = Line::from(vec![
+                    Span::styled(prefix, style),
+                    Span::styled(tool.name.clone(), style),
+                ]);
+                ListItem::new(line)
+            })
+            .collect()
+    };
+
+    let list_block = Block::default()
+        .title(Span::styled(
+            format!(" Exposed Tools ({}) ", state.tools.len()),
+            theme.header,
+        ))
+        .borders(Borders::ALL)
+        .border_type(theme.border_type)
+        .border_style(theme.border);
+    f.render_widget(List::new(items).block(list_block), inner[0]);
+
+    // Right pane: Detail & Execution
+    let right_splits = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(55), Constraint::Percentage(45)])
+        .split(inner[1]);
+
+    // Upper right: Schema & Details
+    let details_content = if let Some(tool) = state.tools.get(state.selected_index) {
+        let desc = tool
+            .description
+            .as_deref()
+            .unwrap_or("No description provided.");
+        let mut lines = vec![
+            Line::from(vec![
+                Span::styled("Tool Name:   ", theme.key_shortcut),
+                Span::styled(
+                    &tool.name,
+                    Style::default()
+                        .fg(Color::White)
+                        .add_modifier(Modifier::BOLD),
+                ),
+            ]),
+            Line::from(vec![
+                Span::styled("Description: ", theme.key_shortcut),
+                Span::styled(desc, Style::default().fg(Color::White)),
+            ]),
+            Line::from(""),
+            Line::from(Span::styled("INPUT PARAMETERS SCHEMA:", theme.header)),
+        ];
+
+        if let Some(ref schema) = tool.input_schema {
+            if let Some(props) = schema.get("properties").and_then(|p| p.as_object()) {
+                let required = schema
+                    .get("required")
+                    .and_then(|r| r.as_array())
+                    .map(|arr| {
+                        arr.iter()
+                            .filter_map(|v| v.as_str())
+                            .collect::<std::collections::HashSet<_>>()
+                    })
+                    .unwrap_or_default();
+
+                for (prop_name, prop_val) in props {
+                    let prop_type = prop_val
+                        .get("type")
+                        .and_then(|t| t.as_str())
+                        .unwrap_or("any");
+                    let prop_desc = prop_val
+                        .get("description")
+                        .and_then(|d| d.as_str())
+                        .unwrap_or("");
+                    let req_str = if required.contains(prop_name.as_str()) {
+                        " (required)"
+                    } else {
+                        " (optional)"
+                    };
+
+                    lines.push(Line::from(vec![
+                        Span::styled(
+                            format!("  • {} ", prop_name),
+                            Style::default()
+                                .fg(Color::Cyan)
+                                .add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled(
+                            format!("[{}]{}", prop_type, req_str),
+                            Style::default().fg(Color::Magenta),
+                        ),
+                    ]));
+                    if !prop_desc.is_empty() {
+                        lines.push(Line::from(vec![Span::styled(
+                            format!("    {}", prop_desc),
+                            theme.muted,
+                        )]));
+                    }
+                }
+            } else {
+                lines.push(Line::from(Span::styled(
+                    "  No input parameters required ({})",
+                    theme.status_healthy,
+                )));
+            }
+        } else {
+            lines.push(Line::from(Span::styled(
+                "  No schema defined.",
+                theme.muted,
+            )));
+        }
+
+        lines
+    } else {
+        vec![Line::from("Select a tool from the list.")]
+    };
+
+    let details_block = Block::default()
+        .title(Span::styled(" Tool Specification ", theme.header))
+        .borders(Borders::ALL)
+        .border_type(theme.border_type)
+        .border_style(theme.border);
+    f.render_widget(
+        Paragraph::new(details_content)
+            .block(details_block)
+            .wrap(Wrap { trim: true }),
+        right_splits[0],
+    );
+
+    // Lower right: Interactive Execution Results Panel
+    let mut exec_lines = Vec::new();
+    if let Some(ref res) = state.execution_result {
+        exec_lines.push(Line::from(Span::styled(
+            "Execution Output:",
+            theme.status_healthy,
+        )));
+        for l in res.lines() {
+            exec_lines.push(Line::from(Span::styled(
+                l,
+                Style::default().fg(Color::White),
+            )));
+        }
+    } else if let Some(ref err) = state.error_message {
+        exec_lines.push(Line::from(Span::styled(
+            format!("Error: {}", err),
+            theme.status_broken,
+        )));
+    } else {
+        exec_lines.push(Line::from(vec![
+            Span::styled("Playground Test: ", theme.key_shortcut),
+            Span::styled(
+                "Press [Enter] to invoke this tool with default arguments.",
+                Style::default().fg(Color::Yellow),
+            ),
+        ]));
+        exec_lines.push(Line::from(""));
+        exec_lines.push(Line::from(vec![
+            Span::styled("CLI Command:     ", theme.key_shortcut),
+            Span::styled(
+                format!(
+                    "mcpforge call {} {} '{{}}'",
+                    state.server_id,
+                    state
+                        .tools
+                        .get(state.selected_index)
+                        .map(|t| t.name.as_str())
+                        .unwrap_or("<tool>")
+                ),
+                theme.status_healthy,
+            ),
+        ]));
+    }
+
+    let exec_block = Block::default()
+        .title(Span::styled(" Live Playground Output ", theme.header))
+        .borders(Borders::ALL)
+        .border_type(theme.border_type)
+        .border_style(theme.border);
+    f.render_widget(
+        Paragraph::new(exec_lines)
+            .block(exec_block)
+            .wrap(Wrap { trim: false }),
+        right_splits[1],
+    );
+}

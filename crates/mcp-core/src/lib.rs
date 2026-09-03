@@ -95,4 +95,35 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn test_tool_call_serialization() {
+        use crate::protocol::{CallToolParams, CallToolResult, ToolContent};
+
+        let params = CallToolParams {
+            name: "read_file".to_string(),
+            arguments: serde_json::json!({ "path": "/test/path.txt" }),
+        };
+        let serialized = serde_json::to_string(&params).unwrap();
+        assert!(serialized.contains("\"name\":\"read_file\""));
+        assert!(serialized.contains("\"arguments\":{\"path\":\"/test/path.txt\"}"));
+
+        let res_json = r#"{
+            "content": [
+                { "type": "text", "text": "file content here" }
+            ],
+            "isError": false
+        }"#;
+        let res: CallToolResult = serde_json::from_str(res_json).unwrap();
+        assert!(!res.is_error);
+        assert_eq!(res.content.len(), 1);
+        let expected_content = ToolContent {
+            content_type: "text".to_string(),
+            text: Some("file content here".to_string()),
+            data: None,
+            mime_type: None,
+        };
+        assert_eq!(res.content[0].content_type, expected_content.content_type);
+        assert_eq!(res.content[0].text, expected_content.text);
+    }
 }

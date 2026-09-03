@@ -26,6 +26,8 @@ pub fn render_help(f: &mut Frame) {
         ("  j / Down", "Move selection cursor down"),
         ("  k / Up", "Move selection cursor up"),
         ("  Space", "Toggle server enabled / disabled"),
+        ("  t", "Open Tool Explorer & Interactive Playground"),
+        ("  T", "Execute live background JSON-RPC 2.0 handshake test"),
         ("  r", "Run instant diagnostic health checks on servers"),
         ("  / ", "Fuzzy search and filter configured servers"),
         ("  u", "Auto-sync all servers across detected clients"),

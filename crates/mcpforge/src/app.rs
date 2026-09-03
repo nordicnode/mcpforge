@@ -34,6 +34,7 @@ pub enum CurrentView {
     Help,
     DeleteConfirm,
     ViewSnippet,
+    ToolExplorer,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -74,6 +75,16 @@ pub struct DeleteState {
     pub remove_all_mode: bool,
 }
 
+#[derive(Debug, Clone)]
+pub struct ToolExplorerState {
+    pub server_id: String,
+    pub tools: Vec<mcp_core::protocol::ToolDefinition>,
+    pub selected_index: usize,
+    pub is_loading: bool,
+    pub execution_result: Option<String>,
+    pub error_message: Option<String>,
+}
+
 pub struct App {
     pub manager: AdapterManager,
     pub registry: Registry,
@@ -86,6 +97,7 @@ pub struct App {
     pub current_view: CurrentView,
     pub wizard_state: Option<WizardState>,
     pub delete_state: Option<DeleteState>,
+    pub tool_explorer_state: Option<ToolExplorerState>,
     pub should_quit: bool,
     pub status_message: Option<String>,
     pub running_processes: std::collections::HashSet<String>,
@@ -114,12 +126,33 @@ impl App {
             current_view: CurrentView::Dashboard,
             wizard_state: None,
             delete_state: None,
+            tool_explorer_state: None,
             should_quit: false,
             status_message: None,
             running_processes,
             discovered_clients,
             selected_client_index: 0,
         })
+    }
+
+    pub fn select_next_tool(&mut self) {
+        if let Some(ref mut s) = self.tool_explorer_state {
+            if !s.tools.is_empty() && s.selected_index + 1 < s.tools.len() {
+                s.selected_index += 1;
+                s.execution_result = None;
+                s.error_message = None;
+            }
+        }
+    }
+
+    pub fn select_prev_tool(&mut self) {
+        if let Some(ref mut s) = self.tool_explorer_state {
+            if s.selected_index > 0 {
+                s.selected_index -= 1;
+                s.execution_result = None;
+                s.error_message = None;
+            }
+        }
     }
 
     pub fn refresh_discovery(&mut self) {

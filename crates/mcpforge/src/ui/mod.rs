@@ -4,6 +4,7 @@ pub mod delete;
 pub mod help;
 pub mod layout;
 pub mod theme;
+pub mod tools;
 pub mod wizard;
 
 use crate::app::{App, CurrentView};
@@ -32,6 +33,10 @@ pub fn render_ui(f: &mut Frame, app: &App) {
         CurrentView::ViewSnippet => {
             dashboard::render_dashboard(f, app);
             dashboard::render_snippet_modal(f, app);
+        }
+        CurrentView::ToolExplorer => {
+            dashboard::render_dashboard(f, app);
+            tools::render_tools_modal(f, app);
         }
     }
 }

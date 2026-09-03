@@ -140,6 +140,74 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                 app.refresh_servers();
                             }
                         }
+                        KeyCode::Char('t') => {
+                            if let Some(server) = app.selected_server().cloned() {
+                                app.tool_explorer_state = Some(crate::app::ToolExplorerState {
+                                    server_id: server.id.clone(),
+                                    tools: Vec::new(),
+                                    selected_index: 0,
+                                    is_loading: true,
+                                    execution_result: None,
+                                    error_message: None,
+                                });
+                                app.current_view = CurrentView::ToolExplorer;
+                                terminal.draw(|f| ui::render_ui(f, app))?;
+
+                                match mcp_core::client::list_server_tools(&server, 10).await {
+                                    Ok(tools) => {
+                                        if let Some(ref mut state) = app.tool_explorer_state {
+                                            state.is_loading = false;
+                                            state.tools = tools;
+                                        }
+                                    }
+                                    Err(e) => {
+                                        if let Some(ref mut state) = app.tool_explorer_state {
+                                            state.is_loading = false;
+                                            state.error_message = Some(e.to_string());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        KeyCode::Char('T') => {
+                            if let Some(server) = app.selected_server().cloned() {
+                                app.status_message = Some(format!(
+                                    "Handshake test: Spawning & negotiating with '{}'...",
+                                    server.id
+                                ));
+                                terminal.draw(|f| ui::render_ui(f, app))?;
+                                let start = std::time::Instant::now();
+                                let status = check_server_health(&server, 8).await;
+                                let elapsed_ms = start.elapsed().as_millis();
+                                app.health_cache.insert(server.id.clone(), status.clone());
+                                match status {
+                                    mcp_core::types::HealthStatus::Healthy {
+                                        tool_count,
+                                        server_name,
+                                        server_version,
+                                        ..
+                                    } => {
+                                        app.status_message = Some(format!(
+                                            "✓ Handshake SUCCESS: {} v{} ({} tools, {}ms)",
+                                            server_name, server_version, tool_count, elapsed_ms
+                                        ));
+                                    }
+                                    mcp_core::types::HealthStatus::Degraded { reason, .. } => {
+                                        app.status_message = Some(format!(
+                                            "▲ Handshake DEGRADED: {} ({}ms)",
+                                            reason, elapsed_ms
+                                        ));
+                                    }
+                                    mcp_core::types::HealthStatus::Broken { error } => {
+                                        app.status_message = Some(format!(
+                                            "✖ Handshake FAILED: {} ({}ms)",
+                                            error, elapsed_ms
+                                        ));
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        }
                         KeyCode::Char('v') | KeyCode::Enter if app.selected_server().is_some() => {
                             app.current_view = CurrentView::ViewSnippet;
                         }
@@ -384,6 +452,72 @@ async fn main_loop<B: ratatui::backend::Backend>(
                         }
                         _ => {}
                     },
+                    CurrentView::ToolExplorer => {
+                        match key.code {
+                            KeyCode::Esc | KeyCode::Char('q') => {
+                                app.current_view = CurrentView::Dashboard;
+                                app.tool_explorer_state = None;
+                            }
+                            KeyCode::Char('j') | KeyCode::Down => {
+                                app.select_next_tool();
+                            }
+                            KeyCode::Char('k') | KeyCode::Up => {
+                                app.select_prev_tool();
+                            }
+                            KeyCode::Enter => {
+                                if let (Some(server), Some(ref state)) =
+                                    (app.selected_server().cloned(), &app.tool_explorer_state)
+                                {
+                                    if let Some(tool) = state.tools.get(state.selected_index) {
+                                        let tool_name = tool.name.clone();
+                                        if let Some(ref mut s) = app.tool_explorer_state {
+                                            s.execution_result = Some(
+                                            "Executing tool test with default parameters ({})..."
+                                                .to_string(),
+                                        );
+                                            s.error_message = None;
+                                        }
+                                        terminal.draw(|f| ui::render_ui(f, app))?;
+
+                                        let call_res = mcp_core::client::call_server_tool(
+                                            &server,
+                                            &tool_name,
+                                            serde_json::json!({}),
+                                            15,
+                                        )
+                                        .await;
+
+                                        if let Some(ref mut s) = app.tool_explorer_state {
+                                            match call_res {
+                                                Ok(res) => {
+                                                    let mut text_out = String::new();
+                                                    for c in &res.content {
+                                                        if let Some(ref t) = c.text {
+                                                            text_out.push_str(t);
+                                                            text_out.push('\n');
+                                                        } else if let Some(ref d) = c.data {
+                                                            text_out.push_str(&format!(
+                                                                "[Binary data: {} bytes]\n",
+                                                                d.len()
+                                                            ));
+                                                        }
+                                                    }
+                                                    if text_out.trim().is_empty() {
+                                                        text_out = "✓ Tool call completed with empty output.".to_string();
+                                                    }
+                                                    s.execution_result = Some(text_out);
+                                                }
+                                                Err(e) => {
+                                                    s.error_message = Some(e.to_string());
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
                 }
             }
         }
