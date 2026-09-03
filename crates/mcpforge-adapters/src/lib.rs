@@ -1,15 +1,21 @@
+pub mod antigravity;
 pub mod backup;
 pub mod claude_code;
 pub mod claude_desktop;
+pub mod cline;
 pub mod common;
+pub mod continue_dev;
 pub mod cursor;
 pub mod custom;
+pub mod discovery;
 pub mod manager;
 pub mod traits;
 pub mod vscode;
 pub mod windsurf;
+pub mod zed;
 
 pub use backup::{atomic_write, compute_diff, create_backup, default_backup_dir};
+pub use discovery::{DiscoveredHarness, DiscoveryEngine};
 pub use manager::AdapterManager;
 pub use traits::{ClientAdapter, ConfigLocation, TransportSupport};
 

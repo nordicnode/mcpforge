@@ -13,16 +13,20 @@ use std::time::Duration;
 mod app;
 mod cli;
 mod doctor;
+mod provisioner;
+mod resolver;
 mod secrets;
 mod ui;
 
 use app::{App, CurrentView, WizardSource, WizardStep};
-use cli::{Cli, Commands};
+use cli::{Cli, Commands, PackCommands};
 use doctor::DoctorReport;
 use mcp_core::client::check_server_health;
 use mcp_core::types::ServerEntry;
-use mcpforge_adapters::{AdapterManager, ConfigLocation};
-use mcpforge_registry::Registry;
+use mcpforge_adapters::{AdapterManager, ConfigLocation, DiscoveryEngine};
+use mcpforge_registry::{find_pack, Registry, SERVER_PACKS};
+use provisioner::RuntimeCapabilities;
+use resolver::EnvResolver;
 use secrets::{is_secret_key, redact_secret};
 
 #[tokio::main]
@@ -40,8 +44,45 @@ async fn main() -> Result<()> {
 async fn handle_cli_command(cmd: Commands) -> Result<()> {
     let manager = AdapterManager::new();
     let registry = Registry::load().unwrap_or_default();
+    let resolver = EnvResolver::new();
+    let runtimes = RuntimeCapabilities::detect();
 
     match cmd {
+        Commands::Discover { json } => {
+            let engine = DiscoveryEngine::new();
+            let harnesses = engine.discover_all();
+
+            if json {
+                println!("{}", serde_json::to_string_pretty(&harnesses)?);
+            } else {
+                println!(
+                    "\n{:<26} {:<14} {:<45} {:<8}",
+                    "CLIENT / HARNESS", "STATUS", "CONFIG PATH", "SERVERS"
+                );
+                println!("{}", "-".repeat(95));
+                for h in &harnesses {
+                    let status = if h.is_running && h.is_installed {
+                        "ACTIVE (RUNNING)"
+                    } else if h.is_running {
+                        "RUNNING (UNCONFIGURED)"
+                    } else if h.is_installed {
+                        "INSTALLED"
+                    } else {
+                        "AVAILABLE"
+                    };
+
+                    println!(
+                        "{:<26} {:<14} {:<45} {:<8}",
+                        h.display_name,
+                        status,
+                        h.config_path.display(),
+                        h.server_count
+                    );
+                }
+                println!();
+            }
+        }
+
         Commands::List { client, json } => {
             let mut servers = manager.read_all_servers()?;
             if let Some(ref c) = client {
@@ -71,19 +112,153 @@ async fn handle_cli_command(cmd: Commands) -> Result<()> {
             }
         }
 
-        Commands::Doctor { json, timeout } => {
-            let servers = manager.read_all_servers()?;
+        Commands::Setup { server, to } => {
+            let cat_entry = registry
+                .find_by_id(&server)
+                .with_context(|| format!("Server '{}' not found in registry catalog", server))?;
+
+            println!(
+                "Setting up MCP server '{}' ({})",
+                cat_entry.name, cat_entry.id
+            );
+
+            // 1. Validate runtime capability
+            if let Err(e) = runtimes.validate_command(&cat_entry.command) {
+                eprintln!("⚠ Runtime warning: {}", e);
+            }
+
+            // 2. Auto-resolve environment variables and secrets
+            let (resolved_env, missing) = resolver.resolve_for_keys(&cat_entry.required_env);
+            for k in resolved_env.keys() {
+                println!("  ✓ Auto-resolved environment secret '{}'", k);
+            }
+            if !missing.is_empty() {
+                eprintln!(
+                    "  ⚠ Note: Required env var(s) {:?} not found in environment, .env, or gh CLI.",
+                    missing
+                );
+            }
+
+            // 3. Target clients
+            let all_locations = manager.detect_all();
+            let targets: Vec<ConfigLocation> = if let Some(ref client_ids) = to {
+                all_locations
+                    .into_iter()
+                    .filter(|l| client_ids.contains(&l.client_id))
+                    .collect()
+            } else {
+                all_locations.into_iter().filter(|l| l.exists).collect()
+            };
+
+            if targets.is_empty() {
+                eprintln!("Error: No installed or detected client configs found to target.");
+                std::process::exit(1);
+            }
+
+            let server_entry = cat_entry.to_server_entry(resolved_env);
+            manager.write_server_to_locations(&server_entry, &targets)?;
+            println!(
+                "  ✓ Installed to {} client(s): {}",
+                targets.len(),
+                targets
+                    .iter()
+                    .map(|t| t.display_name.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            );
+
+            // 4. Immediate health check
+            print!("  Running diagnostic health check... ");
+            let status = check_server_health(&server_entry, 10).await;
+            println!("{}", status.status_text());
+        }
+
+        Commands::Pack { command } => {
+            match command {
+                PackCommands::List => {
+                    println!("\n{:<16} {:<24} {:<30}", "PACK ID", "NAME", "SERVERS");
+                    println!("{}", "-".repeat(70));
+                    for p in SERVER_PACKS {
+                        println!(
+                            "{:<16} {:<24} {:<30}",
+                            p.id,
+                            p.name,
+                            p.server_ids.join(", ")
+                        );
+                        println!("   └─ {}", p.description);
+                    }
+                    println!();
+                }
+                PackCommands::Install { name, to } => {
+                    let pack = find_pack(&name)
+                    .with_context(|| format!("Pack '{}' not found. Run 'mcpforge pack list' to view available packs.", name))?;
+
+                    println!("\nInstalling server pack '{}' ({})", pack.name, pack.id);
+                    for server_id in pack.server_ids {
+                        if let Some(cat_entry) = registry.find_by_id(server_id) {
+                            let (resolved_env, _) =
+                                resolver.resolve_for_keys(&cat_entry.required_env);
+                            let server_entry = cat_entry.to_server_entry(resolved_env);
+
+                            let all_locations = manager.detect_all();
+                            let targets: Vec<ConfigLocation> = if let Some(ref client_ids) = to {
+                                all_locations
+                                    .into_iter()
+                                    .filter(|l| client_ids.contains(&l.client_id))
+                                    .collect()
+                            } else {
+                                all_locations.into_iter().filter(|l| l.exists).collect()
+                            };
+
+                            let _ = manager.write_server_to_locations(&server_entry, &targets);
+                            println!(
+                                "  ✓ Installed '{}' to {} client(s)",
+                                server_id,
+                                targets.len()
+                            );
+                        }
+                    }
+                    println!("Pack installation complete!\n");
+                }
+            }
+        }
+
+        Commands::Doctor { fix, json, timeout } => {
+            let mut servers = manager.read_all_servers()?;
             println!(
                 "Running doctor checks on {} configured servers...",
                 servers.len()
             );
+
+            if fix {
+                println!("Auto-healing enabled: attempting resolution of missing environment variables...");
+                for server in &mut servers {
+                    if let mcp_core::types::Transport::Stdio { env, .. } = &mut server.transport {
+                        if let Some(cat_entry) = registry.find_by_id(&server.id) {
+                            let (resolved, _) = resolver.resolve_for_keys(&cat_entry.required_env);
+                            for (k, v) in resolved {
+                                env.entry(k).or_insert(v);
+                            }
+                        }
+                    }
+                }
+                let all_targets: Vec<ConfigLocation> = manager
+                    .detect_all()
+                    .into_iter()
+                    .filter(|l| l.exists)
+                    .collect();
+                for s in &servers {
+                    let _ = manager.write_server_to_locations(s, &all_targets);
+                }
+            }
+
             let report = DoctorReport::run(&servers, timeout).await;
 
             if json {
                 println!("{}", report.to_json()?);
             } else {
                 let ok = report.print_table();
-                if !ok {
+                if !ok && !fix {
                     std::process::exit(1);
                 }
             }
@@ -117,7 +292,8 @@ async fn handle_cli_command(cmd: Commands) -> Result<()> {
                 let cat_entry = registry
                     .find_by_id(&id)
                     .with_context(|| format!("Server '{}' not found in registry", id))?;
-                cat_entry.to_server_entry(BTreeMap::new())
+                let (env, _) = resolver.resolve_for_keys(&cat_entry.required_env);
+                cat_entry.to_server_entry(env)
             } else if stdin {
                 let mut buf = String::new();
                 io::stdin().read_to_string(&mut buf)?;
@@ -152,20 +328,43 @@ async fn handle_cli_command(cmd: Commands) -> Result<()> {
             );
         }
 
-        Commands::Sync { target, from } => {
+        Commands::Sync { auto, target, from } => {
+            if auto {
+                let all_servers = manager.read_all_servers()?;
+                let all_targets: Vec<ConfigLocation> = manager
+                    .detect_all()
+                    .into_iter()
+                    .filter(|l| l.exists)
+                    .collect();
+
+                for s in &all_servers {
+                    manager.write_server_to_locations(s, &all_targets)?;
+                }
+
+                println!(
+                    "Auto-synced {} servers across {} client(s).",
+                    all_servers.len(),
+                    all_targets.len()
+                );
+                return Ok(());
+            }
+
+            let src_name = from.context("Source client (--from) or --auto is required")?;
+            let tgt_name = target.context("Target client or --auto is required")?;
+
             let all_locs = manager.detect_all();
             let src_loc = all_locs
                 .iter()
-                .find(|l| l.client_id == from)
-                .with_context(|| format!("Source client '{}' not found", from))?;
+                .find(|l| l.client_id == src_name)
+                .with_context(|| format!("Source client '{}' not found", src_name))?;
             let tgt_loc = all_locs
                 .iter()
-                .find(|l| l.client_id == target)
-                .with_context(|| format!("Target client '{}' not found", target))?;
+                .find(|l| l.client_id == tgt_name)
+                .with_context(|| format!("Target client '{}' not found", tgt_name))?;
 
             let mut src_servers = Vec::new();
             for adapter in manager.adapters() {
-                if adapter.id() == from {
+                if adapter.id() == src_name {
                     src_servers = adapter.read_servers(src_loc)?;
                     break;
                 }
@@ -178,8 +377,8 @@ async fn handle_cli_command(cmd: Commands) -> Result<()> {
             println!(
                 "Synced {} servers from '{}' to '{}'.",
                 src_servers.len(),
-                from,
-                target
+                src_name,
+                tgt_name
             );
         }
 
@@ -332,6 +531,11 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                 app.status_message =
                                     Some(format!("Updated health for '{}'", server.id));
                             }
+                        }
+                        KeyCode::Char('u') => {
+                            let count = app.auto_sync_all().unwrap_or(0);
+                            app.status_message =
+                                Some(format!("Auto-synced {} servers across all clients!", count));
                         }
                         KeyCode::Char('a') => {
                             app.start_wizard();

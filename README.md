@@ -4,114 +4,101 @@
 
 ---
 
-## Features
+## What makes MCPForge different?
 
-- **Multi-Client Support**: Seamlessly manages MCP server configurations across:
-  - Claude Desktop (`claude_desktop_config.json`)
-  - Claude Code (`~/.claude.json`, `.mcp.json`)
-  - Cursor (`~/.cursor/mcp.json`, `.cursor/mcp.json`)
-  - VS Code / Copilot (`~/.vscode/mcp.json`, `.vscode/mcp.json`)
-  - Windsurf (`~/.codeium/windsurf/mcp_config.json`)
-  - Custom harnesses (`mcpforge.toml`)
-- **Safety First**:
-  - Timestamped backups created before every single write (`~/.local/state/mcpforge/backups/`).
-  - Order-preserving JSON manipulation keeping unknown keys and user formatting intact.
-  - Atomic file writes via temporary files and rename.
-  - Interactive unified diff preview before applying changes.
-- **Diagnostics (`doctor`)**:
-  - Live protocol handshake (`initialize`, `notifications/initialized`, `tools/list`).
-  - Binary existence verification on `$PATH`.
-  - Latency measurement and tool count tracking.
-- **Curated Local-First Registry**:
-  - Offline-first catalog bundled directly into the binary with top community MCP servers.
-  - Real-time fuzzy search across names, categories, and tags.
-- **Secrets Management**:
-  - Sensitive environment variables (`TOKEN`, `KEY`, `SECRET`, `PASSWORD`) masked by default.
-  - Export mode with optional `--include-secrets` flag.
-  - Restricted permissions (`0600`) for sensitive cache stores.
+MCPForge is designed to be **as automated as possible**:
+1. **Automated Client & Process Discovery**: Scans running OS processes and standard config locations to find all installed and active AI clients (Antigravity, Claude Desktop, Claude Code, Cursor, VS Code, Cline, Continue.dev, Windsurf, Zed).
+2. **Automated Credential & Secret Resolution**: Automatically extracts required tokens and credentials using local tooling (`gh auth token`), `.env` files, and environment variables—no manual token copy-pasting.
+3. **One-Command Setup & Verification**: `mcpforge setup <server>` checks runtimes, fetches tokens, installs into all detected clients, and immediately tests live health via the MCP JSON-RPC handshake.
+4. **Curated Server Packs**: Install complete developer stacks (`dev-core`, `data`, `web-research`, `cloud-dev`) in a single command.
+5. **Self-Healing Diagnostics (`doctor --fix`)**: Detects missing tokens or configuration drift and automatically repairs them.
+6. **Zero-Diff Safety**: Always creates timestamped `.bak` backups before modifying files and preserves existing formatting, comments, and unknown keys with atomic writes.
 
 ---
 
-## Architecture
+## Supported AI Clients & Harnesses
 
-```
-mcptui/
-├── Cargo.toml                      # Root Cargo workspace
-├── crates/
-│   ├── mcp-core/                   # Core protocol types, stdio & HTTP transports, JSON-RPC client
-│   ├── mcpforge-adapters/          # Client adapters, atomic writer, backup manager
-│   ├── mcpforge-registry/          # Curated server catalog & fuzzy search
-│   └── mcpforge/                   # CLI entry point & Ratatui TUI dashboard
-└── catalog/
-    └── default_registry.json       # Built-in offline curated catalog
+| Client | Auto-Detected Paths | Transport Support | Active Process Detection |
+|---|---|---|---|
+| **Antigravity / Gemini** | `~/.gemini/config/mcp_config.json` | stdio, Streamable HTTP | ✓ |
+| **Claude Desktop** | `~/.config/Claude/claude_desktop_config.json` (Linux/Mac/Win) | stdio | ✓ |
+| **Claude Code** | `~/.claude.json`, `.mcp.json` | stdio, Streamable HTTP | ✓ |
+| **Cursor** | `~/.cursor/mcp.json`, `.cursor/mcp.json` | stdio, Streamable HTTP, SSE | ✓ |
+| **VS Code / Copilot** | `~/.vscode/mcp.json`, `.vscode/mcp.json` | stdio, Streamable HTTP | ✓ |
+| **Cline** | VS Code & Cursor extension settings | stdio, Streamable HTTP | ✓ |
+| **Windsurf** | `~/.codeium/windsurf/mcp_config.json` | stdio | ✓ |
+| **Continue.dev** | `~/.continue/config.json` | stdio | ✓ |
+| **Zed** | `~/.config/zed/settings.json` | stdio | ✓ |
+| **Custom Harnesses** | `mcpforge.toml` | all | User-defined |
+
+---
+
+## Automated CLI Commands
+
+```bash
+# 1. Audit and discover all AI clients & running processes on the machine
+mcpforge discover
+
+# 2. Automated one-command setup: auto-resolves tokens (e.g. from `gh auth token` or `.env`),
+#    installs to all detected clients, and immediately tests health
+mcpforge setup github
+mcpforge setup filesystem
+mcpforge setup postgres
+
+# 3. View and install curated server packs
+mcpforge pack list
+mcpforge pack install dev-core       # installs filesystem, git, memory, and fetch
+mcpforge pack install data           # installs postgres, sqlite, and memory
+mcpforge pack install web-research   # installs brave-search, fetch, and puppeteer
+
+# 4. List all configured servers across all clients
+mcpforge list
+
+# 5. Automatically sync all configured servers across all detected clients
+mcpforge sync --auto
+
+# 6. Run diagnostic health checks with automated repair
+mcpforge doctor --fix
+
+# 7. Export/Import configurations (secrets masked by default)
+mcpforge export --output mcp-backup.json
+mcpforge import mcp-backup.json
 ```
 
 ---
 
-## Usage
+## Interactive Terminal UI (TUI)
 
-### Interactive TUI
-
-Launch the full interactive terminal interface:
+Launch the dashboard:
 
 ```bash
 cargo run -p mcpforge
 ```
 
-#### Keybindings
-- `j` / `Down`: Navigate down
-- `k` / `Up`: Navigate up
-- `/`: Search / filter servers
-- `r`: Trigger health check diagnostics
-- `a`: Launch Add Server Wizard (Registry / JSON paste / Manual)
+### Keybindings
+- `j` / `Down`: Move cursor down
+- `k` / `Up`: Move cursor up
+- `u`: **Auto-Sync** all servers across all detected clients in one keystroke
+- `r`: Run diagnostic health check on selected server
+- `a`: Open Add Server Wizard (Registry / JSON paste / Manual) with diff preview
 - `d`: Delete selected server
 - `Space`: Toggle server enable / disable
-- `?`: Toggle help overlay
-- `q` / `Esc`: Quit
-
-### CLI Commands
-
-```bash
-# List all configured servers across all detected clients
-mcpforge list
-
-# Filter list by client
-mcpforge list --client cursor
-
-# Output server list as JSON
-mcpforge list --json
-
-# Run doctor health checks
-mcpforge doctor
-
-# Add a server from the curated registry
-mcpforge add filesystem --from-registry --to cursor,claude-code
-
-# Add a server via JSON snippet on stdin
-echo '{"command":"npx","args":["-y","@modelcontextprotocol/server-memory"]}' | mcpforge add memory --stdin --to cursor
-
-# Sync servers between clients
-mcpforge sync cursor --from claude-code
-
-# Export all server configurations (secrets redacted by default)
-mcpforge export --output mcp-backup.json
-
-# Import server configurations from export file
-mcpforge import mcp-backup.json --to vscode
-```
+- `/`: Filter servers
+- `?`: Help overlay
+- `q`: Quit
 
 ---
 
-## Testing & Quality Assurance
+## Testing & Quality Gates
 
 ```bash
-# Run all unit and integration tests across the workspace
+# Workspace unit and integration tests
 cargo test --workspace
 
-# Run strict clippy linting
+# Strict clippy linting
 cargo clippy --workspace --all-targets -- -D warnings
 
-# Check code formatting
+# Formatting check
 cargo fmt --all -- --check
 ```
 

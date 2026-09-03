@@ -2,13 +2,17 @@ use anyhow::{Context, Result};
 use mcp_core::types::ServerEntry;
 use std::collections::BTreeMap;
 
+use crate::antigravity::AntigravityAdapter;
 use crate::claude_code::ClaudeCodeAdapter;
 use crate::claude_desktop::ClaudeDesktopAdapter;
+use crate::cline::ClineAdapter;
+use crate::continue_dev::ContinueAdapter;
 use crate::cursor::CursorAdapter;
 use crate::custom::CustomHarnessAdapter;
 use crate::traits::{ClientAdapter, ConfigLocation};
 use crate::vscode::VsCodeAdapter;
 use crate::windsurf::WindsurfAdapter;
+use crate::zed::ZedAdapter;
 
 pub struct AdapterManager {
     adapters: Vec<Box<dyn ClientAdapter>>,
@@ -28,6 +32,10 @@ impl AdapterManager {
             Box::new(CursorAdapter::new()),
             Box::new(VsCodeAdapter::new()),
             Box::new(WindsurfAdapter::new()),
+            Box::new(AntigravityAdapter::new()),
+            Box::new(ClineAdapter::new()),
+            Box::new(ContinueAdapter::new()),
+            Box::new(ZedAdapter::new()),
             Box::new(CustomHarnessAdapter::load()),
         ];
         Self { adapters }

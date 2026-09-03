@@ -59,6 +59,16 @@ fn render_header(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
         ));
     }
 
+    if !app.running_processes.is_empty() {
+        header_spans.push(Span::raw(" │ "));
+        header_spans.push(Span::styled(
+            format!("⚡ {} active apps", app.running_processes.len()),
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        ));
+    }
+
     if !app.search_query.is_empty() {
         header_spans.push(Span::raw(" │ "));
         header_spans.push(Span::styled(
@@ -278,12 +288,27 @@ fn render_server_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             ("✗", Style::default().fg(Color::DarkGray))
         };
 
-        lines.push(Line::from(vec![
+        let is_running = app.running_processes.contains(&client.client_id);
+        let mut client_spans = vec![
             Span::raw("  "),
             Span::styled(format!("[{}] ", check_icon), check_style),
             Span::styled(&client.display_name, Style::default().fg(Color::White)),
-            Span::styled(format!(" ({})", client.path.display()), theme.muted),
-        ]));
+        ];
+
+        if is_running {
+            client_spans.push(Span::styled(
+                " [RUNNING]",
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ));
+        }
+
+        client_spans.push(Span::styled(
+            format!(" ({})", client.path.display()),
+            theme.muted,
+        ));
+        lines.push(Line::from(client_spans));
     }
     lines.push(Line::raw(""));
 
@@ -360,7 +385,7 @@ fn render_footer(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
             app.search_query
         )
     } else {
-        "[a]dd  [d]elete  [r]efresh health  [/]search  [?]help  [q]uit".to_string()
+        "[a]dd  [u] auto-sync  [d]elete  [r]efresh health  [/]search  [?]help  [q]uit".to_string()
     };
 
     let p = Paragraph::new(text).style(theme.key_hint);

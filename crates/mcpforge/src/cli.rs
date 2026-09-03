@@ -19,9 +19,16 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Commands {
+    /// Auto-discover all installed AI clients, active processes, and configs on this machine
+    Discover {
+        /// Output discovery results as JSON
+        #[arg(long)]
+        json: bool,
+    },
+
     /// List all configured MCP servers across detected clients
     List {
-        /// Filter by client id (e.g. 'cursor', 'claude-code', 'claude-desktop', 'vscode')
+        /// Filter by client id (e.g. 'cursor', 'claude-code', 'claude-desktop', 'vscode', 'antigravity')
         #[arg(short, long)]
         client: Option<String>,
 
@@ -30,8 +37,28 @@ pub enum Commands {
         json: bool,
     },
 
-    /// Run health checks on configured servers
+    /// Automated one-command setup: auto-resolves tokens, checks runtimes, installs to all active clients, and verifies health
+    Setup {
+        /// Server identifier from curated registry (e.g. 'github', 'filesystem', 'postgres', 'brave-search')
+        server: String,
+
+        /// Optional target client IDs (comma-separated). Defaults to ALL detected clients
+        #[arg(short, long, value_delimiter = ',')]
+        to: Option<Vec<String>>,
+    },
+
+    /// Manage and install curated multi-server packs
+    Pack {
+        #[command(subcommand)]
+        command: PackCommands,
+    },
+
+    /// Run health checks on configured servers (with optional auto-fix)
     Doctor {
+        /// Automatically attempt self-healing on broken configurations
+        #[arg(long)]
+        fix: bool,
+
         /// Output health results in JSON format
         #[arg(long)]
         json: bool,
@@ -67,14 +94,18 @@ pub enum Commands {
         to: Vec<String>,
     },
 
-    /// Sync configured servers between clients
+    /// Sync configured servers between clients (or auto-sync across all clients)
     Sync {
-        /// Destination client to sync servers into
-        target: String,
+        /// Automatically synchronize all servers across every detected client on the machine
+        #[arg(long)]
+        auto: bool,
+
+        /// Destination client to sync servers into (when not using --auto)
+        target: Option<String>,
 
         /// Source client to copy server configurations from
         #[arg(long)]
-        from: String,
+        from: Option<String>,
     },
 
     /// Export canonical server configuration to a portable JSON file
@@ -94,6 +125,22 @@ pub enum Commands {
         input: PathBuf,
 
         /// Target client IDs to install into (comma-separated, e.g. "cursor,vscode")
+        #[arg(short, long, value_delimiter = ',')]
+        to: Option<Vec<String>>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum PackCommands {
+    /// List available server packs
+    List,
+
+    /// Install a server pack across all detected clients
+    Install {
+        /// Pack ID (e.g. 'dev-core', 'data', 'web-research', 'cloud-dev')
+        name: String,
+
+        /// Optional target clients (comma-separated). Defaults to ALL detected clients
         #[arg(short, long, value_delimiter = ',')]
         to: Option<Vec<String>>,
     },

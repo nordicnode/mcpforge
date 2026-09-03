@@ -1,8 +1,10 @@
 pub mod model;
+pub mod packs;
 pub mod search;
 
 use anyhow::{Context, Result};
 pub use model::CatalogEntry;
+pub use packs::{find_pack, ServerPack, SERVER_PACKS};
 pub use search::CatalogSearch;
 use std::path::PathBuf;
 

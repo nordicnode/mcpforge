@@ -52,6 +52,7 @@ pub struct App {
     pub wizard_state: Option<WizardState>,
     pub should_quit: bool,
     pub status_message: Option<String>,
+    pub running_processes: std::collections::HashSet<String>,
 }
 
 impl App {
@@ -60,6 +61,7 @@ impl App {
         let registry = Registry::load().unwrap_or_default();
         let detected_clients = manager.detect_all();
         let servers = manager.read_all_servers().unwrap_or_default();
+        let running_processes = mcpforge_adapters::DiscoveryEngine::scan_running_processes();
 
         Ok(Self {
             manager,
@@ -74,7 +76,32 @@ impl App {
             wizard_state: None,
             should_quit: false,
             status_message: None,
+            running_processes,
         })
+    }
+
+    pub fn auto_sync_all(&mut self) -> Result<usize> {
+        let all_servers = self.manager.read_all_servers()?;
+        let all_targets: Vec<ConfigLocation> = self
+            .detected_clients
+            .iter()
+            .filter(|l| l.exists)
+            .cloned()
+            .collect();
+
+        for server in &all_servers {
+            self.manager
+                .write_server_to_locations(server, &all_targets)?;
+        }
+
+        let count = all_servers.len();
+        self.refresh_servers();
+        self.status_message = Some(format!(
+            "Auto-synced {} servers across {} clients",
+            count,
+            all_targets.len()
+        ));
+        Ok(count)
     }
 
     pub fn filtered_servers(&self) -> Vec<&ServerEntry> {
