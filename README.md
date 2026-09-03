@@ -176,7 +176,7 @@ Pre-built binaries for Linux (`x86_64`), macOS (`Apple Silicon & Intel`), and Wi
 
 ```bash
 # Download and install the latest Linux binary
-curl -fsSL https://github.com/nordicnode/mcpforge/releases/download/v0.1.0/mcpforge-x86_64-unknown-linux-gnu.tar.gz | tar -xz
+curl -fsSL https://github.com/nordicnode/mcpforge/releases/latest/download/mcpforge-x86_64-unknown-linux-gnu.tar.gz | tar -xz
 sudo mv mcpforge /usr/local/bin/
 ```
 

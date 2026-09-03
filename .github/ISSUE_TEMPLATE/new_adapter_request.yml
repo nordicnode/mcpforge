@@ -1,0 +1,54 @@
+name: New Client Adapter Request
+description: Request support for a new AI coding harness, editor, or MCP client
+title: "[Adapter Request]: Support for "
+labels: ["adapter", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        MCPForge supports 26 AI clients and harnesses. If your favorite editor or autonomous agent harness isn't supported yet, let us know!
+
+  - type: input
+    id: client-name
+    attributes:
+      label: Client / Harness Name
+      description: Name of the editor, agent harness, or MCP client.
+      placeholder: e.g. Void Editor, Aider, Kodu
+    validations:
+      required: true
+
+  - type: input
+    id: project-url
+    attributes:
+      label: Project URL or Repository
+      description: Link to the client's official website, documentation, or repository.
+      placeholder: https://github.com/...
+    validations:
+      required: true
+
+  - type: input
+    id: config-path
+    attributes:
+      label: Default Configuration Path(s)
+      description: Where does this client store its MCP configuration on Linux, macOS, and Windows?
+      placeholder: e.g. ~/.config/app/mcp.json or ~/Library/Application Support/...
+
+  - type: dropdown
+    id: format
+    attributes:
+      label: Configuration Format
+      options:
+        - JSON
+        - JSONC (with comments)
+        - YAML
+        - TOML
+        - Other (specify below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: config-sample
+    attributes:
+      label: Sample Configuration Snippet
+      description: Please paste a real example of the client's configuration file showing how MCP servers are defined.
+      render: json
