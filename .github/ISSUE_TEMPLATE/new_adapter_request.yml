@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        MCPForge supports 26 AI clients and harnesses. If your favorite editor or autonomous agent harness isn't supported yet, let us know!
+        MCPForge supports 27 AI clients and harnesses. If your favorite editor or autonomous agent harness isn't supported yet, let us know!
 
   - type: input
     id: client-name

@@ -466,7 +466,96 @@ pub async fn execute(cmd: Commands) -> Result<()> {
             );
         }
 
-        Commands::Verify { client, all, json } => {
+        Commands::Verify {
+            client,
+            all,
+            matrix,
+            json,
+        } => {
+            if matrix {
+                let matrix_verifier = crate::matrix::MatrixVerifier::new();
+                let matrix_report = matrix_verifier.run_matrix_audit(client.as_deref())?;
+
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&matrix_report)?);
+                } else {
+                    let target_desc = match client.as_deref() {
+                        Some(c) => format!("CLIENT '{}'", c.to_uppercase()),
+                        None => "FULL (27 ADAPTERS x 110 SERVERS)".to_string(),
+                    };
+                    println!(
+                        "\nMCPFORGE CROSS-COMPATIBILITY MATRIX VERIFICATION REPORT [{}]",
+                        target_desc
+                    );
+                    println!("{}", "=".repeat(95));
+                    println!("1. CATALOG PROVENANCE & SCHEMA AUDIT:");
+                    println!(
+                        "   • Total Catalog Servers: {} | Valid & Compliant: {}",
+                        matrix_report.catalog_audit.total_servers,
+                        matrix_report.catalog_audit.valid_servers
+                    );
+                    println!(
+                        "   • Categories: {}",
+                        matrix_report
+                            .catalog_audit
+                            .categories_count
+                            .iter()
+                            .map(|(k, v)| format!("{}: {}", k, v))
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
+                    println!(
+                        "   • Server Packs Integrity: {}/{} references verified",
+                        matrix_report.catalog_audit.valid_pack_references,
+                        matrix_report.catalog_audit.total_pack_references
+                    );
+
+                    println!("\n2. CLIENT ADAPTERS HARNESS AUDIT:");
+                    println!(
+                        "   • Total Supported Adapters Tested: {} | Fully Verified: {}",
+                        matrix_report.adapter_audit.total_adapters,
+                        matrix_report.adapter_audit.verified_adapters
+                    );
+
+                    println!(
+                        "\n3. INTEGRATION MATRIX ({} ADAPTER(S) x {} SERVERS):",
+                        matrix_report.adapter_audit.total_adapters,
+                        matrix_report.catalog_audit.total_servers
+                    );
+                    println!(
+                        "   • Combinations Tested: {} | Passed: {} | Failed: {}",
+                        matrix_report.matrix_combinations_tested,
+                        matrix_report.matrix_combinations_passed,
+                        matrix_report.matrix_combinations_failed
+                    );
+                    println!(
+                        "   • Batch 110-Server Concurrency: {}/{} adapters passed full catalog load",
+                        matrix_report.batch_all_servers_passed,
+                        matrix_report.batch_all_servers_tested
+                    );
+                    println!("   • Execution Time: {}ms", matrix_report.elapsed_ms);
+                    println!("{}", "-".repeat(95));
+
+                    if matrix_report.is_success() {
+                        println!("✓ ZERO GAPS DETECTED: Every harness/client is verified supported and every MCP server is integrated.\n");
+                    } else {
+                        println!(
+                            "✗ MATRIX DRIFT DETECTED: {} failures encountered:",
+                            matrix_report.failures.len()
+                        );
+                        for f in &matrix_report.failures {
+                            println!(
+                                "   - [{}] Server '{}' at '{}': {}",
+                                f.client_id, f.server_id, f.error_stage, f.details
+                            );
+                        }
+                        println!();
+                        std::process::exit(1);
+                    }
+                }
+                return Ok(());
+            }
+
             let verifier = SchemaVerifier::new();
             let report = if let Some(ref c) = client {
                 verifier.verify_client(c)?

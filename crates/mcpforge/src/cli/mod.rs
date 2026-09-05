@@ -141,9 +141,13 @@ pub enum Commands {
         #[arg(short, long)]
         client: Option<String>,
 
-        /// Audit all 26 client adapters including uninstalled baselines
+        /// Audit all 27 client adapters including uninstalled baselines
         #[arg(short, long)]
         all: bool,
+
+        /// Run deep matrix cross-compatibility verification across all 27 adapters and 110 catalog servers
+        #[arg(short, long)]
+        matrix: bool,
 
         /// Output verification results as JSON
         #[arg(long)]

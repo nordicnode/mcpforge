@@ -1,6 +1,7 @@
 pub mod app;
 pub mod cli;
 pub mod doctor;
+pub mod matrix;
 pub mod provisioner;
 pub mod resolver;
 pub mod secrets;

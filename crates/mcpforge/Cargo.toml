@@ -50,3 +50,4 @@ chrono.workspace = true
 similar.workspace = true
 toml.workspace = true
 serde_yaml.workspace = true
+tempfile.workspace = true

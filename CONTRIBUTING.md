@@ -17,7 +17,7 @@ MCPForge is organized as a modular Rust Cargo workspace:
 ```
 crates/
 ├── mcp-core/             # Protocol types, stdio/http transports, JSON-RPC 2.0
-├── mcpforge-adapters/    # 26 client configuration adapters behind ClientAdapter trait
+├── mcpforge-adapters/    # 27 client configuration adapters behind ClientAdapter trait
 ├── mcpforge-registry/    # 110-server curated catalog, fuzzy search, and link audit
 └── mcpforge/             # Ratatui TUI app, CLI commands, secret resolver, and runner
 catalog/                  # Embedded catalog database (default_registry.json)

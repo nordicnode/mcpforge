@@ -304,6 +304,9 @@ mcpforge verify
 # Audit a specific client adapter only
 mcpforge verify --client codex
 
+# Run deep cross-compatibility matrix verification (all 27 clients x 110 servers = 2,970 combinations)
+mcpforge verify --matrix
+
 # Test a configured server with live JSON-RPC handshake and latency report
 mcpforge test fetch
 
@@ -357,8 +360,8 @@ MCPForge is built as a modular Cargo workspace designed for speed, safety, and e
 mcpforge/
 ├── crates/
 │   ├── mcp-core/              # MCP protocol primitives, JSON-RPC 2.0, Transports (Stdio, HTTP, SSE)
-│   ├── mcpforge-adapters/     # 26 client adapters, format AST engines, schema verifier, golden tests
-│   │   └── tests/fixtures/    # 26 golden config fixtures (JSON, JSONC, YAML, TOML)
+│   ├── mcpforge-adapters/     # 27 client adapters, format AST engines, schema verifier, golden tests
+│   │   └── tests/fixtures/    # 27 golden config fixtures (JSON, JSONC, YAML, TOML)
 │   ├── mcpforge-registry/     # Embedded registry with 110+ audited server entries & provenance
 │   └── mcpforge/              # Ratatui TUI application, modular CLI dispatch, process watcher
 │       ├── src/cli/           # Modular CLI dispatch & handlers (verify, sync, doctor, pack, add, etc.)

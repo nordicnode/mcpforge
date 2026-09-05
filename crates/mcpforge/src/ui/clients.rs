@@ -400,7 +400,47 @@ fn render_client_details(f: &mut Frame, app: &App, area: Rect, theme: &Theme) {
     ]));
     lines.push(Line::raw(""));
 
-    // 5. Configured Servers in this Client
+    // 5. Schema & Format Health Check
+    let active_loc = client.all_locations.iter().find(|l| l.exists);
+    if let Some(loc) = active_loc {
+        let verifier = mcpforge_adapters::SchemaVerifier::new();
+        let res = verifier.verify_location(&client.id, &client.display_name, loc);
+        let (schema_badge, schema_style) = if res.schema_compliant {
+            ("✓ COMPLIANT", theme.status_healthy)
+        } else if !res.syntax_valid {
+            ("✖ SYNTAX CORRUPT", theme.status_broken)
+        } else {
+            ("▲ SCHEMA DRIFT", theme.status_degraded)
+        };
+
+        let mut schema_spans = vec![
+            Span::styled("Schema:   ", theme.header),
+            Span::styled(format!("[{}] ", schema_badge), schema_style),
+            Span::styled(
+                format!("Format: {} · ", res.format),
+                Style::default().fg(Color::White),
+            ),
+        ];
+
+        if res.errors.is_empty() {
+            schema_spans.push(Span::styled(
+                "No syntax or schema drift detected",
+                theme.status_healthy,
+            ));
+        } else {
+            schema_spans.push(Span::styled(res.errors[0].clone(), theme.status_broken));
+        }
+        lines.push(Line::from(schema_spans));
+    } else {
+        lines.push(Line::from(vec![
+            Span::styled("Schema:   ", theme.header),
+            Span::styled("[· UNCONFIGURED] ", theme.muted),
+            Span::styled("No active configuration file on disk to audit", theme.muted),
+        ]));
+    }
+    lines.push(Line::raw(""));
+
+    // 6. Configured Servers in this Client
     lines.push(Line::from(vec![Span::styled(
         format!(
             "CONFIGURED SERVERS IN THIS CLIENT ({}/{}):",

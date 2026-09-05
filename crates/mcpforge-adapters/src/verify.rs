@@ -131,7 +131,7 @@ impl SchemaVerifier {
         Ok(report)
     }
 
-    fn verify_location(
+    pub fn verify_location(
         &self,
         client_id: &str,
         display_name: &str,

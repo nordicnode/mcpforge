@@ -46,7 +46,7 @@
       "code",
       "vcs"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/github",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -72,7 +72,7 @@
       "mr",
       "cicd"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gitlab",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -123,7 +123,7 @@
       "forgejo",
       "self-hosted"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gitea",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -149,7 +149,7 @@
       "rdbms",
       "data"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/postgres",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -175,7 +175,7 @@
       "mariadb",
       "data"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/mysql",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -200,7 +200,7 @@
       "embedded",
       "local"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sqlite",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -225,7 +225,7 @@
       "documents",
       "data"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/mongodb",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -251,7 +251,7 @@
       "key-value",
       "data"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/redis",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -278,7 +278,7 @@
       "cloud",
       "auth"
     ],
-    "source_url": "https://github.com/supabase/mcp-server",
+    "source_url": "https://github.com/supabase",
     "last_verified": "2026-09-02",
     "maintainer": "Supabase"
   },
@@ -427,7 +427,7 @@
       "reference",
       "code"
     ],
-    "source_url": "https://github.com/context7/mcp-server",
+    "source_url": "https://github.com/context7",
     "last_verified": "2026-09-02",
     "maintainer": "context7"
   },
@@ -476,7 +476,7 @@
       "brave",
       "privacy"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/brave-search",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -550,7 +550,7 @@
       "citations",
       "web"
     ],
-    "source_url": "https://github.com/perplexity-ai/perplexity-mcp",
+    "source_url": "https://github.com/perplexityai",
     "last_verified": "2026-09-02",
     "maintainer": "perplexity-ai"
   },
@@ -599,7 +599,7 @@
       "screenshots",
       "headless"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -645,7 +645,7 @@
       "cloud",
       "infra"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/docker",
+    "source_url": "https://github.com/docker",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -671,7 +671,7 @@
       "devops",
       "cloud"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/kubernetes",
+    "source_url": "https://github.com/kubernetes",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -698,7 +698,7 @@
       "ec2",
       "lambda"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/aws",
+    "source_url": "https://github.com/aws",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -752,7 +752,7 @@
       "crash",
       "logs"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sentry",
+    "source_url": "https://github.com/getsentry",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -779,7 +779,7 @@
       "traces",
       "apm"
     ],
-    "source_url": "https://github.com/DataDog/mcp-datadog",
+    "source_url": "https://github.com/DataDog",
     "last_verified": "2026-09-02",
     "maintainer": "DataDog"
   },
@@ -802,7 +802,7 @@
       "cloud",
       "infra"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/terraform",
+    "source_url": "https://github.com/hashicorp/terraform",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -828,7 +828,7 @@
       "messaging",
       "collaboration"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/slack",
+    "source_url": "https://github.com/slackapi",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -853,7 +853,7 @@
       "bot",
       "community"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/discord",
+    "source_url": "https://github.com/discord",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -878,7 +878,7 @@
       "agile",
       "project-management"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/linear",
+    "source_url": "https://github.com/linear",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -906,7 +906,7 @@
       "sprints",
       "tickets"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/jira",
+    "source_url": "https://github.com/atlassian",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -932,7 +932,7 @@
       "knowledge",
       "notes"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/notion",
+    "source_url": "https://github.com/makenotion",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -957,7 +957,7 @@
       "pkm",
       "local"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/obsidian",
+    "source_url": "https://github.com/obsidianmd",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -983,7 +983,7 @@
       "cloud",
       "docs"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gdrive",
+    "source_url": "https://github.com/googleapis",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -1009,7 +1009,7 @@
       "directions",
       "location"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/google-maps",
+    "source_url": "https://github.com/googlemaps",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -1034,7 +1034,7 @@
       "todos",
       "productivity"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/todoist",
+    "source_url": "https://github.com/Doist",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -1082,7 +1082,7 @@
       "climate",
       "temperature"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/weather",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -1108,7 +1108,7 @@
       "api",
       "dynamic"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/openapi",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -1134,7 +1134,7 @@
       "schema",
       "api"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/graphql",
+    "source_url": "https://github.com/graphql",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -1157,7 +1157,7 @@
       "cli",
       "exec"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/shell",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -1180,7 +1180,7 @@
       "runner",
       "sandbox"
     ],
-    "source_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/python",
+    "source_url": "https://github.com/modelcontextprotocol/servers",
     "last_verified": "2026-09-02",
     "maintainer": "Model Context Protocol (Official)"
   },
@@ -1204,7 +1204,7 @@
       "media",
       "transcode"
     ],
-    "source_url": "https://github.com/ffmpeg-mcp/server",
+    "source_url": "https://github.com/FFmpeg/FFmpeg",
     "last_verified": "2026-09-02",
     "maintainer": "ffmpeg-mcp"
   },
@@ -1710,7 +1710,7 @@
       "serverless",
       "vector"
     ],
-    "source_url": "https://github.com/datastax/astra-client-nodejs",
+    "source_url": "https://github.com/datastax",
     "last_verified": "2026-09-02",
     "maintainer": "datastax"
   },

@@ -57,7 +57,7 @@ impl DiscoveryEngine {
 
         // 2. Query pgrep with strict pattern
         if let Ok(output) = std::process::Command::new("pgrep")
-            .args(["-a", "pi|freebuff|codebuff|grok|jcode|opencode|codex|claude|cursor|windsurf|zed|antigravity|goose|librechat|mcphub|anythingllm|idea|pycharm|hermes|openclaw|deepseek|dsh|prime|letta|memgpt"])
+            .args(["-a", "pi|freebuff|codebuff|grok|jcode|opencode|codex|claude|cursor|windsurf|zed|antigravity|agy|goose|librechat|mcphub|anythingllm|idea|pycharm|hermes|openclaw|deepseek|dsh|prime|letta|memgpt|roo|continue|cline"])
             .output()
         {
             if let Ok(out_str) = String::from_utf8(output.stdout) {
@@ -79,6 +79,7 @@ impl DiscoveryEngine {
             "claude-desktop" => &["claude-desktop"],
             "windsurf" => &["windsurf"],
             "zed" => &["zed", "zed-editor"],
+            "antigravity" => &["agy", "antigravity"],
             "freebuff" => &["freebuff", "freebuff-desktop"],
             "grok" => &["grok"],
             "jcode" => &["jcode"],
@@ -96,6 +97,9 @@ impl DiscoveryEngine {
             "prime" => &["prime", "prime-agent"],
             "letta" => &["letta", "memgpt"],
             "pi" => &["pi", "pi-agent", "pi-coding-agent"],
+            "cline" => &["cline"],
+            "roo-code" => &["roo", "roo-code"],
+            "continue" => &["continue"],
             _ => &[],
         };
 
@@ -120,6 +124,9 @@ impl DiscoveryEngine {
         #[cfg(target_os = "macos")]
         {
             let app_bundles: &[&str] = match client_id {
+                "antigravity" => &["Antigravity.app"],
+                "freebuff" => &["Freebuff.app", "Freebuff Desktop.app"],
+                "deepseek" => &["DeepSeek.app"],
                 "vscode" => &["Visual Studio Code.app", "VSCodium.app"],
                 "cursor" => &["Cursor.app"],
                 "claude-desktop" => &["Claude.app"],
@@ -163,7 +170,7 @@ impl DiscoveryEngine {
         false
     }
 
-    fn map_comm_to_client(name: &str, set: &mut HashSet<String>) {
+    pub fn map_comm_to_client(name: &str, set: &mut HashSet<String>) {
         // Match specific clients first before any substrings!
         if name.contains("freebuff") || name.contains("codebuff") {
             set.insert("freebuff".to_string());
@@ -202,8 +209,16 @@ impl DiscoveryEngine {
             set.insert("zed".to_string());
             return;
         }
-        if name.contains("antigravity") {
+        if name.contains("antigravity")
+            || name == "agy"
+            || name.starts_with("agy-")
+            || name.ends_with("/agy")
+        {
             set.insert("antigravity".to_string());
+            return;
+        }
+        if name.contains("cline") {
+            set.insert("cline".to_string());
             return;
         }
         if name.contains("continue") {
