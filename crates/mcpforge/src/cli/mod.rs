@@ -247,6 +247,12 @@ pub enum Commands {
         #[arg(short, long, default_value_t = 2)]
         interval: u64,
     },
+
+    /// Manage stored credentials and API tokens for automatic MCP server resolution
+    Secret {
+        #[command(subcommand)]
+        command: SecretCommands,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -288,5 +294,36 @@ pub enum PackCommands {
         /// Optional target clients (comma-separated). Defaults to ALL detected clients
         #[arg(short, long, value_delimiter = ',')]
         to: Option<Vec<String>>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum SecretCommands {
+    /// Store a credential or API token in the secure secrets store
+    Set {
+        /// Key name (e.g. GITHUB_TOKEN, BRAVE_API_KEY)
+        key: String,
+
+        /// Secret value (if omitted, will prompt or read from stdin)
+        value: Option<String>,
+    },
+
+    /// Retrieve a credential from the secrets store
+    Get {
+        /// Key name to retrieve
+        key: String,
+    },
+
+    /// List all configured secret keys (with redacted values)
+    List {
+        /// Output in JSON format
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Remove a credential from the secrets store
+    Remove {
+        /// Key name to remove
+        key: String,
     },
 }

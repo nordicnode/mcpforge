@@ -43,6 +43,7 @@ impl DoctorReport {
         }
 
         let registry = Registry::default();
+        let resolver = crate::resolver::EnvResolver::new();
         let mut prescriptions = Vec::new();
 
         for server in servers {
@@ -70,11 +71,13 @@ impl DoctorReport {
                 }
 
                 if let Some(ref req_key) = missing_env {
-                    let host_val = std::env::var(req_key).ok();
+                    let (resolved_env, _) =
+                        resolver.resolve_for_keys(std::slice::from_ref(req_key));
+                    let host_val = resolved_env.get(req_key).cloned();
                     let (can_fix, prescription, copy_fix) = if host_val.is_some() {
                         (
                             true,
-                            format!("Discovered '{}' in current shell environment. Auto-healing can inject this credential.", req_key),
+                            format!("Discovered '{}' in environment/secrets store. Auto-healing can inject this credential.", req_key),
                             Some("mcpforge doctor --fix".to_string()),
                         )
                     } else {
@@ -85,7 +88,7 @@ impl DoctorReport {
                         (
                             false,
                             format!("Missing required environment variable '{}'. Upstream documentation: {}", req_key, doc_link),
-                            Some(format!("export {}=\"<your-api-key>\"", req_key)),
+                            Some(format!("export {}=\"<your-api-key>\" (or run 'mcpforge secret set {}')", req_key, req_key)),
                         )
                     };
 
@@ -306,5 +309,35 @@ impl DoctorReport {
             "prescriptions": self.prescriptions,
         });
         Ok(serde_json::to_string_pretty(&json_data)?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_diagnostic_prescription_serialization() {
+        let p = DiagnosticPrescription {
+            server_id: "test-server".to_string(),
+            issue: "Missing Credential".to_string(),
+            root_cause: "Variable FOO not found".to_string(),
+            prescription: "Export FOO".to_string(),
+            copy_paste_fix: Some("export FOO=bar".to_string()),
+            can_autofix: true,
+            missing_env_key: Some("FOO".to_string()),
+            discovered_env_val: Some("bar".to_string()),
+        };
+
+        let json = serde_json::to_string(&p).unwrap();
+        assert!(json.contains("\"server_id\":\"test-server\""));
+        assert!(json.contains("\"can_autofix\":true"));
+    }
+
+    #[tokio::test]
+    async fn test_doctor_report_empty_servers() {
+        let report = DoctorReport::run(&[], 1).await;
+        assert!(report.results.is_empty());
+        assert!(report.prescriptions.is_empty());
     }
 }

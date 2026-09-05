@@ -474,6 +474,41 @@ async fn main_loop<B: ratatui::backend::Backend>(
                         KeyCode::Char('a') => {
                             app.start_wizard();
                         }
+                        KeyCode::Char('v') => {
+                            app.open_client_config_modal();
+                        }
+                        KeyCode::Char('m') => {
+                            if let Some(client) = app.selected_client().cloned() {
+                                app.status_message = Some(format!(
+                                    "Testing matrix compatibility for '{}' (110 catalog servers)...",
+                                    client.display_name
+                                ));
+                                terminal.draw(|f| ui::render_ui(f, app))?;
+                                let verifier = crate::matrix::MatrixVerifier::new();
+                                match verifier.run_matrix_audit(Some(&client.id)) {
+                                    Ok(report) => {
+                                        if report.is_success() {
+                                            app.status_message = Some(format!(
+                                                "✓ Matrix SUCCESS: 110/110 servers passed for '{}' ({}ms)",
+                                                client.display_name, report.elapsed_ms
+                                            ));
+                                        } else {
+                                            app.status_message = Some(format!(
+                                                "✖ Matrix FAILED for '{}': {} failures detected",
+                                                client.display_name,
+                                                report.failures.len()
+                                            ));
+                                        }
+                                    }
+                                    Err(e) => {
+                                        app.status_message = Some(format!(
+                                            "✖ Matrix error for '{}': {:#}",
+                                            client.display_name, e
+                                        ));
+                                    }
+                                }
+                            }
+                        }
                         KeyCode::Char('d')
                         | KeyCode::Delete
                         | KeyCode::Backspace
@@ -946,6 +981,25 @@ async fn main_loop<B: ratatui::backend::Backend>(
                                     }
                                 }
                             }
+                        }
+                        _ => {}
+                    },
+
+                    CurrentView::ViewClientConfig => match key.code {
+                        KeyCode::Esc | KeyCode::Char('q') | KeyCode::Enter | KeyCode::Char('v') => {
+                            app.close_client_config_modal();
+                        }
+                        KeyCode::Char('j') | KeyCode::Down => {
+                            app.scroll_client_config_down(1);
+                        }
+                        KeyCode::Char('k') | KeyCode::Up => {
+                            app.scroll_client_config_up(1);
+                        }
+                        KeyCode::PageDown => {
+                            app.scroll_client_config_down(10);
+                        }
+                        KeyCode::PageUp => {
+                            app.scroll_client_config_up(10);
                         }
                         _ => {}
                     },

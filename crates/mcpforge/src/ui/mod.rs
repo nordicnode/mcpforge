@@ -48,5 +48,9 @@ pub fn render_ui(f: &mut Frame, app: &App) {
             dashboard::render_dashboard(f, app);
             backups::render_backup_modal(f, app);
         }
+        CurrentView::ViewClientConfig => {
+            clients::render_clients_view(f, app);
+            clients::render_client_config_modal(f, app);
+        }
     }
 }

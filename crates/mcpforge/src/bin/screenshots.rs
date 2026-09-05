@@ -225,5 +225,39 @@ fn main() -> Result<()> {
     dump_frame(&mut app, width, height, "screenshot_backup_modal.json")?;
     println!("Captured screenshot_backup_modal.json");
 
+    // 8. Raw Client Configuration Inspector Modal
+    app.backup_state = None;
+    app.current_view = CurrentView::Clients;
+    // Set a mock active config if needed or open
+    app.client_config_modal = Some((
+        "/home/user/.cursor/mcp.json".to_string(),
+        r#"{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_mock_token_secret"
+      }
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    }
+  }
+}
+"#
+        .to_string(),
+    ));
+    app.client_config_scroll = 0;
+    app.current_view = CurrentView::ViewClientConfig;
+    dump_frame(
+        &mut app,
+        width,
+        height,
+        "screenshot_client_config_modal.json",
+    )?;
+    println!("Captured screenshot_client_config_modal.json");
+
     Ok(())
 }

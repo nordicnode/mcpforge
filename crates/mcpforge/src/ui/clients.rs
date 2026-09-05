@@ -509,28 +509,93 @@ fn render_clients_footer(f: &mut Frame, area: Rect, theme: &Theme) {
 
     let key_hints = Line::from(vec![
         Span::styled("[Tab/1]", theme.key_shortcut),
-        Span::raw(" Servers   "),
+        Span::raw(" Servers  "),
         Span::styled("[a]", theme.key_shortcut),
         Span::styled(
-            " Add Server   ",
+            " Add  ",
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
         ),
-        Span::styled("[j/k]", theme.key_shortcut),
-        Span::raw(" Navigate   "),
+        Span::styled("[v]", theme.key_shortcut),
+        Span::raw(" Config  "),
+        Span::styled("[m]", theme.key_shortcut),
+        Span::raw(" Matrix  "),
         Span::styled("[u]", theme.key_shortcut),
-        Span::raw(" Sync   "),
+        Span::raw(" Sync  "),
         Span::styled("[d]", theme.key_shortcut),
-        Span::raw(" Remove   "),
+        Span::raw(" Remove  "),
         Span::styled("[r]", theme.key_shortcut),
-        Span::raw(" Rescan   "),
+        Span::raw(" Rescan  "),
         Span::styled("[?]", theme.key_shortcut),
-        Span::raw(" Help   "),
+        Span::raw(" Help  "),
         Span::styled("[q]", theme.key_shortcut),
         Span::raw(" Quit"),
     ]);
 
     let p = Paragraph::new(vec![legend, key_hints]);
     f.render_widget(p, area);
+}
+
+pub fn render_client_config_modal(f: &mut Frame, app: &App) {
+    let (ref path, ref content) = match app.client_config_modal {
+        Some(ref data) => data,
+        None => return,
+    };
+
+    let theme = Theme::default();
+    let area = crate::ui::layout::centered_rect(78, 80, f.area());
+    f.render_widget(ratatui::widgets::Clear, area);
+
+    let title = format!(" CONFIGURATION FILE: {} ", path);
+    let block = Block::default()
+        .title(title)
+        .title_style(theme.title)
+        .borders(Borders::ALL)
+        .border_type(theme.border_type)
+        .border_style(theme.border_focus);
+
+    let inner = block.inner(area);
+    f.render_widget(block, area);
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Min(5), Constraint::Length(2)])
+        .split(inner);
+
+    let total_lines = content.lines().count();
+    let visible_lines = chunks[0].height as usize;
+    let scroll = app
+        .client_config_scroll
+        .min(total_lines.saturating_sub(visible_lines));
+
+    let display_lines: Vec<Line> = content
+        .lines()
+        .skip(scroll)
+        .take(visible_lines)
+        .enumerate()
+        .map(|(i, l)| {
+            let line_no = scroll + i + 1;
+            Line::from(vec![
+                Span::styled(format!("{:>4} │ ", line_no), theme.muted),
+                Span::styled(l, Style::default().fg(Color::Rgb(248, 248, 242))),
+            ])
+        })
+        .collect();
+
+    let code_widget = Paragraph::new(display_lines).block(Block::default().borders(Borders::NONE));
+    f.render_widget(code_widget, chunks[0]);
+
+    let footer_line = Line::from(vec![
+        Span::styled(" [j/k/Down/Up] ", theme.key_shortcut),
+        Span::raw("Scroll (line "),
+        Span::styled(
+            format!("{}/{}", scroll + 1, total_lines.max(1)),
+            theme.title,
+        ),
+        Span::raw(")   "),
+        Span::styled("[Esc] / [v] / [Enter] / [q] ", theme.key_shortcut),
+        Span::raw("Close Modal"),
+    ]);
+    f.render_widget(Paragraph::new(footer_line), chunks[1]);
 }

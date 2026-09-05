@@ -165,6 +165,15 @@ Inspect automatic backup snapshots taken before every mutation. View colorized u
 
 ---
 
+### 8. Client Configuration File Inspector (`[v]` Key in Clients View)
+Inspect any client harness's raw configuration file directly in-terminal with line numbers, file statistics, and scrollable modal viewer.
+
+<p align="center">
+  <img src="assets/screenshots/client_config_modal.png" alt="Client Configuration File Inspector" width="95%" />
+</p>
+
+---
+
 ## Supported Clients
 
 MCPForge provides native, format-preserving adapters for **27 distinct AI clients and harnesses**:
@@ -280,6 +289,8 @@ mcpforge
 | `j` / `k` or `Down` / `Up` | Navigation | Move cursor through server or client lists |
 | `Space` | Servers View | Toggle server enabled / disabled |
 | `v` / `Enter` | Dashboard | View canonical configuration snippet modal |
+| `v` | Clients View | View raw client configuration file modal |
+| `m` | Clients View | Run live single-adapter cross-compatibility matrix verification |
 | `a` | Global | Open Add Server Wizard (4-step provisioning) |
 | `d` / `Delete` / `x` | Global | Open Interactive Server Removal Modal |
 | `u` | Global | Sync all servers across all detected clients |
@@ -342,6 +353,18 @@ mcpforge setup github --to freebuff,deepseek,claude-code
 
 # Remove a server across all clients
 mcpforge remove brave-search --all
+
+# Store sensitive API keys or env vars securely (mode 0600 on Unix)
+mcpforge secret set BRAVE_API_KEY "bs-live-secret-key-..."
+
+# Read or inspect a secret value
+mcpforge secret get BRAVE_API_KEY
+
+# List all stored secrets with masked previews
+mcpforge secret list
+
+# Remove a secret key from the store
+mcpforge secret remove BRAVE_API_KEY
 
 # Export multi-client setup to a portable JSON file (with secrets redacted)
 mcpforge export --output my-team-mcp.json

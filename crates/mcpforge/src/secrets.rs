@@ -63,6 +63,18 @@ impl SecretsStore {
         self.secrets.insert(key.into(), value.into());
         self.save()
     }
+
+    pub fn remove(&mut self, key: &str) -> Result<bool> {
+        let removed = self.secrets.remove(key).is_some();
+        if removed {
+            self.save()?;
+        }
+        Ok(removed)
+    }
+
+    pub fn list(&self) -> &BTreeMap<String, String> {
+        &self.secrets
+    }
 }
 
 pub fn redact_secret(val: &str) -> String {
@@ -82,4 +94,40 @@ pub fn is_secret_key(key: &str) -> bool {
         || lower.contains("secret")
         || lower.contains("password")
         || lower.contains("auth")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_redact_secret() {
+        assert_eq!(redact_secret(""), "");
+        assert_eq!(redact_secret("12345"), "••••••••");
+        assert_eq!(redact_secret("123456"), "••••••••");
+        assert_eq!(redact_secret("ghp_1234567890abcdef"), "gh••••ef");
+    }
+
+    #[test]
+    fn test_is_secret_key() {
+        assert!(is_secret_key("GITHUB_TOKEN"));
+        assert!(is_secret_key("API_KEY"));
+        assert!(is_secret_key("CLIENT_SECRET"));
+        assert!(is_secret_key("DB_PASSWORD"));
+        assert!(is_secret_key("AUTH_BEARER"));
+        assert!(!is_secret_key("PORT"));
+        assert!(!is_secret_key("HOST"));
+    }
+
+    #[test]
+    fn test_secrets_store_memory_roundtrip() {
+        let mut store = SecretsStore::default();
+        store.secrets.insert("FOO".to_string(), "bar".to_string());
+        assert_eq!(store.get("FOO"), Some(&"bar".to_string()));
+        assert_eq!(store.list().len(), 1);
+
+        let removed = store.secrets.remove("FOO").is_some();
+        assert!(removed);
+        assert_eq!(store.get("FOO"), None);
+    }
 }

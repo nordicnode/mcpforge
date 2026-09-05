@@ -72,6 +72,11 @@ pub fn render_help(f: &mut Frame) {
             "Toggle between [1] Servers and [2] Clients views",
         ),
         ("  j / k", "Navigate through detected AI client harnesses"),
+        (
+            "  v",
+            "Inspect raw active configuration file in modal viewer",
+        ),
+        ("  m", "Run live cross-compatibility matrix verification"),
         ("  u", "Sync all servers directly into selected client"),
         ("  d / Del / x", "Remove server from selected client"),
         ("  r", "Rescan OS process table for live AI clients"),

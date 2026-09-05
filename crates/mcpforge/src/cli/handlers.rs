@@ -1,15 +1,15 @@
-use crate::cli::{BackupCommands, Commands, PackCommands};
+use crate::cli::{BackupCommands, Commands, PackCommands, SecretCommands};
 use crate::doctor::DoctorReport;
 use crate::provisioner::RuntimeCapabilities;
 use crate::resolver::EnvResolver;
-use crate::secrets::{is_secret_key, redact_secret};
+use crate::secrets::{is_secret_key, redact_secret, SecretsStore};
 use anyhow::{Context, Result};
 use mcp_core::client::{call_server_tool, check_server_health, list_server_tools};
 use mcp_core::types::{Scope, ServerEntry};
 use mcpforge_adapters::{AdapterManager, ConfigLocation, DiscoveryEngine, SchemaVerifier};
 use mcpforge_registry::{find_pack, Registry, SERVER_PACKS};
 use std::collections::BTreeMap;
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 
 pub async fn execute(cmd: Commands) -> Result<()> {
     let manager = AdapterManager::new();
@@ -888,7 +888,7 @@ pub async fn execute(cmd: Commands) -> Result<()> {
         Commands::Watch { sync, interval } => {
             println!("\nMCPFORGE CONFIGURATION WATCHER DAEMON ACTIVE");
             println!(
-                "Monitoring 26 client harnesses across system (polling every {}s)...",
+                "Monitoring 27 client harnesses across system (polling every {}s)...",
                 interval
             );
             println!("Real-time syntax validation, automatic snapshotting, and corruption defense active.");
@@ -986,6 +986,72 @@ pub async fn execute(cmd: Commands) -> Result<()> {
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        Commands::Secret { command } => {
+            let mut store = SecretsStore::load();
+            match command {
+                SecretCommands::Set { key, value } => {
+                    let val = match value {
+                        Some(v) => v,
+                        None => {
+                            print!("Enter value for secret '{}': ", key);
+                            io::stdout().flush()?;
+                            let mut input = String::new();
+                            io::stdin().read_line(&mut input)?;
+                            input.trim().to_string()
+                        }
+                    };
+                    if val.is_empty() {
+                        anyhow::bail!("Secret value cannot be empty");
+                    }
+                    store.set(&key, &val)?;
+                    let preview = redact_secret(&val);
+                    println!("✓ Secret '{}' successfully stored ({})", key, preview);
+                }
+                SecretCommands::Get { key } => match store.get(&key) {
+                    Some(val) => println!("{}", val),
+                    None => {
+                        eprintln!("Secret '{}' not found in store.", key);
+                        std::process::exit(1);
+                    }
+                },
+                SecretCommands::List { json } => {
+                    let secrets = store.list();
+                    if json {
+                        let redacted_map: BTreeMap<String, String> = secrets
+                            .iter()
+                            .map(|(k, v)| (k.clone(), redact_secret(v)))
+                            .collect();
+                        println!("{}", serde_json::to_string_pretty(&redacted_map)?);
+                    } else {
+                        println!("\nMCPFORGE STORED CREDENTIALS & SECRETS");
+                        println!("{:<28} {:<24} {:<12}", "KEY", "PREVIEW", "TYPE");
+                        println!("{}", "-".repeat(66));
+                        if secrets.is_empty() {
+                            println!("  No secrets configured yet. Use 'mcpforge secret set <KEY>' to store one.");
+                        } else {
+                            for (k, v) in secrets {
+                                let kind = if is_secret_key(k) {
+                                    "Sensitive"
+                                } else {
+                                    "Config"
+                                };
+                                println!("{:<28} {:<24} {:<12}", k, redact_secret(v), kind);
+                            }
+                        }
+                        println!();
+                    }
+                }
+                SecretCommands::Remove { key } => {
+                    if store.remove(&key)? {
+                        println!("✓ Removed secret '{}' from store.", key);
+                    } else {
+                        eprintln!("Secret '{}' not found in store.", key);
+                        std::process::exit(1);
                     }
                 }
             }

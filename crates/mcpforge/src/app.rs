@@ -37,6 +37,7 @@ pub enum CurrentView {
     ToolExplorer,
     ToolOutputPager,
     BackupManager,
+    ViewClientConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -191,6 +192,8 @@ pub struct App {
     pub running_processes: std::collections::HashSet<String>,
     pub discovered_clients: Vec<DiscoveredHarness>,
     pub selected_client_index: usize,
+    pub client_config_modal: Option<(String, String)>,
+    pub client_config_scroll: usize,
 }
 
 impl App {
@@ -225,6 +228,8 @@ impl App {
             running_processes,
             discovered_clients,
             selected_client_index: 0,
+            client_config_modal: None,
+            client_config_scroll: 0,
         })
     }
 
@@ -448,6 +453,48 @@ impl App {
 
     pub fn selected_client(&self) -> Option<&DiscoveredHarness> {
         self.discovered_clients.get(self.selected_client_index)
+    }
+
+    pub fn open_client_config_modal(&mut self) {
+        if let Some(client) = self.selected_client() {
+            if let Some(loc) = client.all_locations.iter().find(|l| l.exists) {
+                if let Ok(content) = std::fs::read_to_string(&loc.path) {
+                    self.client_config_modal = Some((loc.path.display().to_string(), content));
+                    self.client_config_scroll = 0;
+                    self.current_view = CurrentView::ViewClientConfig;
+                } else {
+                    self.status_message = Some(format!(
+                        "Could not read configuration at {}",
+                        loc.path.display()
+                    ));
+                }
+            } else {
+                self.status_message = Some(format!(
+                    "No active configuration file on disk for {}",
+                    client.display_name
+                ));
+            }
+        }
+    }
+
+    pub fn close_client_config_modal(&mut self) {
+        self.client_config_modal = None;
+        self.client_config_scroll = 0;
+        self.current_view = CurrentView::Clients;
+    }
+
+    pub fn scroll_client_config_down(&mut self, lines: usize) {
+        if let Some((_, ref content)) = self.client_config_modal {
+            let total = content.lines().count();
+            if total > 0 {
+                self.client_config_scroll =
+                    (self.client_config_scroll + lines).min(total.saturating_sub(1));
+            }
+        }
+    }
+
+    pub fn scroll_client_config_up(&mut self, lines: usize) {
+        self.client_config_scroll = self.client_config_scroll.saturating_sub(lines);
     }
 
     pub fn auto_sync_all(&mut self) -> Result<usize> {
